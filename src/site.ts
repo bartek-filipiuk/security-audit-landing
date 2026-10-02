@@ -8,7 +8,7 @@ export const SITE = {
   authorUrl: "https://devince.dev",
   price: 147,
   // TODO before launch: real payment link (Stripe Payment Link, EasyCart, …). "#" renders a dead button.
-  checkout: "#",
+  checkout: "https://apps.devince.dev/security-audit-skill-do-claude-code",
   // TODO before launch: walkthrough recording. Empty url renders the "in preparation" poster.
   video: { url: "", minutes: 10 },
   // TODO before launch: contact address shown in the footer when set.
