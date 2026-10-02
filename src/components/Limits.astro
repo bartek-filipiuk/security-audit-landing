@@ -4,14 +4,12 @@ const limits = [
   ["Nie daje gwarancji.", "Brak znalezisk nie znaczy, że podatności nie ma. Dlatego raport ma listę „nie sprawdzone”."],
   ["Nie zna Twojej produkcji.", "Limity, proxy i zmienne środowiskowe wypisuje jako rzeczy do sprawdzenia po Twojej stronie."],
   ["Ma słabsze miejsca.", "CSRF, CI/CD i Docker mają dziś niewiele własnych punktów kontrolnych."],
-  ["Kosztuje tokeny.", "Pełny audyt dużego projektu to około dwóch godzin i kilka milionów tokenów. Zakres zawęzisz przez --scope."],
 ];
 ---
-<section class="section band" id="ograniczenia">
-  <div class="wrap split">
+<div class="wrap split limits" id="ograniczenia">
     <div>
-      <h2 class="h2">Czego nie robi</h2>
-      <p class="lead">Wolę, żebyś wiedział to przed zakupem.</p>
+      <h3 class="h3">Czego nie robi</h3>
+      <p class="note">Lepiej wiedzieć to przed zakupem.</p>
     </div>
     <ul>
       {limits.map(([head, text]) => (
@@ -21,10 +19,12 @@ const limits = [
         </li>
       ))}
     </ul>
-  </div>
-</section>
+</div>
 
 <style>
+  .limits { margin-top: clamp(48px, 7vw, 88px); }
+  .h3 { font-size: var(--step-2); font-weight: 700; font-stretch: 108%; }
+  .note { margin-top: 10px; color: var(--ink-2); }
   ul { list-style: none; margin: 0; padding: 0; }
   li { display: grid; grid-template-columns: 20px minmax(0, 1fr); gap: 14px; padding: 16px 0; border-top: 1px solid var(--rule); color: var(--ink-2); }
   li:last-child { border-bottom: 1px solid var(--rule); }

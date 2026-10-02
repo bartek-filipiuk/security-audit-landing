@@ -1,4 +1,5 @@
 ---
+import Limits from "./Limits.astro";
 // Counts match the skill's checklist (90 items).
 const areas = [
   ["Uwierzytelnianie i autoryzacja", 16],
@@ -12,7 +13,7 @@ const areas = [
   ["Nagłówki, CORS, transport", 4],
   ["Limity i nadużycia", 4],
   ["Logowanie i monitoring", 4],
-  ["Dokumentacja a rzeczywistość", 2],
+  ["Zgodność dokumentacji z kodem", 2],
 ] as const;
 const max = 16;
 const always = [
@@ -25,7 +26,7 @@ const stack = ["Next.js App Router", "tRPC", "Hono", "Drizzle", "Better-Auth", "
 <section class="section" id="pokrycie">
   <div class="wrap split">
     <div>
-      <h2 class="h2">Co sprawdza</h2>
+      <h2 class="h2">Co sprawdza, a&nbsp;czego nie</h2>
       <p class="lead">12 obszarów i&nbsp;90 punktów kontrolnych. Każdy punkt kończy się znaleziskiem, obszarem bezpiecznym z&nbsp;dowodem albo wpisem „nie sprawdzone”.</p>
 
       <h3>Przy każdym audycie</h3>
@@ -50,6 +51,7 @@ const stack = ["Next.js App Router", "tRPC", "Hono", "Drizzle", "Better-Auth", "
       ))}
     </ul>
   </div>
+  <Limits />
 </section>
 
 <style>

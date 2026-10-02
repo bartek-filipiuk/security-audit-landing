@@ -8,31 +8,19 @@
       </details>
       <details>
         <summary>Ile kosztuje jeden audyt w&nbsp;tokenach?</summary>
-        <p>Pełny audyt dużego projektu (około 160 punktów wejścia) zużył około 4,8&nbsp;mln tokenów i&nbsp;trwał nieco ponad dwie godziny. Przez API to szacunkowo od kilku do kilkudziesięciu dolarów, zależnie od modelu. Z&nbsp;<code>--scope auth</code> albo <code>--scope top20</code> audytujesz tylko wybrany obszar.</p>
-      </details>
-      <details>
-        <summary>Na jakim stacku działa najlepiej?</summary>
-        <p>Next.js App Router, tRPC, Hono, Drizzle, Better-Auth, AI SDK i&nbsp;Node bez frameworka. Python, PHP, Go, Ruby i&nbsp;Java działają na regułach ogólnych, czyli mniej precyzyjnie.</p>
+        <p>Tokeny zużywasz na własnym koncie Claude. Pełny audyt dużego projektu zużył około 4,8&nbsp;mln tokenów i&nbsp;trwał nieco ponad dwie godziny. Żeby zacząć taniej, uruchom <code>--scope top20</code>: sprawdza tylko 20 najbardziej ryzykownych miejsc.</p>
       </details>
       <details>
         <summary>Czy mój kod gdzieś wychodzi?</summary>
         <p>Skill działa w&nbsp;Twoim Claude Code, na takich samych zasadach jak każda inna praca z&nbsp;kodem. Skan sekretów działa lokalnie i&nbsp;maskuje wartości. Skan zależności wysyła do publicznej bazy podatności nazwy i&nbsp;wersje pakietów. Wyniki trafiają do katalogu <code>.security-audit/</code>, który skill sam dopisuje do <code>.gitignore</code>.</p>
       </details>
       <details>
-        <summary>Czy to zastępuje pentest?</summary>
-        <p>Nie. To audyt kodu: znajduje błędy widoczne w&nbsp;repozytorium i&nbsp;pokazuje, czego nie mógł sprawdzić. Nie testuje działającej produkcji ani infrastruktury.</p>
-      </details>
-      <details>
         <summary>Jak dostanę skill i&nbsp;aktualizacje?</summary>
-        <p>Płacisz kartą przez Stripe na apps.devince.dev. Zaraz potem dostajesz mailem link do pobrania paczki ZIP, ważny 7&nbsp;dni. W&nbsp;środku jest instrukcja instalacji i&nbsp;zaproszenie na Discorda. Gdy wychodzi nowa wersja, dostajesz mailem nowy link.</p>
-      </details>
-      <details>
-        <summary>Jak działa Discord?</summary>
-        <p>To miejsce na pytania o&nbsp;używanie skilla i&nbsp;rozmowy o&nbsp;wynikach. Odpowiadam, kiedy mogę, bez gwarantowanego czasu. Jedna zasada: nie wklejamy kroków ataku ani sekretów ze swoich raportów.</p>
+        <p>Płacisz kartą przez Stripe na apps.devince.dev. Zaraz potem dostajesz mailem link do pobrania paczki ZIP, ważny 7&nbsp;dni. W&nbsp;środku jest instrukcja instalacji i&nbsp;zaproszenie na Discorda. Na Discordzie jedna zasada: nie wklejamy kroków ataku ani sekretów ze swoich raportów. Gdy wychodzi nowa wersja, dostajesz mailem nowy link.</p>
       </details>
       <details>
         <summary>Czy mogę używać go w&nbsp;pracy i&nbsp;u&nbsp;klientów?</summary>
-        <p>Tak. Jest jedna cena i&nbsp;używasz skilla, jak chcesz: we własnych projektach, w&nbsp;pracy i&nbsp;u&nbsp;klientów. Nie odsprzedajesz i&nbsp;nie udostępniasz plików skilla innym.</p>
+        <p>Tak: we własnych projektach, w&nbsp;pracy i&nbsp;u&nbsp;klientów, bez limitu projektów. Nie odsprzedajesz i&nbsp;nie udostępniasz plików skilla innym.</p>
       </details>
     </div>
   </div>

@@ -1,7 +1,12 @@
 ---
+const points = [
+  ["Dowód zamiast przypuszczeń.", "Każde znalezisko ma plik, linię i kroki ataku. Poważne są odtwarzane lokalnie, a raport mówi, które pokazano na żywo, a które wynikają z czytania kodu."],
+  ["Fałszywe alarmy odpadają przed raportem.", "Każde zgłoszenie jest sprawdzane w kodzie drugi raz. W przebiegu z karty odpadło 14, które wyglądały groźnie."],
+  ["Wiesz, czego nie sprawdzono.", "Zamiast „wygląda dobrze” dostajesz listę rzeczy, których audyt nie mógł ocenić. W przebiegu z karty były 43, głównie ustawienia produkcji."],
+];
 const rows = [
   ["projekt", "produkcyjny, Node bez frameworka"],
-  ["punkty wejścia", "ok. 160"],
+  ["miejsca dostępne z zewnątrz", "ok. 160"],
   ["potwierdzone problemy", "39"],
   ["  w tym", "1 wysoki · 11 średnich · 27 niskich"],
   ["  z dowodem uruchomionym lokalnie", "10"],
@@ -12,31 +17,36 @@ const rows = [
   ["tokeny", "ok. 4,8 mln"],
 ];
 ---
-<section class="section band" id="wynik">
+<section class="section" id="wynik">
   <div class="wrap split">
     <div>
-      <h2 class="h2">Sprawdzone na prawdziwym projekcie</h2>
-      <p class="lead">Pełny audyt jednej działającej aplikacji. Bez nazw i&nbsp;szczegółów, same liczby.</p>
-      <p class="body">
-        Najwięcej mówią dwie pozycje. 14 zgłoszeń, które wyglądały groźnie, nie przeszło ponownego sprawdzenia
-        w&nbsp;kodzie i&nbsp;nie trafiło na listę do naprawy. A&nbsp;43 rzeczy raport wypisał wprost jako nie sprawdzone,
-        głównie ustawienia produkcji, których w&nbsp;repozytorium nie widać.
-      </p>
-      <p class="fine">To jeden przebieg na jednym projekcie. Na Twoim liczby będą inne.</p>
+      <h2 class="h2">Czym różni się od zwykłego promptu</h2>
+      <p class="lead">Claude poproszony o&nbsp;„sprawdź bezpieczeństwo” też coś znajdzie. Różnica jest w&nbsp;tym, czemu możesz zaufać.</p>
+      <ul class="points">
+        {points.map(([head, text]) => (
+          <li><strong>{head}</strong> {text}</li>
+        ))}
+      </ul>
     </div>
-    <dl class="run mono" aria-label="Karta przebiegu audytu">
-      {rows.map(([k, v]) => (
-        <div class:list={{ sub: k.startsWith("  ") }}>
-          <dt>{k.trim()}</dt>
-          <dd>{v}</dd>
-        </div>
-      ))}
-    </dl>
+    <div>
+      <dl class="run mono" aria-label="Karta przebiegu audytu">
+        {rows.map(([k, v]) => (
+          <div class:list={{ sub: k.startsWith("  ") }}>
+            <dt>{k.trim()}</dt>
+            <dd>{v}</dd>
+          </div>
+        ))}
+      </dl>
+      <p class="fine">Jeden pełny audyt działającej aplikacji, bez nazw i&nbsp;szczegółów. Na Twoim projekcie liczby będą inne.</p>
+    </div>
   </div>
 </section>
 
 <style>
-  .body { margin-top: 20px; color: var(--ink-2); max-width: 52ch; }
+  .points { list-style: none; margin: 28px 0 0; padding: 0; color: var(--ink-2); max-width: 52ch; }
+  .points li { padding: 16px 0; border-top: 1px solid var(--rule); }
+  .points li:last-child { border-bottom: 1px solid var(--rule); }
+  .points strong { color: var(--ink); font-weight: 650; }
   .fine { margin-top: 14px; }
   .run { margin: 0; font-size: 0.86rem; border-top: 2px solid var(--ink); }
   .run div { display: flex; justify-content: space-between; gap: 20px; padding: 11px 0; border-bottom: 1px dashed var(--rule); }
