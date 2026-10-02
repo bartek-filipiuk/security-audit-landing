@@ -1,0 +1,32 @@
+---
+import { SITE } from "../site";
+const chapters = ["Instalacja", "Pierwsze uruchomienie", "Audyt wybranego obszaru", "Czytanie raportu", "Naprawa pierwszego znaleziska"];
+---
+<section class="section" id="film">
+  <div class="wrap split">
+    <div>
+      <h2 class="h2">Pierwszy audyt krok po kroku</h2>
+      <p class="lead">Nagranie ekranu, około {SITE.video.minutes}&nbsp;minut. Od instalacji do pierwszej naprawionej podatności.</p>
+      <ol>
+        {chapters.map((c) => <li>{c}</li>)}
+      </ol>
+    </div>
+    {SITE.video.url ? (
+      <video class="player" controls preload="none" src={SITE.video.url}></video>
+    ) : (
+      <div class="player poster" role="img" aria-label="Nagranie w przygotowaniu">
+        <svg width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true"><circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="2"/><path d="M26 21v22l18-11z" fill="currentColor"/></svg>
+        <p>Nagranie w&nbsp;przygotowaniu</p>
+      </div>
+    )}
+  </div>
+</section>
+
+<style>
+  ol { margin: 22px 0 0; padding-left: 1.3em; color: var(--ink-2); }
+  ol li { padding: 4px 0; }
+  ol li::marker { font-family: var(--mono); font-size: 0.85em; color: var(--accent-strong); }
+  .player { width: 100%; aspect-ratio: 16 / 9; border-radius: var(--radius); background: var(--ink); display: block; }
+  .poster { display: grid; place-content: center; justify-items: center; gap: 14px; color: #c9cffb; }
+  .poster p { font-size: 0.95rem; color: #98a2bd; }
+</style>

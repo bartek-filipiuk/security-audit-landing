@@ -1,0 +1,48 @@
+---
+const rows = [
+  ["projekt", "produkcyjny, Node bez frameworka"],
+  ["punkty wejścia", "ok. 160"],
+  ["potwierdzone problemy", "39"],
+  ["  w tym", "1 wysoki · 11 średnich · 27 niskich"],
+  ["  z dowodem uruchomionym lokalnie", "10"],
+  ["obszary bezpieczne, z dowodem", "93"],
+  ["fałszywe alarmy odfiltrowane przed raportem", "14"],
+  ["wypisane jako nie sprawdzone", "43"],
+  ["czas", "2 h 11 min"],
+  ["tokeny", "ok. 4,8 mln"],
+];
+---
+<section class="section band" id="wynik">
+  <div class="wrap split">
+    <div>
+      <h2 class="h2">Sprawdzone na prawdziwym projekcie</h2>
+      <p class="lead">Pełny audyt jednej działającej aplikacji. Bez nazw i&nbsp;szczegółów, same liczby.</p>
+      <p class="body">
+        Najwięcej mówią dwie pozycje. 14 zgłoszeń, które wyglądały groźnie, nie przeszło ponownego sprawdzenia
+        w&nbsp;kodzie i&nbsp;nie trafiło na listę do naprawy. A&nbsp;43 rzeczy raport wypisał wprost jako nie sprawdzone,
+        głównie ustawienia produkcji, których w&nbsp;repozytorium nie widać.
+      </p>
+      <p class="fine">To jeden przebieg na jednym projekcie. Na Twoim liczby będą inne.</p>
+    </div>
+    <dl class="run mono" aria-label="Karta przebiegu audytu">
+      {rows.map(([k, v]) => (
+        <div class:list={{ sub: k.startsWith("  ") }}>
+          <dt>{k.trim()}</dt>
+          <dd>{v}</dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</section>
+
+<style>
+  .body { margin-top: 20px; color: var(--ink-2); max-width: 52ch; }
+  .fine { margin-top: 14px; }
+  .run { margin: 0; font-size: 0.86rem; border-top: 2px solid var(--ink); }
+  .run div { display: flex; justify-content: space-between; gap: 20px; padding: 11px 0; border-bottom: 1px dashed var(--rule); }
+  .run dt { color: var(--ink-2); }
+  .run dd { margin: 0; text-align: right; font-weight: 600; }
+  .run .sub dt { padding-left: 2ch; color: var(--ink-3); }
+  .run .sub dd { font-weight: 400; color: var(--ink-2); }
+  .run div:last-child { border-bottom: 2px solid var(--ink); }
+</style>

@@ -1,0 +1,35 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Hero from "../components/Hero.astro";
+import Report from "../components/Report.astro";
+import Usage from "../components/Usage.astro";
+import Proof from "../components/Proof.astro";
+import Coverage from "../components/Coverage.astro";
+import Limits from "../components/Limits.astro";
+import Video from "../components/Video.astro";
+import Pricing from "../components/Pricing.astro";
+import Faq from "../components/Faq.astro";
+import Footer from "../components/Footer.astro";
+import { SITE } from "../site";
+
+// A dead buy button must not ship unnoticed.
+if (import.meta.env.PROD && SITE.checkout === "#") {
+  console.warn("[security-audit-landing] checkout link is a placeholder: set SITE.checkout in src/site.ts before launch.");
+}
+---
+<Base>
+  <Header />
+  <main id="tresc">
+    <Hero />
+    <Report />
+    <Usage />
+    <Proof />
+    <Coverage />
+    <Limits />
+    <Video />
+    <Pricing />
+    <Faq />
+  </main>
+  <Footer />
+</Base>

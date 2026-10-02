@@ -1,0 +1,50 @@
+<section class="section" id="faq">
+  <div class="wrap split">
+    <h2 class="h2">Pytania</h2>
+    <div class="list">
+      <details>
+        <summary>Czego potrzebuję, żeby to uruchomić?</summary>
+        <p>Claude Code z&nbsp;płatnym planem albo kluczem API, Node 20 lub nowszy i&nbsp;docker do skanu zależności i&nbsp;sekretów. Bez dockera audyt też działa, a&nbsp;raport wypisze te dwa sprawdzenia jako niezrobione.</p>
+      </details>
+      <details>
+        <summary>Ile kosztuje jeden audyt w&nbsp;tokenach?</summary>
+        <p>Pełny audyt dużego projektu (około 160 punktów wejścia) zużył około 4,8&nbsp;mln tokenów i&nbsp;trwał nieco ponad dwie godziny. Przez API to szacunkowo od kilku do kilkudziesięciu dolarów, zależnie od modelu. Z&nbsp;<code>--scope auth</code> albo <code>--scope top20</code> audytujesz tylko wybrany obszar.</p>
+      </details>
+      <details>
+        <summary>Na jakim stacku działa najlepiej?</summary>
+        <p>Next.js App Router, tRPC, Hono, Drizzle, Better-Auth, AI SDK i&nbsp;Node bez frameworka. Python, PHP, Go, Ruby i&nbsp;Java działają na regułach ogólnych, czyli mniej precyzyjnie.</p>
+      </details>
+      <details>
+        <summary>Czy mój kod gdzieś wychodzi?</summary>
+        <p>Skill działa w&nbsp;Twoim Claude Code, na takich samych zasadach jak każda inna praca z&nbsp;kodem. Skan sekretów działa lokalnie i&nbsp;maskuje wartości. Skan zależności wysyła do publicznej bazy podatności nazwy i&nbsp;wersje pakietów. Wyniki trafiają do katalogu <code>.security-audit/</code>, który skill sam dopisuje do <code>.gitignore</code>.</p>
+      </details>
+      <details>
+        <summary>Czy to zastępuje pentest?</summary>
+        <p>Nie. To audyt kodu: znajduje błędy widoczne w&nbsp;repozytorium i&nbsp;pokazuje, czego nie mógł sprawdzić. Nie testuje działającej produkcji ani infrastruktury.</p>
+      </details>
+      <details>
+        <summary>Jak dostanę skill i&nbsp;aktualizacje?</summary>
+        <p>Po zakupie dostajesz zaproszenie do prywatnego repozytorium na GitHubie. Aktualizacje pobierasz przez <code>git pull</code>.</p>
+      </details>
+      <details>
+        <summary>Jak działa Discord?</summary>
+        <p>To miejsce na pytania o&nbsp;używanie skilla i&nbsp;rozmowy o&nbsp;wynikach. Odpowiadam, kiedy mogę, bez gwarantowanego czasu. Jedna zasada: nie wklejamy kroków ataku ani sekretów ze swoich raportów.</p>
+      </details>
+      <details>
+        <summary>Czy mogę używać go w&nbsp;pracy i&nbsp;u&nbsp;klientów?</summary>
+        <p>Tak. Jest jedna cena i&nbsp;używasz skilla, jak chcesz: we własnych projektach, w&nbsp;pracy i&nbsp;u&nbsp;klientów.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<style>
+  details { border-top: 1px solid var(--rule); }
+  details:last-child { border-bottom: 1px solid var(--rule); }
+  summary { cursor: pointer; list-style: none; padding: 18px 36px 18px 0; font-weight: 600; font-size: var(--step-1); position: relative; }
+  summary::-webkit-details-marker { display: none; }
+  summary::after { content: ""; position: absolute; right: 6px; top: 50%; width: 10px; height: 10px; border-right: 2px solid var(--ink-2); border-bottom: 2px solid var(--ink-2); transform: translateY(-70%) rotate(45deg); transition: transform 160ms ease-out; }
+  details[open] summary::after { transform: translateY(-30%) rotate(225deg); }
+  summary:hover { color: var(--accent-strong); }
+  details p { padding: 0 0 20px; color: var(--ink-2); max-width: 66ch; }
+</style>

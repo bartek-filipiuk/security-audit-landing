@@ -1,0 +1,49 @@
+---
+const lists = [
+  { key: "fix", name: "Do naprawy", text: "Od najpoważniejszych. Na wierzchu instrukcja naprawy, kroki ataku są zwinięte. Przy poważnych znaleziskach etykieta: pokazane na żywo albo z czytania kodu." },
+  { key: "safe", name: "Jest dobrze", text: "Obszary sprawdzone i bezpieczne. Każdy wskazuje kontrolkę w kodzie, która go chroni, z plikiem i linią." },
+  { key: "gap", name: "Nie sprawdzone", text: "To, czego audyt nie mógł ocenić, na przykład ustawienia produkcji. Brak znalezisk nie udaje tu bezpieczeństwa." },
+];
+---
+<section class="section band" id="raport">
+  <div class="wrap">
+    <h2 class="h2">Raport, z&nbsp;którego wiadomo, co robić</h2>
+    <p class="lead">Trzy listy zamiast ściany tekstu. Każda pozycja prowadzi do pliku i&nbsp;linii.</p>
+
+    <div class="split grid">
+      <div>
+        <dl class="lists">
+          {lists.map((l) => (
+            <div>
+              <dt><i class={`dot ${l.key}`} aria-hidden="true"></i>{l.name}</dt>
+              <dd>{l.text}</dd>
+            </div>
+          ))}
+        </dl>
+        <p class="also">Do tego zależności ze znanymi podatnościami, sekrety znalezione w&nbsp;historii gita i&nbsp;lista zgłoszeń odrzuconych jako fałszywe alarmy.</p>
+        <a class="btn btn-ghost" href="/przykladowy-raport.html" target="_blank" rel="noopener">Otwórz pełny raport</a>
+      </div>
+
+      <div class="frame">
+        <div class="bar"><span class="mono">.security-audit/report.html</span><span>podgląd</span></div>
+        <iframe src="/przykladowy-raport.html" title="Przykładowy raport z audytu aplikacji testowej" loading="lazy" sandbox=""></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .grid { margin-top: clamp(32px, 5vw, 56px); }
+  .lists { margin: 0; display: grid; gap: 22px; }
+  dt { font-weight: 650; font-size: var(--step-1); display: flex; align-items: center; gap: 10px; }
+  dd { margin: 4px 0 0 22px; color: var(--ink-2); }
+  .dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+  .fix { background: var(--crit); } .safe { background: var(--safe); } .gap { background: var(--gap); }
+  .also { margin: 26px 0 24px; padding-top: 22px; border-top: 1px solid var(--rule); color: var(--ink-2); }
+  .frame { border: 1px solid var(--rule); border-radius: var(--radius); overflow: hidden; background: var(--paper); }
+  .bar { display: flex; justify-content: space-between; gap: 12px; padding: 10px 14px; font-size: 0.8rem; color: var(--ink-3); border-bottom: 1px solid var(--rule); background: var(--surface); }
+  iframe { display: block; width: 100%; height: min(72vh, 620px); border: 0; background: #f6f2ea; }
+  @media (max-width: 900px) {
+    iframe { height: 520px; }
+  }
+</style>

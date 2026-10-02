@@ -1,0 +1,112 @@
+---
+import { SITE, zl } from "../site";
+
+// Figures of the sample report (public/przykladowy-raport.html), a synthetic app with seeded bugs.
+const ledger = [
+  { key: "crit", n: 2, label: "2 critical" },
+  { key: "high", n: 5, label: "5 high" },
+  { key: "med", n: 4, label: "4 medium" },
+  { key: "low", n: 1, label: "1 low" },
+  { key: "safe", n: 10, label: "10 verified safe" },
+  { key: "gap", n: 3, label: "3 not assessed" },
+];
+const fixFirst = [
+  { title: "Any self-registered user becomes admin", meta: "critical · demonstrated", loc: "src/lib/auth.ts:27" },
+  { title: "Stripe webhook never verifies the signature", meta: "critical · code reading only", loc: "src/app/api/webhooks/stripe/route.ts:7" },
+  { title: "Server action returns any organization's invoice by id", meta: "high · demonstrated", loc: "src/app/(app)/invoices/actions.ts:10" },
+];
+---
+<section class="hero" id="top">
+  <div class="wrap">
+    <h1>Audyt bezpieczeństwa Twojego kodu. Jedną komendą.</h1>
+
+    <div class="split grid">
+      <div class="pitch">
+        <p class="cmd"><span class="prompt" aria-hidden="true">&gt;</span> /security-audit<span class="caret" aria-hidden="true"></span></p>
+        <p class="lead">
+          Skill do Claude Code, który sprawdza Twoją aplikację i&nbsp;oddaje raport: co naprawić, co jest dobrze
+          i&nbsp;czego nie dało się sprawdzić. Każde znalezisko ma plik, linię i&nbsp;kroki ataku.
+        </p>
+        <div class="cta">
+          <a class="btn btn-primary" href="#cennik">Kup za {zl(SITE.price)}</a>
+          <a class="btn btn-ghost" href="#raport">Zobacz przykładowy raport</a>
+        </div>
+        <p class="fine">Płacisz raz. Tokeny Claude zużywasz na własnym koncie.</p>
+      </div>
+
+      <figure class="sheet">
+        <div class="sheet-head">
+          <span class="mono">.security-audit/report.html</span>
+          <span class="tag">aplikacja testowa</span>
+        </div>
+        <p class="sheet-title">Ledgerly</p>
+        <p class="verdict">12 issues to fix (2 critical, 5 high, 4 medium, 1 low).</p>
+        <p class="secondary">10 areas verified safe · 3 checks not assessed</p>
+        <div class="ledger" role="img" aria-label={ledger.map((l) => l.label).join(", ")}>
+          {ledger.map((l) => <span class={`c-${l.key}`} style={`--n:${l.n}`}></span>)}
+        </div>
+        <ul class="legend">
+          {ledger.map((l) => <li><i class={`c-${l.key}`}></i>{l.label}</li>)}
+        </ul>
+        <p class="label">Fix first</p>
+        <ol class="first">
+          {fixFirst.map((f) => (
+            <li>
+              <div>
+                <strong>{f.title}</strong>
+                <small>{f.meta} · <span class="mono">{f.loc}</span></small>
+              </div>
+            </li>
+          ))}
+        </ol>
+        <figcaption>Fragment raportu z&nbsp;aplikacji testowej z&nbsp;celowo ukrytymi błędami. Raporty są po angielsku, jak kod.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<style>
+  .hero { padding-block: clamp(48px, 7vw, 96px) clamp(56px, 8vw, 104px); }
+  h1 {
+    font-size: var(--step-4); font-weight: 760; font-stretch: 116%;
+    letter-spacing: -0.03em; line-height: 1; max-width: 21ch;
+  }
+  .grid { margin-top: clamp(28px, 4vw, 48px); }
+  .cmd {
+    display: inline-flex; align-items: center; gap: 0.6ch;
+    font: 500 clamp(1.15rem, 2.2vw, 1.5rem) / 1 var(--mono);
+    background: var(--ink); color: #fff; padding: 14px 18px; border-radius: 10px;
+  }
+  .prompt { color: #8f9bff; }
+  .caret { width: 0.6ch; height: 1.15em; background: #8f9bff; margin-left: 0.3ch; }
+  .lead { margin-top: 24px; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+  .fine { margin-top: 16px; max-width: 46ch; }
+
+  /* The report sheet: the page's one object with elevation, and the page's one authored motion. */
+  .sheet {
+    position: relative; margin: 0; background: var(--surface); border-radius: var(--radius);
+    padding: clamp(20px, 3vw, 32px);
+    box-shadow: 0 30px 60px -32px rgba(13, 19, 33, 0.35), 0 4px 12px -4px rgba(13, 19, 33, 0.08);
+  }
+  .sheet-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; color: var(--ink-3); font-size: 0.8rem; }
+  .tag { box-shadow: inset 0 0 0 1px var(--rule); border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+  .sheet-title { font-size: 2rem; font-weight: 740; font-stretch: 112%; letter-spacing: -0.02em; line-height: 1.1; margin-top: 18px; }
+  .verdict { font-size: 1.15rem; font-weight: 500; margin-top: 8px; line-height: 1.35; }
+  .secondary { color: var(--ink-2); font-size: 0.92rem; margin-top: 2px; }
+  .ledger { display: flex; gap: 2px; height: 14px; border-radius: 7px; overflow: hidden; margin-top: 18px; animation: reveal 1100ms cubic-bezier(0.2, 0.7, 0.1, 1) 200ms both; }
+  .ledger span { flex-grow: var(--n); min-width: 6px; }
+  @keyframes reveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+  .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; list-style: none; padding: 0; margin: 10px 0 0; font-size: 0.8rem; color: var(--ink-2); }
+  .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+  .c-crit { background: var(--crit); } .c-high { background: var(--high); } .c-med { background: var(--med); }
+  .c-low { background: var(--low); } .c-safe { background: var(--safe); } .c-gap { background: var(--gap); }
+  .label { font-size: 0.72rem; font-weight: 650; letter-spacing: 0.09em; text-transform: uppercase; color: var(--ink-3); margin-top: 24px; }
+  .first { list-style: none; counter-reset: n; padding: 0; margin: 6px 0 0; }
+  .first li { counter-increment: n; display: grid; grid-template-columns: 1.8rem minmax(0, 1fr); padding: 12px 0; border-top: 1px solid var(--rule); }
+  .first li::before { content: counter(n); font-weight: 740; font-stretch: 112%; font-size: 1.2rem; line-height: 1.2; color: var(--crit); }
+  .first strong { display: block; font-weight: 600; line-height: 1.3; }
+  .first small { display: block; color: var(--ink-3); font-size: 0.8rem; margin-top: 3px; overflow-wrap: anywhere; }
+  figcaption { color: var(--ink-3); font-size: 0.8rem; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--rule); }
+
+</style>

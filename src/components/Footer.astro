@@ -1,0 +1,20 @@
+---
+import { SITE } from "../site";
+---
+<footer>
+  <div class="wrap row">
+    <p class="brand mono"><span>/</span>security-audit</p>
+    <p class="fine">
+      Security Audit to narzędzie, a&nbsp;nie gwarancja bezpieczeństwa.
+      © 2026 <a href={SITE.authorUrl} rel="noopener">{SITE.author}</a>
+      {SITE.contactEmail && <> · <span class="mono">{SITE.contactEmail}</span></>}
+    </p>
+  </div>
+</footer>
+
+<style>
+  footer { border-top: 1px solid var(--rule); padding-block: 28px 40px; }
+  .row { display: flex; flex-wrap: wrap; gap: 10px 32px; align-items: baseline; justify-content: space-between; }
+  .brand { font-weight: 600; }
+  .brand span { color: var(--accent); }
+</style>

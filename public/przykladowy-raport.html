@@ -1,0 +1,361 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-MvG1Y1OXXFh4tBOYtX9sG5URhwYMP8MBEzSXtqOVaCk='; img-src data:">
+<meta name="robots" content="noindex">
+<title>Mock report · Ledgerly</title>
+<style>
+:root {
+  --paper: #f6f2ea; --paper-2: #efe9dd; --ink: #1d1b18; --ink-2: #5b554b; --rule: #d9d1c1;
+  --crit: #a3171d; --high: #cf3a1c; --med: #b7791f; --low: #4f6489; --safe: #1f7a4d; --fixed: #2f6f7e; --gap: #9a9184;
+  --tint-crit: #f3dcd8; --tint-safe: #dcebe1; --tint-gap: #e8e3da; --code: #ebe4d6;
+  /* Darker steps for severity badges that carry text (>= 4.5:1 with --paper); bars and dots keep the brighter ones. */
+  --high-ink: #b8330f; --med-ink: #94590a;
+  --display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Charter, "Bitstream Charter", Georgia, serif;
+  --text: "Avenir Next", "Segoe UI Variable Text", "Segoe UI", "Helvetica Neue", Ubuntu, Cantarell, sans-serif;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #16140f; --paper-2: #1e1b15; --ink: #ece6d8; --ink-2: #a89f8e;
+    --rule: #353025; --crit: #f0695e; --high: #f28c5b; --med: #e0b45a; --low: #8ea5cf; --safe: #5cc28c; --fixed: #6fb6c6; --gap: #8b8377;
+    --tint-crit: #3a1d19; --tint-safe: #17301f; --tint-gap: #29251e; --code: #24201a;
+    --high-ink: #f28c5b; --med-ink: #e0b45a;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { background: var(--paper); }
+body { margin: 0; color: var(--ink); font: 16px/1.55 var(--text); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+::selection { background: var(--crit); color: var(--paper); }
+:focus-visible { outline: 2px solid var(--crit); outline-offset: 3px; border-radius: 4px; }
+a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+code, pre { font-family: var(--mono); font-size: 0.86em; }
+code { background: var(--code); padding: 0.08em 0.35em; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: 0.9rem 1rem; border-radius: 10px; overflow-x: auto; line-height: 1.45; }
+pre code { background: none; padding: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 48px); display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 56px; }
+header { grid-column: 1 / -1; padding: 56px 0 28px; border-bottom: 1px solid var(--rule); }
+header .meta { color: var(--ink-2); font-size: 0.92rem; margin: 0 0 18px; }
+h1 { font: 600 clamp(2.4rem, 5vw, 3.6rem)/1.05 var(--display); letter-spacing: -0.02em; margin: 0 0 22px; }
+.verdict { font: 500 clamp(1.4rem, 2.6vw, 1.9rem)/1.25 var(--display); margin: 0 0 6px; max-width: 34ch; }
+.secondary { color: var(--ink-2); margin: 0 0 26px; }
+.ledger { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: var(--paper-2); gap: 2px; animation: reveal 900ms cubic-bezier(.2,.7,.1,1) 120ms both; }
+.ledger span { flex-grow: var(--n); min-width: 6px; }
+@keyframes reveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@media (prefers-reduced-motion: reduce) { .ledger { animation: none; } }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 12px 0 0; padding: 0; list-style: none; font-size: 0.86rem; color: var(--ink-2); }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; vertical-align: 0; }
+.c-critical { background: var(--crit); } .c-high { background: var(--high); } .c-medium { background: var(--med); } .c-low { background: var(--low); }
+.c-fixed { background: var(--fixed); } .c-safe { background: var(--safe); } .c-gap { background: var(--gap); }
+.scope { margin: 18px 0 0; padding: 10px 14px; background: var(--tint-gap); border-radius: 10px; font-size: 0.92rem; }
+nav { position: sticky; top: 0; align-self: start; padding-top: 28px; }
+nav ol { list-style: none; margin: 0; padding: 0; }
+nav a { display: flex; justify-content: space-between; padding: 6px 0; text-decoration: none; color: var(--ink-2); border-bottom: 1px solid transparent; }
+nav a:hover { color: var(--ink); border-bottom-color: var(--rule); }
+nav b { font-weight: 500; color: var(--ink); }
+main { padding: 28px 0 96px; min-width: 0; }
+h2 { font: 600 1.75rem/1.2 var(--display); letter-spacing: -0.015em; margin: 72px 0 6px; scroll-margin-top: 24px; }
+main > h2:first-child { margin-top: 0; }
+h2 + .lede { color: var(--ink-2); margin: 0 0 22px; max-width: 70ch; }
+h3 { font: 600 0.8rem/1 var(--text); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); margin: 34px 0 10px; }
+.first { counter-reset: n; list-style: none; padding: 0; margin: 0 0 8px; }
+.first li { counter-increment: n; display: grid; grid-template-columns: 2.2rem minmax(0, 1fr); padding: 14px 0; border-top: 1px solid var(--rule); }
+.first li::before { content: counter(n); font: 600 1.5rem/1.1 var(--display); color: var(--crit); }
+.first a { font-weight: 600; text-decoration: none; }
+.first a:hover { text-decoration: underline; }
+.first small { display: block; color: var(--ink-2); margin-top: 2px; }
+.row { border-top: 1px solid var(--rule); }
+.row:last-child { border-bottom: 1px solid var(--rule); }
+.row summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; padding: 14px 4px; cursor: pointer; list-style: none; }
+.row summary::-webkit-details-marker { display: none; }
+.row summary:hover .title { text-decoration: underline; text-decoration-color: var(--rule); }
+.row[open] summary { background: var(--paper-2); }
+.sev { font: 600 0.72rem/1 var(--text); letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 7px; border-radius: 5px; color: var(--paper); }
+.sev-critical .sev { background: var(--crit); } .sev-high .sev { background: var(--high-ink); } .sev-medium .sev { background: var(--med-ink); } .sev-low .sev { background: var(--low); }
+.title { font-weight: 600; flex: 1 1 320px; }
+.loc { font: 0.82rem var(--mono); color: var(--ink-2); flex-basis: 100%; padding-left: 0; overflow-wrap: anywhere; }
+.chip { font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.chip-proof { background: var(--crit); color: var(--paper); }
+.chip-static { box-shadow: inset 0 0 0 1px var(--ink-2); color: var(--ink-2); }
+.chip-warn { background: var(--med-ink); color: var(--paper); }
+.chip-muted { box-shadow: inset 0 0 0 1px var(--gap); color: var(--ink-2); }
+.body { padding: 4px 4px 22px; max-width: 78ch; }
+.body h4 { font: 600 0.78rem/1 var(--text); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); margin: 20px 0 6px; }
+.body p, .body li { margin: 0.3em 0; }
+.body .meta { color: var(--ink-2); font-size: 0.85rem; margin-top: 18px; }
+.good, .gap { list-style: none; padding: 0; margin: 0; }
+.good li, .gap li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 0 12px; padding: 12px 0; border-top: 1px solid var(--rule); }
+.good svg { color: var(--safe); margin-top: 3px; } .gap svg { color: var(--gap); margin-top: 3px; }
+.good .why, .gap .why { color: var(--ink-2); font-size: 0.94rem; display: block; max-width: 72ch; }
+.good code { font-size: 0.8rem; }
+details.cat > summary { cursor: pointer; padding: 10px 0; font-weight: 600; list-style: none; display: flex; justify-content: space-between; border-top: 1px solid var(--rule); }
+details.cat > summary::-webkit-details-marker { display: none; }
+details.cat > summary span { color: var(--safe); font-weight: 500; }
+.band-safe { background: var(--tint-safe); border-radius: 14px; padding: 6px 20px 14px; }
+.band-gap { background: var(--tint-gap); border-radius: 14px; padding: 6px 20px 14px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th { text-align: left; font: 600 0.74rem/1 var(--text); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); padding: 10px 8px; border-bottom: 1px solid var(--rule); }
+td { padding: 9px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+td.mono { font: 0.8rem var(--mono); overflow-wrap: anywhere; }
+td.where { width: 46%; }
+.score { display: inline-block; height: 6px; border-radius: 3px; background: var(--high); vertical-align: middle; margin-right: 8px; }
+.tablewrap { overflow-x: auto; }
+.empty { color: var(--ink-2); padding: 14px 0; border-top: 1px solid var(--rule); }
+footer { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding: 24px 0 48px; color: var(--ink-2); font-size: 0.85rem; }
+@media (max-width: 860px) {
+  .wrap { grid-template-columns: 1fr; gap: 0; }
+  nav { position: static; padding-top: 20px; }
+  nav ol { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  nav a { gap: 6px; min-height: 44px; align-items: center; }
+}
+@media print { nav, .ledger { display: none; } .wrap { display: block; } h2 { break-after: avoid; } .row { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<p class="scope"><strong>Mock report.</strong> Generated by the skill's own renderer from a synthetic benchmark app with seeded bugs. No real project or real data.</p>
+<p class="meta">Security audit · 2026-10-02 · commit c2b3f09</p>
+<h1>Ledgerly</h1>
+<p class="verdict">12 issues to fix (2 critical, 5 high, 4 medium, 1 low).</p>
+<p class="secondary">10 areas verified safe · 3 checks not assessed</p>
+<div class="ledger" role="img" aria-label="2 critical, 5 high, 4 medium, 1 low, 10 verified safe, 3 not assessed"><span class="c-critical" style="--n:2"></span><span class="c-high" style="--n:5"></span><span class="c-medium" style="--n:4"></span><span class="c-low" style="--n:1"></span><span class="c-safe" style="--n:10"></span><span class="c-gap" style="--n:3"></span></div>
+<ul class="legend"><li><i class="c-critical"></i>2 critical</li><li><i class="c-high"></i>5 high</li><li><i class="c-medium"></i>4 medium</li><li><i class="c-low"></i>1 low</li><li><i class="c-safe"></i>10 verified safe</li><li><i class="c-gap"></i>3 not assessed</li></ul>
+
+</header>
+<nav aria-label="Sections"><ol><li><a href="#fix">To fix <b>12</b></a></li><li><a href="#safe">Verified safe <b>10</b></a></li><li><a href="#gaps">Not assessed <b>3</b></a></li><li><a href="#deps">Dependencies <b>5</b></a></li><li><a href="#secrets">Secrets <b>2</b></a></li><li><a href="#filtered">Filtered out <b>3</b></a></li></ol></nav>
+<main>
+<h2 id="fix">To fix</h2>
+<p class="lede">Verified findings, most severe first. “Demonstrated” means the exploit was run against a local instance or test; “code reading only” means it was confirmed by tracing the code.</p>
+<h3>Fix first</h3>
+<ol class="first"><li><div><a href="#auth-101">Any self-registered user becomes admin: Better-Auth <code>additionalFields.role</code> has no <code>input: false</code></a><small>critical · demonstrated · src/lib/auth.ts:27</small></div></li><li><div><a href="#crypto-101">Stripe webhook never verifies the signature: a forged <code>checkout.session.completed</code> grants a paid plan</a><small>critical · code reading only · src/app/api/webhooks/stripe/route.ts:7</small></div></li><li><div><a href="#auth-102"><code>getInvoice</code> server action returns any organization&#39;s invoice by id</a><small>high · demonstrated · src/app/(app)/invoices/actions.ts:10</small></div></li></ol>
+<h3>critical · 2</h3><details class="row sev-critical" id="auth-101">
+<summary><span class="sev">critical</span><span class="title">Any self-registered user becomes admin: Better-Auth <code>additionalFields.role</code> has no <code>input: false</code></span><span class="chip chip-proof">Demonstrated</span><span class="loc">src/lib/auth.ts:27</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Set <code>input: false</code> on <code>role</code> (and every privilege field) in <code>additionalFields</code>; assign roles only through an admin action.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/lib/auth.ts:27</code></li>
+</ul></section>
+
+<section><h4>Exploit steps</h4><ol>
+<li>POST /api/auth/sign-up/email with <code>role: &quot;admin&quot;</code> in the body.</li>
+<li>Verify the e-mail and sign in.</li>
+<li>Open /admin: <code>requireAdmin()</code> passes because <code>session.user.role === &quot;admin&quot;</code>.</li>
+</ol></section>
+<section><h4>Proof</h4><p>$ node --test .security-audit/poc/auth-101-role.test.ts</p>
+<p>ok 1 - sign-up accepts role=admin (session.user.role === &#39;admin&#39;)</p></section>
+
+<p class="meta">auth-101 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-critical" id="crypto-101">
+<summary><span class="sev">critical</span><span class="title">Stripe webhook never verifies the signature: a forged <code>checkout.session.completed</code> grants a paid plan</span><span class="chip chip-static">Code reading only</span><span class="loc">src/app/api/webhooks/stripe/route.ts:7</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Read the raw body and call <code>stripe.webhooks.constructEvent(body, signature, STRIPE_WEBHOOK_SECRET)</code> before any state change; dedupe by <code>event.id</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/api/webhooks/stripe/route.ts:7</code></li>
+</ul></section>
+
+<section><h4>Exploit steps</h4><ol>
+<li>POST /api/webhooks/stripe with a hand-written <code>checkout.session.completed</code> event and <code>metadata.orgId</code> of any organization.</li>
+<li>The handler upserts an active subscription for that organization.</li>
+</ol></section>
+<section><h4>Proof</h4><p>Static: the route has no test harness; the absence of <code>constructEvent</code> is visible at the cited line.</p></section>
+
+<p class="meta">crypto-101 · Cryptography</p>
+</div></details>
+<h3>high · 5</h3><details class="row sev-high" id="auth-102">
+<summary><span class="sev">high</span><span class="title"><code>getInvoice</code> server action returns any organization&#39;s invoice by id</span><span class="chip chip-proof">Demonstrated</span><span class="loc">src/app/(app)/invoices/actions.ts:10</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Call <code>requireOrg()</code> inside the action and filter by <code>eq(invoices.orgId, orgId)</code> in the same statement.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/(app)/invoices/actions.ts:10</code></li>
+</ul></section>
+
+<section><h4>Exploit steps</h4><ol>
+<li>Sign in as a member of organization B.</li>
+<li>Call the <code>getInvoice</code> action (its id is in the client bundle via <code>InvoiceQuickView</code>) with an invoice id from organization A.</li>
+<li>The action returns the full invoice row and its lines.</li>
+</ol></section>
+<section><h4>Proof</h4><p>$ node --test .security-audit/poc/auth-102-getinvoice.test.ts</p>
+<p>ok 1 - member of org B reads org A invoice INV-0042</p></section>
+
+<p class="meta">auth-102 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="auth-103">
+<summary><span class="sev">high</span><span class="title">CSV export takes the organization id from <code>?org=</code>, so any user downloads another tenant&#39;s customers</span><span class="chip chip-static">Code reading only</span><span class="loc">src/app/api/export/route.ts:11</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Ignore <code>?org=</code> or check membership of the requested organization before the query.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/api/export/route.ts:11</code></li>
+</ul></section>
+
+<section><h4>Exploit steps</h4><ol>
+<li>Sign in to any organization.</li>
+<li>GET /api/export?org=&lt;other org id&gt;.</li>
+<li>The response is the other organization&#39;s customer list with e-mails, phones and tax ids.</li>
+</ol></section>
+<section><h4>Proof</h4><p>No runnable harness for the route in this repo (needs Postgres and Better-Auth); confirmed by tracing the handler.</p></section>
+
+<p class="meta">auth-103 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="exposure-101">
+<summary><span class="sev">high</span><span class="title">Public project page serializes the whole database row, including internal notes and the client&#39;s e-mail</span><span class="chip chip-static">Code reading only</span><span class="loc">src/app/p/[slug]/page.tsx:7</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Select only the public columns (<code>columns: { name, description }</code>) and map documents to <code>{ id, filename }</code> before passing props to the client component.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/p/[slug]/page.tsx:7</code></li>
+</ul></section>
+
+<section><h4>Exploit steps</h4><ol>
+<li>Open /p/&lt;slug&gt; of any public project.</li>
+<li>Read the RSC payload in the page source.</li>
+<li>It contains <code>internalNotes</code>, <code>budgetCents</code>, <code>clientContactEmail</code> and every document&#39;s <code>s3Key</code>.</li>
+</ol></section>
+<section><h4>Proof</h4><p>Static: confirmed from the query and the client component&#39;s props type.</p></section>
+
+<p class="meta">exposure-101 · Data exposure &amp; secrets</p>
+</div></details>
+<details class="row sev-high" id="exposure-102">
+<summary><span class="sev">high</span><span class="title">Anthropic API key is shipped to the browser through <code>NEXT_PUBLIC_ANTHROPIC_API_KEY</code></span><span class="chip chip-static">Code reading only</span><span class="loc">src/lib/ai-client.ts:4</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Move the suggestion call to a server route; drop the <code>NEXT_PUBLIC_</code> variable and rotate the key.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/lib/ai-client.ts:4</code></li>
+</ul></section>
+
+<section><h4>Exploit steps</h4><ol>
+<li>Open the assistant page.</li>
+<li>Search the client bundle for <code>NEXT_PUBLIC_ANTHROPIC_API_KEY</code>&#39;s inlined value.</li>
+<li>Use the key against the provider API at the owner&#39;s expense.</li>
+</ol></section>
+<section><h4>Proof</h4><p>Static: Next.js inlines <code>NEXT_PUBLIC_*</code> at build time; the client component imports this module.</p></section>
+
+<p class="meta">exposure-102 · Data exposure &amp; secrets</p>
+</div></details>
+<details class="row sev-high" id="injection-101">
+<summary><span class="sev">high</span><span class="title"><code>integration.testWebhook</code> fetches any URL and returns the response body (SSRF)</span><span class="chip chip-static">Code reading only</span><span class="loc">src/server/trpc/routers/integration.ts:18</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Resolve and block private, loopback and link-local ranges, connect to the resolved address, refuse redirects, and return only the status code.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/server/trpc/routers/integration.ts:18</code></li>
+</ul></section>
+
+<section><h4>Exploit steps</h4><ol>
+<li>Call <code>integration.testWebhook</code> with <code>url: http://169.254.169.254/latest/meta-data/</code>.</li>
+<li>The response contains up to 2 KB of the internal service&#39;s answer.</li>
+</ol></section>
+<section><h4>Proof</h4><p>Static: no outbound network allowed during the audit.</p></section>
+
+<p class="meta">injection-101 · Injection &amp; SSRF</p>
+</div></details>
+<h3>medium · 4</h3><details class="row sev-medium" id="business-logic-101">
+<summary><span class="sev">medium</span><span class="title"><code>unstable_cache</code> key for monthly usage has no organization, so one tenant&#39;s usage is served to all</span><span class="loc">src/server/queries/dashboard.ts:22</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Pass <code>orgId</code> as an argument of the cached function (or include it in the key parts).</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/server/queries/dashboard.ts:22</code></li>
+</ul></section>
+
+<section><h4>Exploit steps</h4><ol>
+<li>Organization A opens the dashboard; the usage query is cached under <code>[&quot;usage-month&quot;]</code>.</li>
+<li>Organization B opens its dashboard within 10 minutes and sees A&#39;s usage.</li>
+</ol></section>
+
+
+<p class="meta">business-logic-101 · Business logic</p>
+</div></details>
+<details class="row sev-medium" id="config-101">
+<summary><span class="sev">medium</span><span class="title">Public API reflects any Origin with credentials while session cookies are <code>SameSite=None</code></span><span class="loc">src/server/api/index.ts:14</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Use an origin allow-list for the widget and keep session cookies <code>SameSite=Lax</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/server/api/index.ts:14</code></li>
+</ul></section>
+
+<section><h4>Exploit steps</h4><ol>
+<li>A page on any site calls fetch(&#39;https://app/api/public/invoices&#39;, { credentials: &#39;include&#39; }).</li>
+<li>The browser sends the session cookie and the page reads the response.</li>
+</ol></section>
+
+
+<p class="meta">config-101 · Headers, CORS &amp; configuration</p>
+</div></details>
+<details class="row sev-medium" id="injection-102">
+<summary><span class="sev">medium</span><span class="title">AI tool <code>searchInvoices</code> lets the model choose the organization id</span><span class="loc">src/server/ai/tools.ts:13</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Remove <code>orgId</code> from the tool schema and use <code>ctx.orgId</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/server/ai/tools.ts:13</code></li>
+</ul></section>
+
+<section><h4>Exploit steps</h4><ol>
+<li>Ask the assistant to search invoices in organization &lt;other id&gt;, or plant that request in a document the model reads.</li>
+<li>The tool queries the other organization&#39;s invoices and customer e-mails.</li>
+</ol></section>
+
+
+<p class="meta">injection-102 · Injection &amp; SSRF</p>
+</div></details>
+<details class="row sev-medium" id="upload-101">
+<summary><span class="sev">medium</span><span class="title">Presigned upload uses the object key and content type from the request body</span><span class="loc">src/app/api/uploads/route.ts:21</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Build the key on the server from the session&#39;s org and a random id; allow-list content types.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/api/uploads/route.ts:21</code></li>
+</ul></section>
+
+<section><h4>Exploit steps</h4><ol>
+<li>POST /api/uploads with <code>key: orgs/&lt;other org&gt;/projects/&lt;id&gt;/report.pdf</code>.</li>
+<li>PUT to the returned URL overwrites the other organization&#39;s file.</li>
+</ol></section>
+
+
+<p class="meta">upload-101 · File upload &amp; storage</p>
+</div></details>
+<h3>low · 1</h3><details class="row sev-low" id="dependency-101">
+<summary><span class="sev">low</span><span class="title"><code>hono</code> 4.12.25 has published advisories</span><span class="loc">pnpm-lock.yaml:1</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Upgrade <code>hono</code> to the fixed version listed below.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>pnpm-lock.yaml:1</code></li>
+</ul></section>
+
+<section><h4>Exploit steps</h4><ol>
+<li>None of them is used on a reachable path except CORS, covered by config-101.</li>
+</ol></section>
+
+
+<p class="meta">dependency-101 · Dependencies</p>
+</div></details>
+
+
+
+<h2 id="safe">Verified safe</h2>
+<p class="lede">Areas the audit examined and found protected, each with the control that protects it.</p>
+<div class="band-safe"><details class="cat" open><summary>Authentication &amp; authorization <span>4</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Invoice list and detail in the tRPC router<span class="why">Both procedures filter by <code>ctx.orgId</code> from <code>orgProcedure</code>. · <code>src/server/trpc/routers/invoice.ts:22</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Document download<span class="why">The document is looked up by id and <code>orgId</code> before presigning. · <code>src/app/api/documents/[id]/download/route.ts:17</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Project actions<span class="why"><code>getProject</code> and <code>deleteProject</code> scope by <code>orgId</code> in the statement. · <code>src/app/(app)/projects/actions.ts:12</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Login redirect<span class="why"><code>next</code> must start with a single <code>/</code>. · <code>src/components/login-form.tsx:20</code></span></div></li></ul></details><details class="cat" open><summary>Cryptography <span>2</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>API key storage and comparison<span class="why">Keys are stored as sha256 and compared with <code>timingSafeEqual</code>. · <code>src/server/api/keys.ts:15</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Resend webhook signature<span class="why">svix verifies the raw body before any write. · <code>src/app/api/webhooks/resend/route.ts:12</code></span></div></li></ul></details><details class="cat"><summary>Injection &amp; SSRF <span>2</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>SQL construction<span class="why">All queries are Drizzle builders with bound values. · <code>src/db/index.ts:7</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Exchange-rate fetch<span class="why">Host is constant and the currency is allow-listed. · <code>src/server/services/rates.ts:4</code></span></div></li></ul></details><details class="cat"><summary>Business logic <span>1</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Org stats cache<span class="why"><code>getOrgStats</code> takes <code>orgId</code> as an argument, so it is part of the key. · <code>src/server/queries/dashboard.ts:7</code></span></div></li></ul></details><details class="cat"><summary>Data exposure &amp; secrets <span>1</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Analytics key<span class="why">The PostHog project key is public by design. · <code>src/lib/analytics.ts:9</code></span></div></li></ul></details></div>
+
+<h2 id="gaps">Not assessed</h2>
+<p class="lede">Nobody checked these. They are unknown, not safe.</p>
+<div class="band-gap"><ul class="gap"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>Production cookie domain and proxy headers</strong><span class="why">Deployment settings are not in the repository · config</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>Container base image</strong><span class="why">No Dockerfile in the repository · dependency</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>Limits under load against a running instance</strong><span class="why">The audit does not start servers with production settings · rate-limit</span></div></li></ul></div>
+
+<h2 id="deps">Dependencies</h2>
+<p class="lede">Packages with known vulnerabilities in the lockfile.</p>
+<div class="tablewrap"><table><thead><tr><th>Package</th><th>Version</th><th>Scope</th><th>CVSS</th><th>Fixed in</th><th>Advisories</th></tr></thead><tbody><tr><td><strong>next</strong></td><td class="mono">16.3.0</td><td>prod (direct)</td><td>9.5</td><td class="mono">15.5.24, 16.3.3, 16.3.6</td><td class="mono">GHSA-2xp9-vwfh-vxw4, GHSA-p293-qw3h-jr36, GHSA-vcvr-r3jv-pc5j</td></tr><tr><td><strong>sharp</strong></td><td class="mono">0.34.5</td><td>unknown</td><td>8.9</td><td class="mono">0.35.0, 0.35.4</td><td class="mono">GHSA-f88m-g3jw-g9cj, GHSA-rgj7-g3m4-5g8c</td></tr><tr><td><strong>postcss</strong></td><td class="mono">8.4.31</td><td>unknown</td><td>7.5</td><td class="mono">8.5.12, 8.5.23, 8.5.10, 8.5.18</td><td class="mono">GHSA-6g55-p6wh-862q, GHSA-fxqj-rqcc-2cmp, GHSA-qx2v-qp2m-jg93, GHSA-r28c-9q8g-f849</td></tr><tr><td><strong>hono</strong></td><td class="mono">4.12.25</td><td>prod (direct)</td><td>6.5</td><td class="mono">4.12.34, 4.13.5, 4.12.27, 4.13.7</td><td class="mono">GHSA-54fx-42gc-7vw4, GHSA-79qm-7rj5-m7r9, GHSA-8j4g-w8fx-2239, GHSA-crvj-82cr-hjcx +7</td></tr><tr><td><strong>vitest</strong></td><td class="mono">4.1.8</td><td>dev (direct)</td><td>5.9</td><td class="mono">4.1.11, 5.0.0-rc.2</td><td class="mono">GHSA-82fw-gwwq-j7x9</td></tr></tbody></table></div>
+
+<h2 id="secrets">Secrets</h2>
+<p class="lede">Found across the whole git history. Values are redacted; anything real that was ever committed must be rotated.</p>
+<div class="tablewrap"><table><thead><tr><th>Rule</th><th>Where</th><th>Commit</th><th>Still in tree</th></tr></thead><tbody><tr><td>stripe-access-token</td><td class="mono">.env:4</td><td class="mono">24b5320 2026-05-04</td><td>no (history only)</td></tr><tr><td>generic-api-key</td><td class="mono">.env:3</td><td class="mono">24b5320 2026-05-04</td><td>no (history only)</td></tr></tbody></table></div>
+
+<h2 id="filtered">Filtered out</h2>
+<p class="lede">Candidates rejected after a second check of the code. Kept for the record; none of them needs action.</p>
+<div class="tablewrap"><table><thead><tr><th>Finding</th><th>Reason</th></tr></thead><tbody><tr><td><code>deleteProject</code> lacks an ownership check<br><span class="mono">auth-104</span></td><td>best_practice</td></tr><tr><td>Resend webhook accepts unsigned events<br><span class="mono">crypto-102</span></td><td>no_evidence</td></tr><tr><td>PostHog key is public<br><span class="mono">exposure-103</span></td><td>best_practice</td></tr></tbody></table></div>
+</main>
+<footer>Sample report from a synthetic app with seeded bugs. Real reports contain exploit steps for open issues and stay private.</footer>
+</div>
+<script>addEventListener("beforeprint",()=>document.querySelectorAll("details").forEach((d)=>d.open=true));</script>
+</body>
+</html>
