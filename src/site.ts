@@ -3,7 +3,7 @@ export const SITE = {
   name: "Security Audit",
   title: "Security Audit · skill do Claude Code",
   description:
-    "Skill do Claude Code, który sprawdza bezpieczeństwo Twojego kodu i oddaje raport: co naprawić, co jest dobrze i czego nie dało się sprawdzić. Każde znalezisko ma plik, linię i kroki ataku.",
+    "Skill do Claude Code, który sprawdza bezpieczeństwo Twojego kodu i oddaje raport: co naprawić, co jest dobrze i czego nie dało się sprawdzić. Każde znalezisko ma plik, linię i opis skutku.",
   author: "Bartek Filipiuk",
   authorUrl: "https://devince.dev",
   price: 147,

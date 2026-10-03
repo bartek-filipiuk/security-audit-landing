@@ -11,9 +11,9 @@ const ledger = [
   { key: "gap", n: 3, label: "3 not assessed" },
 ];
 const fixFirst = [
-  { title: "Any self-registered user becomes admin", meta: "critical · demonstrated", loc: "src/lib/auth.ts:27" },
+  { title: "Any self-registered user becomes admin", meta: "critical · failing test", loc: "src/lib/auth.ts:27" },
   { title: "Stripe webhook never verifies the signature", meta: "critical · code reading only", loc: "src/app/api/webhooks/stripe/route.ts:7" },
-  { title: "Server action returns any organization's invoice by id", meta: "high · demonstrated", loc: "src/app/(app)/invoices/actions.ts:10" },
+  { title: "Server action returns any organization's invoice by id", meta: "high · failing test", loc: "src/app/(app)/invoices/actions.ts:10" },
 ];
 ---
 <section class="hero" id="top">
@@ -25,7 +25,7 @@ const fixFirst = [
         <p class="cmd"><span class="prompt" aria-hidden="true">&gt;</span> /security-audit<span class="caret" aria-hidden="true"></span></p>
         <p class="lead">
           Skill do Claude Code, który sprawdza Twoją aplikację i&nbsp;oddaje raport: co naprawić, co jest dobrze
-          i&nbsp;czego nie dało się sprawdzić. Każde znalezisko ma plik, linię i&nbsp;kroki ataku.
+          i&nbsp;czego nie dało się sprawdzić. Każde znalezisko ma plik, linię i&nbsp;opis skutku.
         </p>
         <div class="cta">
           <a class="btn btn-primary" href="#cennik">Kup za {zl(SITE.price)}</a>
