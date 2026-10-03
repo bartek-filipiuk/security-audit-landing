@@ -8,6 +8,8 @@ export const LANES: Lane[] = [
     items: [
       { id: "R01", name: "Audyt przyrostowy", code: "--since <commit>", value: "Audytowane są tylko wejścia, których kod zmienił się od ostatniego audytu albo od wskazanego commita. Reszta raportu przenosi się z poprzedniego przebiegu.", done: "Ponowny audyt małej zmiany na aplikacji testowej kosztuje ułamek pełnego, w tokenach i minutach." },
       { id: "R02", name: "Profil Supabase i Firebase", value: "Reguły RLS, polityki storage, klucze service-role w kliencie, reguły Firestore. Najczęstszy stack obok Next.js.", done: "Profil ma własną aplikację testową z ukrytymi błędami i wynik na niej." },
+      { id: "R19", name: "Instalacja jedną komendą", value: "Komenda z maila pobiera paczkę, sprawdza archiwum i układa skill oraz mod w ~/.claude/skills. Bez rozpakowywania i kopiowania folderów.", done: "Od maila do /security-audit jedną komendą; instalator odrzuca zmienione archiwum." },
+      { id: "R20", name: "Zakup z terminala", value: "Jedna komenda otwiera płatność, czeka na jej potwierdzenie i instaluje. Napisane tak, żeby kolejny produkt użył tego samego bez zmian.", done: "Przebieg działa od końca do końca na zakupie testowym." },
       { id: "R03", name: "Dokładniejsza ocena benchmarku", value: "Dopasowanie znalezisk do klucza odpowiedzi po pliku i linii, nie po słowach kluczowych.", done: "Każde dopasowanie na aplikacji testowej jest dokładne." },
     ],
   },
