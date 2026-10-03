@@ -3,23 +3,24 @@ import "@fontsource-variable/archivo/wdth.css";
 import "@fontsource-variable/jetbrains-mono";
 import "../styles/global.css";
 import { SITE } from "../site";
+const { title = SITE.title, description = SITE.description } = Astro.props;
 ---
 <!doctype html>
 <html lang="pl">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{SITE.title}</title>
-    <meta name="description" content={SITE.description} />
-    <meta property="og:title" content={SITE.title} />
-    <meta property="og:description" content={SITE.description} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
     <meta property="og:image" content={new URL("/og.png", Astro.site)} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="canonical" href={Astro.site} />
-    <meta property="og:url" content={Astro.site} />
+    <link rel="canonical" href={new URL(Astro.url.pathname, Astro.site)} />
+    <meta property="og:url" content={new URL(Astro.url.pathname, Astro.site)} />
     <meta property="og:locale" content="pl_PL" />
     <meta name="theme-color" content="#f5f6f9" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />

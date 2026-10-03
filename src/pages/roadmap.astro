@@ -1,0 +1,79 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { LANES, DONE } from "../roadmap";
+const title = "Roadmapa · Security Audit";
+const description = "Co dalej w skillu security-audit: nowe stacki, narzędzia deterministyczne, tańsze audyty. Bez dat, z kryterium gotowości przy każdej pozycji.";
+---
+<Base title={title} description={description}>
+  <Header />
+  <main id="tresc">
+    <section class="section">
+      <div class="wrap">
+        <h1 class="h2">Roadmapa</h1>
+        <p class="lead">Bez dat. Każda pozycja ma jedno zdanie o&nbsp;tym, co zyskujesz, i&nbsp;jedno o&nbsp;tym, po czym poznamy, że jest gotowa. Nowe wersje dostajesz mailem jako aktualizacje.</p>
+        <p class="rules">Trzy zasady: profil dla stacku wychodzi dopiero z&nbsp;własną aplikacją testową i&nbsp;wynikiem na niej; wynik narzędzia deterministycznego jest kandydatem dla audytora, nigdy znaleziskiem bez weryfikacji w&nbsp;kodzie; nic w&nbsp;skillu nie opisuje ani nie symuluje ataków.</p>
+      </div>
+    </section>
+    <section class="section band lanes-section">
+      <div class="wrap lanes">
+        {LANES.map((lane) => (
+          <div class={`lane lane-${lane.key}`}>
+            <h2>{lane.name} <span class="note">{lane.note}</span></h2>
+            <ol>
+              {lane.items.map((it) => (
+                <li>
+                  <span class="id mono">{it.id}</span>
+                  <h3>{it.name}{it.code && <> <code class="flag">{it.code}</code></>}</h3>
+                  <p>{it.value}</p>
+                  {it.done && <p class="done"><b>Gotowe, gdy:</b> {it.done}</p>}
+                </li>
+              ))}
+            </ol>
+          </div>
+        ))}
+      </div>
+    </section>
+    <section class="section">
+      <div class="wrap">
+        <h2 class="h2 small">Zrobione</h2>
+        <dl class="versions">
+          {DONE.map((v) => (
+            <div>
+              <dt><span class="mono">{v.version}</span><span class="date">{v.date}</span></dt>
+              <dd>{v.text}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .rules { margin-top: 20px; color: var(--ink-2); max-width: 70ch; }
+  .lanes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(20px, 3vw, 36px); align-items: start; }
+  .lane h2 { font-size: var(--step-1); font-weight: 700; font-stretch: 108%; padding-bottom: 12px; border-bottom: 2px solid var(--ink); }
+  .lane-now h2 { border-color: var(--accent); }
+  .note { display: block; font-size: var(--step--1); font-weight: 400; color: var(--ink-3); margin-top: 2px; }
+  ol { list-style: none; margin: 0; padding: 0; }
+  li { padding: 16px 0; border-bottom: 1px solid var(--rule); }
+  .id { font-size: 0.78rem; color: var(--accent-strong); }
+  h3 { font-size: var(--step-0); font-weight: 650; margin-top: 4px; }
+  li p { color: var(--ink-2); font-size: var(--step--1); line-height: 1.5; margin-top: 6px; }
+  .flag { white-space: nowrap; font-size: 0.85em; }
+  .done { color: var(--ink-3); }
+  .done b { font-weight: 600; color: var(--ink-2); }
+  .lane-ideas li p { color: var(--ink-3); }
+  .small { font-size: var(--step-2); }
+  .versions { margin: 20px 0 0; max-width: 72ch; }
+  .versions div { display: grid; grid-template-columns: 11ch minmax(0, 1fr); gap: 16px; padding: 14px 0; border-top: 1px solid var(--rule); }
+  .versions div:last-child { border-bottom: 1px solid var(--rule); }
+  .versions dt { font-weight: 600; }
+  .date { display: block; font-size: var(--step--1); color: var(--ink-3); font-weight: 400; margin-top: 2px; }
+  .versions dd { margin: 0; color: var(--ink-2); }
+  @media (max-width: 1000px) { .lanes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 600px) { .lanes { grid-template-columns: minmax(0, 1fr); } .versions div { grid-template-columns: minmax(0, 1fr); gap: 4px; } }
+</style>
