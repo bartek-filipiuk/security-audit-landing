@@ -3,6 +3,8 @@ import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
 import Hero from "../components/Hero.astro";
 import Report from "../components/Report.astro";
+import Phases from "../components/Phases.astro";
+import Video from "../components/Video.astro";
 import Usage from "../components/Usage.astro";
 import Proof from "../components/Proof.astro";
 import Coverage from "../components/Coverage.astro";
@@ -21,9 +23,11 @@ if (import.meta.env.PROD && SITE.checkout === "#") {
   <main id="tresc">
     <Hero />
     <Report />
+    <Phases />
     <Proof />
     <Usage />
     <Coverage />
+    <Video />
     <Pricing />
     <Faq />
   </main>

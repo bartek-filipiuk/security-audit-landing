@@ -7,10 +7,8 @@ export const SITE = {
   author: "Bartek Filipiuk",
   authorUrl: "https://devince.dev",
   price: 147,
-  // TODO before launch: real payment link (Stripe Payment Link, EasyCart, …). "#" renders a dead button.
   checkout: "https://apps.devince.dev/security-audit-skill-do-claude-code",
-  // TODO before launch: walkthrough recording. Empty url renders the "in preparation" poster.
-  video: { url: "", minutes: 10 },
+  video: { url: "/film/pelny-przebieg.mp4", poster: "/film/pelny-przebieg.jpg", minutes: 5 },
   // TODO before launch: contact address shown in the footer when set.
   contactEmail: "",
 };

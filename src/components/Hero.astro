@@ -1,19 +1,19 @@
 ---
 import { SITE, zl } from "../site";
 
-// Figures of the sample report (public/przykladowy-raport.html), a synthetic app with seeded bugs.
+// Figures of the real report in public/przykladowy-raport.html: one full run on Ledgerly, the test app with 16 seeded bugs.
 const ledger = [
   { key: "crit", n: 2, label: "2 critical" },
-  { key: "high", n: 5, label: "5 high" },
-  { key: "med", n: 4, label: "4 medium" },
-  { key: "low", n: 1, label: "1 low" },
-  { key: "safe", n: 10, label: "10 verified safe" },
-  { key: "gap", n: 3, label: "3 not assessed" },
+  { key: "high", n: 14, label: "14 high" },
+  { key: "med", n: 8, label: "8 medium" },
+  { key: "low", n: 3, label: "3 low" },
+  { key: "safe", n: 23, label: "23 verified safe" },
+  { key: "gap", n: 7, label: "7 not assessed" },
 ];
 const fixFirst = [
-  { title: "Any self-registered user becomes admin", meta: "critical · failing test", loc: "src/lib/auth.ts:27" },
-  { title: "Stripe webhook never verifies the signature", meta: "critical · code reading only", loc: "src/app/api/webhooks/stripe/route.ts:7" },
-  { title: "Server action returns any organization's invoice by id", meta: "high · failing test", loc: "src/app/(app)/invoices/actions.ts:10" },
+  { title: "Public project pages let any account read and overwrite other organizations' data", meta: "critical · code reading only", loc: "src/app/p/[slug]/page.tsx:7" },
+  { title: "next 16.3.0 has an unauthenticated RCE advisory reachable through image config", meta: "critical · code reading only", loc: "pnpm-lock.yaml:238" },
+  { title: "Admin stats API has no authentication", meta: "high · failing test", loc: "src/app/api/admin/stats/route.ts:5" },
 ];
 ---
 <section class="hero" id="top">
@@ -27,6 +27,11 @@ const fixFirst = [
           Skill do Claude Code, który sprawdza Twoją aplikację i&nbsp;oddaje raport: co naprawić, co jest dobrze
           i&nbsp;czego nie dało się sprawdzić. Każde znalezisko ma plik, linię i&nbsp;opis skutku.
         </p>
+        <ul class="stats" aria-label="Wynik na aplikacji testowej">
+          <li><b>16/16</b><span>ukrytych błędów znalezionych</span></li>
+          <li><b>0</b><span>fałszywych alarmów</span></li>
+          <li><b>32 min</b><span>od komendy do raportu</span></li>
+        </ul>
         <div class="cta">
           <a class="btn btn-primary" href="#cennik">Kup za {zl(SITE.price)}</a>
           <a class="btn btn-ghost" href="#raport">Zobacz przykładowy raport</a>
@@ -40,8 +45,8 @@ const fixFirst = [
           <span class="tag">aplikacja testowa</span>
         </div>
         <p class="sheet-title">Ledgerly</p>
-        <p class="verdict">12 issues to fix (2 critical, 5 high, 4 medium, 1 low).</p>
-        <p class="secondary">10 areas verified safe · 3 checks not assessed</p>
+        <p class="verdict">27 issues to fix (2 critical, 14 high, 8 medium, 3 low).</p>
+        <p class="secondary">23 areas verified safe · 7 checks not assessed</p>
         <div class="ledger" role="img" aria-label={ledger.map((l) => l.label).join(", ")}>
           {ledger.map((l) => <span class={`c-${l.key}`} style={`--n:${l.n}`}></span>)}
         </div>
@@ -59,7 +64,7 @@ const fixFirst = [
             </li>
           ))}
         </ol>
-        <figcaption>Przykładowy raport dla aplikacji testowej z&nbsp;celowo ukrytymi błędami. Raporty są po angielsku, jak kod.</figcaption>
+        <figcaption>Fragment prawdziwego raportu z&nbsp;aplikacji testowej z&nbsp;16 celowo ukrytymi błędami. Raporty są po angielsku, jak kod.</figcaption>
       </figure>
     </div>
   </div>
@@ -80,6 +85,9 @@ const fixFirst = [
   .prompt { color: #8f9bff; }
   .caret { width: 0.6ch; height: 1.15em; background: #8f9bff; margin-left: 0.3ch; }
   .lead { margin-top: 24px; }
+  .stats { list-style: none; margin: 26px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px 32px; }
+  .stats b { display: block; font-size: var(--step-3); font-weight: 760; font-stretch: 112%; letter-spacing: -0.03em; line-height: 1; }
+  .stats span { display: block; margin-top: 6px; font-size: var(--step--1); color: var(--ink-3); }
   .cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
   .fine { margin-top: 16px; max-width: 46ch; }
 

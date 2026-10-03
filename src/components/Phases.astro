@@ -1,0 +1,43 @@
+---
+import { SITE } from "../site";
+const phases = [
+  ["Wstępny skan", "Lista miejsc dostępnych z zewnątrz i ranking ryzyka. Zależności sprawdzane w publicznej bazie znanych podatności (CVE), sekrety szukane w całej historii gita."],
+  ["Mapa aplikacji", "Stack, punkty wejścia i gdzie naprawdę sprawdzane są uprawnienia. Każdy wpis to twierdzenie do zweryfikowania w kodzie."],
+  ["Audyt po obszarach", "Równolegle, 12 obszarów i 90 punktów kontrolnych, od najbardziej ryzykownych miejsc. Każdy punkt kończy się znaleziskiem, obszarem bezpiecznym z dowodem albo wpisem „nie sprawdzone”."],
+  ["Niezależna weryfikacja", "Osobny przebieg czyta kod drugi raz, śledzi dane od wejścia do użycia, odrzuca fałszywe alarmy i łączy znaleziska w łańcuchy. Przy poważnych pisze test regresji, który dziś nie przechodzi."],
+  ["Raport i testy", "Ocena testów projektu, lista działań w kolejności i raport HTML: do naprawy, bezpieczne z dowodem, nie sprawdzone."],
+];
+---
+<section class="section" id="przebieg">
+  <div class="wrap">
+    <h2 class="h2">Jak przebiega audyt</h2>
+    <p class="lead">Pięć faz, każda zostawia pliki, z&nbsp;których składa się raport. Obok zapis prawdziwego przebiegu: 32 minuty w&nbsp;niecałe dwie.</p>
+    <div class="split grid">
+      <ol class="phases">
+        {phases.map(([name, text], i) => (
+          <li>
+            <span class="n mono">{String(i).padStart(2, "0")}</span>
+            <div><h3>{name}</h3><p>{text}</p></div>
+          </li>
+        ))}
+      </ol>
+      <figure class="clip">
+        <video controls preload="none" playsinline poster="/film/zajawka.jpg" src="/film/zajawka.mp4" aria-label="Zajawka: przebieg audytu aplikacji testowej, przyspieszony"></video>
+        <figcaption>Aplikacja testowa z&nbsp;16 ukrytymi błędami. Nagranie przyspieszone, bez cięć w&nbsp;treści. Pełna wersja niżej.</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<style>
+  .phases { list-style: none; margin: 0; padding: 0; }
+  .phases li { display: grid; grid-template-columns: 3ch minmax(0, 1fr); gap: 16px; padding: 18px 0; border-top: 1px solid var(--rule); }
+  .phases li:last-child { border-bottom: 1px solid var(--rule); }
+  .n { color: var(--accent-strong); font-size: 0.9rem; padding-top: 5px; }
+  h3 { font-size: var(--step-1); font-weight: 700; font-stretch: 108%; letter-spacing: -0.01em; }
+  .phases p { color: var(--ink-2); margin-top: 6px; max-width: 48ch; }
+  .clip { margin: 0; position: sticky; top: 90px; }
+  video { width: 100%; aspect-ratio: 1840 / 760; border-radius: var(--radius); background: var(--ink); display: block; box-shadow: 0 1px 2px rgba(13, 19, 33, 0.08), 0 12px 32px rgba(13, 19, 33, 0.12); }
+  figcaption { color: var(--ink-3); font-size: var(--step--1); margin-top: 12px; }
+  @media (max-width: 900px) { .clip { position: static; } }
+</style>

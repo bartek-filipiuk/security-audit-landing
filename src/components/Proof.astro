@@ -1,23 +1,23 @@
 ---
 const points = [
   ["Dowód zamiast przypuszczeń.", "Każde znalezisko ma plik, linię i opis skutku: kto może zrobić to, czego nie powinien. Przy poważnych powstaje test regresji, który dziś nie przechodzi, a raport mówi, które potwierdzono testem, a które czytaniem kodu."],
-  ["Fałszywe alarmy odpadają przed raportem.", "Każde zgłoszenie jest sprawdzane w kodzie drugi raz. W przebiegu z karty odpadło 14, które wyglądały groźnie."],
-  ["Wiesz, czego nie sprawdzono.", "Zamiast „wygląda dobrze” dostajesz listę rzeczy, których audyt nie mógł ocenić. W przebiegu z karty były 43, głównie ustawienia produkcji."],
+  ["Fałszywe alarmy odpadają przed raportem.", "Każde zgłoszenie jest sprawdzane w kodzie drugi raz. W przebiegu z karty odpadło 6, a żadna z 8 pułapek (bezpieczny kod, który wygląda podejrzanie) nie trafiła do raportu."],
+  ["Wiesz, czego nie sprawdzono.", "Zamiast „wygląda dobrze” dostajesz listę rzeczy, których audyt nie mógł ocenić. W przebiegu z karty było ich 7; na projekcie produkcyjnym ze 160 wejściami było ich 43, głównie ustawienia produkcji."],
 ];
 const rows = [
-  ["projekt", "produkcyjny, Node bez frameworka"],
-  ["miejsca dostępne z zewnątrz", "ok. 160"],
-  ["potwierdzone problemy", "39"],
-  ["  w tym", "1 wysoki · 11 średnich · 27 niskich"],
-  ["  z dowodem uruchomionym lokalnie", "10"],
-  ["obszary bezpieczne, z dowodem", "93"],
-  ["fałszywe alarmy odfiltrowane przed raportem", "14"],
-  ["wypisane jako nie sprawdzone", "43"],
-  ["czas", "2 h 11 min"],
-  ["tokeny", "ok. 4,8 mln"],
+  ["projekt", "Ledgerly, aplikacja testowa z 16 ukrytymi błędami"],
+  ["ukryte błędy znalezione", "16 z 16"],
+  ["pułapki wzięte za błąd", "0 z 8"],
+  ["potwierdzone problemy", "27"],
+  ["  w tym", "2 krytyczne · 14 wysokich · 8 średnich · 3 niskie"],
+  ["  z testem regresji, który dziś nie przechodzi", "16"],
+  ["obszary bezpieczne, z dowodem", "23"],
+  ["fałszywe alarmy odfiltrowane przed raportem", "6"],
+  ["czas", "32 min"],
+  ["tokeny / koszt w cenach API", "23,8 mln (96% z cache) / ok. 11,70 USD"],
 ];
 ---
-<section class="section" id="wynik">
+<section class="section band" id="wynik">
   <div class="wrap split">
     <div>
       <h2 class="h2">Czym różni się od zwykłego promptu</h2>
@@ -37,7 +37,7 @@ const rows = [
           </div>
         ))}
       </dl>
-      <p class="fine">Jeden pełny audyt działającej aplikacji, bez nazw i&nbsp;szczegółów. Na Twoim projekcie liczby będą inne.</p>
+      <p class="fine">Jeden pełny przebieg na Opus 5.5, ten sam, który widzisz na nagraniu. Aplikacja testowa z&nbsp;kluczem odpowiedzi jest w&nbsp;paczce, więc ten wynik powtórzysz u&nbsp;siebie. Na Twoim projekcie liczby będą inne.</p>
     </div>
   </div>
 </section>

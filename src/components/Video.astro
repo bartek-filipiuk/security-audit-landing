@@ -1,18 +1,18 @@
 ---
 import { SITE } from "../site";
-const chapters = ["Instalacja", "Pierwsze uruchomienie", "Audyt wybranego obszaru", "Czytanie raportu", "Naprawa pierwszego znaleziska"];
+const chapters = ["Komenda i wstępny skan", "Mapa aplikacji i audyt po obszarach", "Dwóch weryfikatorów równolegle", "Łańcuchy znalezisk i jakość testów", "Raport w przeglądarce"];
 ---
 <section class="section" id="film">
   <div class="wrap split">
     <div>
-      <h2 class="h2">Pierwszy audyt krok po kroku</h2>
-      <p class="lead">Nagranie ekranu, około {SITE.video.minutes}&nbsp;minut. Od instalacji do pierwszej naprawionej podatności.</p>
+      <h2 class="h2">Pełny przebieg w&nbsp;pięć minut</h2>
+      <p class="lead">Ten sam audyt co wyżej, w&nbsp;całości: {SITE.video.minutes}&nbsp;minut zamiast 32. Bez komentarza, bez cięć w&nbsp;treści.</p>
       <ol>
         {chapters.map((c) => <li>{c}</li>)}
       </ol>
     </div>
     {SITE.video.url ? (
-      <video class="player" controls preload="none" src={SITE.video.url}></video>
+      <video class="player" controls preload="none" playsinline poster={SITE.video.poster} src={SITE.video.url} aria-label="Pełny przebieg audytu aplikacji testowej, przyspieszony"></video>
     ) : (
       <div class="player poster" role="img" aria-label="Nagranie w przygotowaniu">
         <svg width="64" height="64" viewBox="0 0 64 64" fill="none" aria-hidden="true"><circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="2"/><path d="M26 21v22l18-11z" fill="currentColor"/></svg>
