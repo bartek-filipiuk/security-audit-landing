@@ -43,7 +43,7 @@ export const LANES: Lane[] = [
 ];
 
 export const DONE: { version: string; date: string; text: string }[] = [
-  { version: "devince-apps 0.2.0", date: "3 października 2026", text: "R19 i R20: instalacja jedną komendą (npx devince-apps install) oraz zakup z terminala i z Claude Code (buy, claim). Kod publiczny: github.com/bartek-filipiuk/devince-apps-cli." },
+  { version: "Open source", date: "3 października 2026", text: "Licencja MIT, publiczne repozytorium i uczciwe porównanie z darmową wtyczką Claude Security od Anthropic na tej samej aplikacji testowej." },
   { version: "1.1.0", date: "3 października 2026", text: "Format defensywny: skutek i test regresji zamiast kroków ataku. Mod audit-live z panelem postępu. Instrukcja z Discordem." },
   { version: "1.0.0", date: "2 października 2026", text: "Wstępny skan z rankingiem ryzyka, --scope, dzielona weryfikacja z łączeniem łańcuchów, raport HTML, aplikacja testowa Ledgerly." },
 ];

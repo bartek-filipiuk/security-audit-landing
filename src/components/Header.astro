@@ -1,5 +1,5 @@
 ---
-import { SITE, zl } from "../site";
+import { SITE } from "../site";
 ---
 <header class="top">
   <div class="wrap row">
@@ -11,11 +11,11 @@ import { SITE, zl } from "../site";
       <a href="/#przebieg">Jak działa</a>
       <a href="/#uzycie">Użycie</a>
       <a href="/#pokrycie">Co sprawdza</a>
-      <a href="/#cennik">Cena</a>
+      <a href="/#instalacja">Instalacja</a>
       <a href="/#faq">FAQ</a>
       <a href="/roadmap">Roadmapa</a>
     </nav>
-    <a class="btn btn-primary buy" href="/#cennik">Kup za {zl(SITE.price)}</a>
+    <a class="btn btn-primary buy" href={SITE.repo} rel="noopener">GitHub</a>
   </div>
 </header>
 

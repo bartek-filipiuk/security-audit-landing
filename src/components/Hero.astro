@@ -1,5 +1,5 @@
 ---
-import { SITE, zl } from "../site";
+import { SITE } from "../site";
 
 // Figures of the real report in public/przykladowy-raport.html: one full run on Ledgerly, the test app with 16 seeded bugs.
 const ledger = [
@@ -28,15 +28,15 @@ const fixFirst = [
           i&nbsp;czego nie dało się sprawdzić. Każde znalezisko ma plik, linię i&nbsp;opis skutku.
         </p>
         <ul class="stats" aria-label="Wynik na aplikacji testowej">
-          <li><b>16/16</b><span>ukrytych błędów znalezionych</span></li>
-          <li><b>0</b><span>fałszywych alarmów</span></li>
-          <li><b>32 min</b><span>od komendy do raportu</span></li>
+          <li><b>16/16</b><span>ukrytych błędów w&nbsp;naszej aplikacji testowej</span></li>
+          <li><b>0/8</b><span>pułapek wziętych za błąd</span></li>
+          <li><b>32 min</b><span>od komendy do raportu, aplikacja z&nbsp;45 wejściami</span></li>
         </ul>
         <div class="cta">
-          <a class="btn btn-primary" href="#cennik">Kup za {zl(SITE.price)}</a>
+          <a class="btn btn-primary" href="#instalacja">Zainstaluj za darmo</a>
           <a class="btn btn-ghost" href="#raport">Zobacz przykładowy raport</a>
         </div>
-        <p class="fine">Dla tych, którzy budują w&nbsp;Claude Code i&nbsp;wdrażają na produkcję. Płacisz raz. Kupisz i&nbsp;zainstalujesz też <a href="#cennik">bez wychodzenia z&nbsp;Claude Code</a>.</p>
+        <p class="fine">Open source na licencji MIT. Dla tych, którzy budują w&nbsp;Claude Code i&nbsp;wdrażają na produkcję. <a href={SITE.repo} rel="noopener">Kod na GitHubie</a>.</p>
       </div>
 
       <figure class="sheet">

@@ -1,0 +1,49 @@
+---
+import { SITE } from "../site";
+const steps = [
+  ["Zainstaluj skill", SITE.install],
+  ["Sprawdź skrypty (kilka sekund, bez tokenów)", "cd ~/.claude/skills/security-audit && node --test scripts/"],
+  ["Opcjonalnie: panel postępu na żywo", "cp -r ~/.claude/skills/security-audit/audit-live ~/.claude/skills/"],
+  ["W swoim projekcie, w Claude Code", "/security-audit --scope top20"],
+];
+---
+<section class="section tint" id="instalacja">
+  <div class="wrap">
+    <article class="offer">
+      <div class="left">
+        <h2 class="h2">Za darmo, open source</h2>
+        <p class="note">Licencja MIT. Używasz we własnych projektach, w&nbsp;pracy i&nbsp;u&nbsp;klientów, możesz go zmieniać i&nbsp;rozwijać. Tokeny Claude zużywasz na własnym koncie.</p>
+        <div class="cta">
+          <a class="btn btn-primary" href={SITE.repo} rel="noopener">Repozytorium na GitHubie</a>
+          <a class="btn btn-ghost" href="/roadmap">Roadmapa</a>
+        </div>
+        <p class="fine">Aktualizacja: <code>git -C ~/.claude/skills/security-audit pull</code>. Wymagania: Claude Code, Node 20+, opcjonalnie docker albo osv-scanner i&nbsp;gitleaks. Testowane na Linuksie.</p>
+      </div>
+      <ol class="steps">
+        {steps.map(([label, cmd]) => (
+          <li>
+            <span class="label">{label}</span>
+            <pre><code><span class="p" aria-hidden="true">&gt;</span> <span class="sel">{cmd}</span></code></pre>
+          </li>
+        ))}
+      </ol>
+    </article>
+  </div>
+</section>
+
+<style>
+  .tint { background: var(--accent-tint); }
+  .offer { background: var(--surface); border-radius: var(--radius); box-shadow: inset 0 0 0 2px var(--accent); padding: clamp(28px, 5vw, 56px); display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(28px, 5vw, 72px); align-items: start; }
+  .note { margin: 16px 0 26px; color: var(--ink-2); max-width: 40ch; }
+  .cta { display: flex; flex-wrap: wrap; gap: 12px; }
+  .fine { margin-top: 22px; max-width: 46ch; }
+  .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 18px; counter-reset: step; }
+  .steps li { counter-increment: step; }
+  .label { display: block; font-weight: 600; margin-bottom: 8px; }
+  .label::before { content: counter(step) ". "; font-family: var(--mono); color: var(--accent-strong); }
+  pre { margin: 0; background: var(--ink); color: #e8ebf5; border-radius: 10px; padding: 14px 16px; }
+  pre code { background: none; color: inherit; padding: 0; font-size: clamp(0.78rem, 1.4vw, 0.9rem); white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.6; }
+  .p { color: #8f9bff; }
+  .sel { user-select: all; }
+  @media (max-width: 900px) { .offer { grid-template-columns: minmax(0, 1fr); } }
+</style>

@@ -6,6 +6,7 @@ const points = [
 ];
 const rows = [
   ["projekt", "Ledgerly, aplikacja testowa z 16 ukrytymi błędami"],
+  ["model", "Opus 5.5, effort xhigh"],
   ["ukryte błędy znalezione", "16 z 16"],
   ["pułapki wzięte za błąd", "0 z 8"],
   ["potwierdzone problemy", "27"],
@@ -15,6 +16,14 @@ const rows = [
   ["fałszywe alarmy odfiltrowane przed raportem", "6"],
   ["czas", "32 min"],
   ["tokeny / koszt w cenach API", "23,8 mln (96% z cache) / ok. 11,70 USD"],
+];
+const compare = [
+  ["Ukryte błędy znalezione", "16 z 16", "15 z 16 (bez podatnej wersji Next.js)"],
+  ["Pułapki wzięte za błąd", "0 z 8", "0 z 8"],
+  ["Czas", "32 min", "13 min"],
+  ["Koszt w cenach API", "ok. 11,70 USD", "ok. 12,70 USD"],
+  ["Dowód przy poważnych", "testy regresji, które dziś nie przechodzą", "czytanie kodu, ocena pewności"],
+  ["Tylko tutaj", "podatności w zależnościach, lista miejsc bezpiecznych z dowodem, ocena testów projektu", "SARIF, skan zmian w gałęzi, gotowe patche"],
 ];
 ---
 <section class="section band" id="wynik">
@@ -37,8 +46,20 @@ const rows = [
           </div>
         ))}
       </dl>
-      <p class="fine">Jeden pełny przebieg na Opus 5.5, ten sam, który widzisz na nagraniu. Aplikacja testowa z&nbsp;kluczem odpowiedzi jest w&nbsp;paczce, więc ten wynik powtórzysz u&nbsp;siebie. Na Twoim projekcie liczby będą inne.</p>
+      <p class="fine">Jeden pełny przebieg, ten sam, który widzisz na nagraniu. Skill rozwijaliśmy z&nbsp;tą aplikacją w&nbsp;ręku, więc wynik pokazuje, że te klasy błędów są pokryte, a&nbsp;nie ile znajdzie w&nbsp;dowolnym kodzie. Aplikacja i&nbsp;klucz odpowiedzi są w&nbsp;repozytorium, więc wynik sprawdzisz u&nbsp;siebie.</p>
     </div>
+  </div>
+  <div class="wrap compare">
+    <h3>Na tej samej aplikacji: Security Audit i&nbsp;darmowa wtyczka Claude Security od Anthropic</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th></th><th>Security Audit</th><th>Claude Security (bezpłatna)</th></tr></thead>
+        <tbody>
+          {compare.map(([k, a, b]) => <tr><th scope="row">{k}</th><td>{a}</td><td>{b}</td></tr>)}
+        </tbody>
+      </table>
+    </div>
+    <p class="fine">Po jednym przebiegu każdego narzędzia, 3 października 2026, ten sam model i&nbsp;effort. Różnicy jednego błędu nie traktujemy jako twardej. Możesz używać obu. <a href="https://github.com/bartek-filipiuk/security-audit-skill/blob/main/benchmark/COMPARISON.md" rel="noopener">Pełne porównanie i&nbsp;zastrzeżenia</a>.</p>
   </div>
 </section>
 
@@ -55,4 +76,13 @@ const rows = [
   .run .sub dt { padding-left: 2ch; color: var(--ink-3); }
   .run .sub dd { font-weight: 400; color: var(--ink-2); }
   .run div:last-child { border-bottom: 2px solid var(--ink); }
+  .compare { margin-top: clamp(48px, 7vw, 80px); }
+  .compare h3 { font-size: var(--step-1); font-weight: 700; font-stretch: 108%; max-width: 50ch; }
+  .scroll { overflow-x: auto; margin-top: 18px; }
+  table { width: 100%; border-collapse: collapse; font-size: var(--step--1); min-width: 560px; }
+  th, td { text-align: left; vertical-align: top; padding: 11px 14px 11px 0; border-bottom: 1px solid var(--rule); }
+  thead th { font-weight: 650; border-bottom: 2px solid var(--ink); }
+  tbody th { font-weight: 600; color: var(--ink-2); width: 26%; }
+  td { color: var(--ink-2); }
+  .compare .fine { margin-top: 12px; max-width: 80ch; }
 </style>

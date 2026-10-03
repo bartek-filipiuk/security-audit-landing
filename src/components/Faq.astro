@@ -8,31 +8,31 @@
       </details>
       <details>
         <summary>Ile kosztuje jeden audyt w&nbsp;tokenach?</summary>
-        <p>Tokeny zużywasz na własnym koncie Claude. Pełny audyt dużego projektu zużył około 4,8&nbsp;mln tokenów i&nbsp;trwał nieco ponad dwie godziny. Żeby zacząć taniej, uruchom <code>--scope top20</code>: sprawdza tylko 20 najbardziej ryzykownych miejsc.</p>
+        <p>Tokeny zużywasz na własnym koncie Claude. Pełny audyt aplikacji testowej (45 wejść) trwał 32 minuty: 23,8&nbsp;mln tokenów, w&nbsp;cenach API około 11,70 USD, a&nbsp;na planie Max 20x licznik tygodniowy przesunął się o&nbsp;jeden punkt. Duży projekt (160 wejść) trwał 2 godziny 11 minut. Na planie Pro nie mierzyliśmy, więc zacznij od <code>--scope top20</code>, czyli 20 najbardziej ryzykownych miejsc.</p>
       </details>
       <details>
         <summary>Czy mój kod gdzieś wychodzi?</summary>
         <p>Skill działa w&nbsp;Twoim Claude Code, na takich samych zasadach jak każda inna praca z&nbsp;kodem. Skan sekretów działa lokalnie i&nbsp;maskuje wartości. Skan zależności wysyła do publicznej bazy podatności nazwy i&nbsp;wersje pakietów. Wyniki trafiają do katalogu <code>.security-audit/</code>, który skill sam dopisuje do <code>.gitignore</code>.</p>
       </details>
       <details>
-        <summary>Jak dostanę skill i&nbsp;aktualizacje?</summary>
-        <p>Płacisz kartą przez Stripe na apps.devince.dev. Zaraz potem dostajesz mailem link do pobrania paczki ZIP, ważny 7&nbsp;dni. Najszybciej instalujesz jedną komendą w&nbsp;terminalu: <code>npx devince-apps install &lt;link z&nbsp;maila&gt;</code>; ręczna instalacja to rozpakowanie jednego folderu. W&nbsp;środku jest instrukcja instalacji i&nbsp;zaproszenie na Discorda. Na Discordzie jedna zasada: nie wklejamy fragmentów raportów z niepoprawionymi słabościami ani sekretów. Gdy wychodzi nowa wersja, dostajesz mailem nowy link.</p>
+        <summary>Jak zainstalować i&nbsp;aktualizować?</summary>
+        <p>Sklonuj repozytorium do <code>~/.claude/skills/security-audit</code> (komenda jest w&nbsp;sekcji Instalacja) i&nbsp;aktualizuj przez <code>git pull</code>. Panel postępu na żywo to osobny, opcjonalny mod: kopiujesz jeden folder. Pomoc i&nbsp;rozmowy o&nbsp;wynikach: kanał #security-audit-skill na serwerze społeczności WrocDevs (<a href="https://discord.gg/ctbj9SgT9N" rel="noopener">zaproszenie</a>). Jedna zasada: nie wklejamy fragmentów raportów z&nbsp;niepoprawionymi słabościami ani sekretów.</p>
       </details>
       <details>
         <summary>Czy modele nie blokują takiego audytu?</summary>
         <p>Audyt nie symuluje ataków: czyta kod, opisuje skutek i&nbsp;pisze testy regresji. Pełny przebieg testowy przeszedł w&nbsp;całości na Opus 5.5, częściowy na Fable 5.1. Nie gwarantujemy, że każdy przebieg przejdzie bez zatrzymania; gdy agent zostanie zatrzymany, skill kończy pozostałe pliki w&nbsp;trybie samej weryfikacji, a&nbsp;raport mówi, co się stało.</p>
       </details>
       <details>
-        <summary>Co, jeśli skill mi nie podejdzie?</summary>
-        <p>Napisz na bartek@devince.dev w&nbsp;ciągu 14&nbsp;dni od zakupu. Zwracam całą kwotę, bez pytań.</p>
+        <summary>Czym różni się od darmowej wtyczki Claude Security od Anthropic?</summary>
+        <p>Na tej samej aplikacji testowej obie znalazły prawie wszystkie ukryte błędy (my 16 z&nbsp;16, wtyczka 15 z&nbsp;16), bez fałszywych alarmów, a&nbsp;wtyczka była szybsza. Security Audit dokłada skan znanych podatności w&nbsp;zależnościach, sekrety w&nbsp;całej historii gita, testy regresji jako dowód, listę bezpiecznych miejsc z&nbsp;dowodem i&nbsp;ocenę testów projektu. Wtyczka daje SARIF, skan zmian w&nbsp;gałęzi i&nbsp;gotowe patche. Możesz używać obu; szczegóły i&nbsp;zastrzeżenia są w&nbsp;<a href="https://github.com/bartek-filipiuk/security-audit-skill/blob/main/benchmark/COMPARISON.md" rel="noopener">porównaniu w&nbsp;repozytorium</a>.</p>
       </details>
       <details>
-        <summary>Jak kupić i&nbsp;zainstalować z&nbsp;Claude Code?</summary>
-        <p>W&nbsp;Claude Code wpisz <code>! npx devince-apps buy security-audit --agree</code>. Komenda pokazuje zgodę na natychmiastowe dostarczenie treści cyfrowej (flaga <code>--agree</code> ją potwierdza, bo w&nbsp;tym trybie nie ma jak zadać pytania), otwiera płatność w&nbsp;przeglądarce, a&nbsp;po niej pobiera i&nbsp;układa skill w&nbsp;<code>~/.claude/skills</code>. Jeśli płatność trwa dłużej niż minutę, komenda podaje <code>npx devince-apps claim …</code>, którym dokończysz. Kod narzędzia jest publiczny: github.com/bartek-filipiuk/devince-apps-cli.</p>
+        <summary>Dlaczego za darmo i&nbsp;jak mogę pomóc?</summary>
+        <p>Bo bezpieczny kod powinien być normą, a&nbsp;darmowe narzędzie Anthropic robi już dużą część tej pracy. Najbardziej pomagają zgłoszenia na GitHubie: fałszywy alarm, przeoczony błąd, stack, który działa słabo. Pull requesty mile widziane; zasady są w&nbsp;AGENTS.md, a&nbsp;słabość w&nbsp;samym skillu zgłaszasz prywatnie według SECURITY.md.</p>
       </details>
       <details>
         <summary>Czy mogę używać go w&nbsp;pracy i&nbsp;u&nbsp;klientów?</summary>
-        <p>Tak: we własnych projektach, w&nbsp;pracy i&nbsp;u&nbsp;klientów, bez limitu projektów. Nie odsprzedajesz i&nbsp;nie udostępniasz plików skilla innym.</p>
+        <p>Tak. Licencja MIT: używasz, zmieniasz i&nbsp;rozwijasz, także komercyjnie. Zostaw tylko informację o&nbsp;licencji w&nbsp;kopiach kodu.</p>
       </details>
     </div>
   </div>
