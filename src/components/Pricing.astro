@@ -15,6 +15,7 @@ const included = [
         <p class="price"><span class="amount">{SITE.price}</span><span class="cur">zł</span></p>
         <p class="note">Płacisz raz. Używasz we własnych projektach, w&nbsp;pracy i&nbsp;u&nbsp;klientów. Masz 14&nbsp;dni na zwrot pieniędzy, bez pytań.</p>
         <a class="btn btn-primary" href={SITE.checkout}>Kup za {zl(SITE.price)}</a>
+        <p class="alt">Albo z&nbsp;terminala, także w&nbsp;Claude Code: <code>npx devince-apps buy security-audit</code></p>
       </div>
       <div class="right">
         <ul>
@@ -38,6 +39,8 @@ const included = [
   .amount { font-size: clamp(4rem, 9vw, 6rem); font-weight: 760; font-stretch: 116%; letter-spacing: -0.03em; }
   .cur { font-size: var(--step-2); font-weight: 600; color: var(--ink-2); }
   .note { margin: 16px 0 26px; color: var(--ink-2); max-width: 36ch; }
+  .alt { margin-top: 14px; font-size: var(--step--1); color: var(--ink-3); max-width: 40ch; }
+  .alt code { font-size: 0.85em; }
   ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; font-size: var(--step-1); line-height: 1.4; }
   li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 14px; }
   li svg { margin-top: 6px; color: var(--accent); }
