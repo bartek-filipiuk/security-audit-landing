@@ -130,23 +130,19 @@ footer { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding: 24px 0
 <nav aria-label="Sections"><ol><li><a href="#fix">To fix <b>12</b></a></li><li><a href="#safe">Verified safe <b>10</b></a></li><li><a href="#gaps">Not assessed <b>3</b></a></li><li><a href="#deps">Dependencies <b>5</b></a></li><li><a href="#secrets">Secrets <b>2</b></a></li><li><a href="#filtered">Filtered out <b>3</b></a></li></ol></nav>
 <main>
 <h2 id="fix">To fix</h2>
-<p class="lede">Verified findings, most severe first. “Demonstrated” means the exploit was run against a local instance or test; “code reading only” means it was confirmed by tracing the code.</p>
+<p class="lede">Verified findings, most severe first. “Failing test” means a regression test in the project’s own runner fails today; “code reading only” means it was confirmed by tracing the code.</p>
 <h3>Fix first</h3>
-<ol class="first"><li><div><a href="#auth-101">Any self-registered user becomes admin: Better-Auth <code>additionalFields.role</code> has no <code>input: false</code></a><small>critical · demonstrated · src/lib/auth.ts:27</small></div></li><li><div><a href="#crypto-101">Stripe webhook never verifies the signature: a forged <code>checkout.session.completed</code> grants a paid plan</a><small>critical · code reading only · src/app/api/webhooks/stripe/route.ts:7</small></div></li><li><div><a href="#auth-102"><code>getInvoice</code> server action returns any organization&#39;s invoice by id</a><small>high · demonstrated · src/app/(app)/invoices/actions.ts:10</small></div></li></ol>
+<ol class="first"><li><div><a href="#auth-101">Any self-registered user becomes admin: Better-Auth <code>additionalFields.role</code> has no <code>input: false</code></a><small>critical · failing test · src/lib/auth.ts:27</small></div></li><li><div><a href="#crypto-101">Stripe webhook never verifies the signature: a forged <code>checkout.session.completed</code> grants a paid plan</a><small>critical · code reading only · src/app/api/webhooks/stripe/route.ts:7</small></div></li><li><div><a href="#auth-102"><code>getInvoice</code> server action returns any organization&#39;s invoice by id</a><small>high · failing test · src/app/(app)/invoices/actions.ts:10</small></div></li></ol>
 <h3>critical · 2</h3><details class="row sev-critical" id="auth-101">
-<summary><span class="sev">critical</span><span class="title">Any self-registered user becomes admin: Better-Auth <code>additionalFields.role</code> has no <code>input: false</code></span><span class="chip chip-proof">Demonstrated</span><span class="loc">src/lib/auth.ts:27</span></summary>
+<summary><span class="sev">critical</span><span class="title">Any self-registered user becomes admin: Better-Auth <code>additionalFields.role</code> has no <code>input: false</code></span><span class="chip chip-proof">Failing test</span><span class="loc">src/lib/auth.ts:27</span></summary>
 <div class="body">
 <section><h4>How to fix</h4><p>Set <code>input: false</code> on <code>role</code> (and every privilege field) in <code>additionalFields</code>; assign roles only through an admin action.</p></section>
 <section><h4>Evidence</h4><ul>
 <li><strong>File</strong>: <code>src/lib/auth.ts:27</code></li>
 </ul></section>
 
-<section><h4>Exploit steps</h4><ol>
-<li>POST /api/auth/sign-up/email with <code>role: &quot;admin&quot;</code> in the body.</li>
-<li>Verify the e-mail and sign in.</li>
-<li>Open /admin: <code>requireAdmin()</code> passes because <code>session.user.role === &quot;admin&quot;</code>.</li>
-</ol></section>
-<section><h4>Proof</h4><p>$ node --test .security-audit/poc/auth-101-role.test.ts</p>
+<section><h4>Impact</h4><p>Anyone who signs up can give themselves the admin role and open the admin panel.</p></section>
+<section><h4>Regression test</h4><p>$ node --test .security-audit/tests/auth-101-role.test.ts</p>
 <p>ok 1 - sign-up accepts role=admin (session.user.role === &#39;admin&#39;)</p></section>
 
 <p class="meta">auth-101 · Authentication &amp; authorization</p>
@@ -159,28 +155,21 @@ footer { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding: 24px 0
 <li><strong>File</strong>: <code>src/app/api/webhooks/stripe/route.ts:7</code></li>
 </ul></section>
 
-<section><h4>Exploit steps</h4><ol>
-<li>POST /api/webhooks/stripe with a hand-written <code>checkout.session.completed</code> event and <code>metadata.orgId</code> of any organization.</li>
-<li>The handler upserts an active subscription for that organization.</li>
-</ol></section>
-<section><h4>Proof</h4><p>Static: the route has no test harness; the absence of <code>constructEvent</code> is visible at the cited line.</p></section>
+<section><h4>Impact</h4><p>Anyone who can reach the webhook route can mark any organization as subscribed without paying.</p></section>
+<section><h4>Regression test</h4><p>Static: the route has no test harness; the absence of <code>constructEvent</code> is visible at the cited line.</p></section>
 
 <p class="meta">crypto-101 · Cryptography</p>
 </div></details>
 <h3>high · 5</h3><details class="row sev-high" id="auth-102">
-<summary><span class="sev">high</span><span class="title"><code>getInvoice</code> server action returns any organization&#39;s invoice by id</span><span class="chip chip-proof">Demonstrated</span><span class="loc">src/app/(app)/invoices/actions.ts:10</span></summary>
+<summary><span class="sev">high</span><span class="title"><code>getInvoice</code> server action returns any organization&#39;s invoice by id</span><span class="chip chip-proof">Failing test</span><span class="loc">src/app/(app)/invoices/actions.ts:10</span></summary>
 <div class="body">
 <section><h4>How to fix</h4><p>Call <code>requireOrg()</code> inside the action and filter by <code>eq(invoices.orgId, orgId)</code> in the same statement.</p></section>
 <section><h4>Evidence</h4><ul>
 <li><strong>File</strong>: <code>src/app/(app)/invoices/actions.ts:10</code></li>
 </ul></section>
 
-<section><h4>Exploit steps</h4><ol>
-<li>Sign in as a member of organization B.</li>
-<li>Call the <code>getInvoice</code> action (its id is in the client bundle via <code>InvoiceQuickView</code>) with an invoice id from organization A.</li>
-<li>The action returns the full invoice row and its lines.</li>
-</ol></section>
-<section><h4>Proof</h4><p>$ node --test .security-audit/poc/auth-102-getinvoice.test.ts</p>
+<section><h4>Impact</h4><p>A member of one organization can read any other organization's invoice, with its lines, by id.</p></section>
+<section><h4>Regression test</h4><p>$ node --test .security-audit/tests/auth-102-getinvoice.test.ts</p>
 <p>ok 1 - member of org B reads org A invoice INV-0042</p></section>
 
 <p class="meta">auth-102 · Authentication &amp; authorization</p>
@@ -193,12 +182,8 @@ footer { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding: 24px 0
 <li><strong>File</strong>: <code>src/app/api/export/route.ts:11</code></li>
 </ul></section>
 
-<section><h4>Exploit steps</h4><ol>
-<li>Sign in to any organization.</li>
-<li>GET /api/export?org=&lt;other org id&gt;.</li>
-<li>The response is the other organization&#39;s customer list with e-mails, phones and tax ids.</li>
-</ol></section>
-<section><h4>Proof</h4><p>No runnable harness for the route in this repo (needs Postgres and Better-Auth); confirmed by tracing the handler.</p></section>
+<section><h4>Impact</h4><p>A signed-in user of any organization can download another organization's customer list, with e-mails, phones and tax ids.</p></section>
+<section><h4>Regression test</h4><p>No runnable harness for the route in this repo (needs Postgres and Better-Auth); confirmed by tracing the handler.</p></section>
 
 <p class="meta">auth-103 · Authentication &amp; authorization</p>
 </div></details>
@@ -210,12 +195,8 @@ footer { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding: 24px 0
 <li><strong>File</strong>: <code>src/app/p/[slug]/page.tsx:7</code></li>
 </ul></section>
 
-<section><h4>Exploit steps</h4><ol>
-<li>Open /p/&lt;slug&gt; of any public project.</li>
-<li>Read the RSC payload in the page source.</li>
-<li>It contains <code>internalNotes</code>, <code>budgetCents</code>, <code>clientContactEmail</code> and every document&#39;s <code>s3Key</code>.</li>
-</ol></section>
-<section><h4>Proof</h4><p>Static: confirmed from the query and the client component&#39;s props type.</p></section>
+<section><h4>Impact</h4><p>Every visitor of a public project page receives the project's internal notes, budget, client contact e-mail and document keys.</p></section>
+<section><h4>Regression test</h4><p>Static: confirmed from the query and the client component&#39;s props type.</p></section>
 
 <p class="meta">exposure-101 · Data exposure &amp; secrets</p>
 </div></details>
@@ -227,12 +208,8 @@ footer { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding: 24px 0
 <li><strong>File</strong>: <code>src/lib/ai-client.ts:4</code></li>
 </ul></section>
 
-<section><h4>Exploit steps</h4><ol>
-<li>Open the assistant page.</li>
-<li>Search the client bundle for <code>NEXT_PUBLIC_ANTHROPIC_API_KEY</code>&#39;s inlined value.</li>
-<li>Use the key against the provider API at the owner&#39;s expense.</li>
-</ol></section>
-<section><h4>Proof</h4><p>Static: Next.js inlines <code>NEXT_PUBLIC_*</code> at build time; the client component imports this module.</p></section>
+<section><h4>Impact</h4><p>Every visitor of the assistant page receives the provider API key and can spend the owner's credits.</p></section>
+<section><h4>Regression test</h4><p>Static: Next.js inlines <code>NEXT_PUBLIC_*</code> at build time; the client component imports this module.</p></section>
 
 <p class="meta">exposure-102 · Data exposure &amp; secrets</p>
 </div></details>
@@ -244,11 +221,8 @@ footer { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding: 24px 0
 <li><strong>File</strong>: <code>src/server/trpc/routers/integration.ts:18</code></li>
 </ul></section>
 
-<section><h4>Exploit steps</h4><ol>
-<li>Call <code>integration.testWebhook</code> with <code>url: http://169.254.169.254/latest/meta-data/</code>.</li>
-<li>The response contains up to 2 KB of the internal service&#39;s answer.</li>
-</ol></section>
-<section><h4>Proof</h4><p>Static: no outbound network allowed during the audit.</p></section>
+<section><h4>Impact</h4><p>A signed-in user can make the server fetch internal addresses and read up to 2 KB of the answer.</p></section>
+<section><h4>Regression test</h4><p>Static: no outbound network allowed during the audit.</p></section>
 
 <p class="meta">injection-101 · Injection &amp; SSRF</p>
 </div></details>
@@ -260,10 +234,7 @@ footer { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding: 24px 0
 <li><strong>File</strong>: <code>src/server/queries/dashboard.ts:22</code></li>
 </ul></section>
 
-<section><h4>Exploit steps</h4><ol>
-<li>Organization A opens the dashboard; the usage query is cached under <code>[&quot;usage-month&quot;]</code>.</li>
-<li>Organization B opens its dashboard within 10 minutes and sees A&#39;s usage.</li>
-</ol></section>
+<section><h4>Impact</h4><p>One organization can see another organization's monthly usage for up to 10 minutes.</p></section>
 
 
 <p class="meta">business-logic-101 · Business logic</p>
@@ -276,10 +247,7 @@ footer { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding: 24px 0
 <li><strong>File</strong>: <code>src/server/api/index.ts:14</code></li>
 </ul></section>
 
-<section><h4>Exploit steps</h4><ol>
-<li>A page on any site calls fetch(&#39;https://app/api/public/invoices&#39;, { credentials: &#39;include&#39; }).</li>
-<li>The browser sends the session cookie and the page reads the response.</li>
-</ol></section>
+<section><h4>Impact</h4><p>Any website can read a signed-in user's public API data with the user's own cookie.</p></section>
 
 
 <p class="meta">config-101 · Headers, CORS &amp; configuration</p>
@@ -292,10 +260,7 @@ footer { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding: 24px 0
 <li><strong>File</strong>: <code>src/server/ai/tools.ts:13</code></li>
 </ul></section>
 
-<section><h4>Exploit steps</h4><ol>
-<li>Ask the assistant to search invoices in organization &lt;other id&gt;, or plant that request in a document the model reads.</li>
-<li>The tool queries the other organization&#39;s invoices and customer e-mails.</li>
-</ol></section>
+<section><h4>Impact</h4><p>The assistant can be steered, through a request or a document it reads, into querying another organization's invoices and customer e-mails.</p></section>
 
 
 <p class="meta">injection-102 · Injection &amp; SSRF</p>
@@ -308,10 +273,7 @@ footer { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding: 24px 0
 <li><strong>File</strong>: <code>src/app/api/uploads/route.ts:21</code></li>
 </ul></section>
 
-<section><h4>Exploit steps</h4><ol>
-<li>POST /api/uploads with <code>key: orgs/&lt;other org&gt;/projects/&lt;id&gt;/report.pdf</code>.</li>
-<li>PUT to the returned URL overwrites the other organization&#39;s file.</li>
-</ol></section>
+<section><h4>Impact</h4><p>A signed-in user can overwrite another organization's files by choosing the object key.</p></section>
 
 
 <p class="meta">upload-101 · File upload &amp; storage</p>
@@ -324,9 +286,7 @@ footer { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding: 24px 0
 <li><strong>File</strong>: <code>pnpm-lock.yaml:1</code></li>
 </ul></section>
 
-<section><h4>Exploit steps</h4><ol>
-<li>None of them is used on a reachable path except CORS, covered by config-101.</li>
-</ol></section>
+<section><h4>Impact</h4><p>No reachable path uses the affected code, apart from CORS, which config-101 covers.</p></section>
 
 
 <p class="meta">dependency-101 · Dependencies</p>
@@ -354,7 +314,7 @@ footer { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding: 24px 0
 <p class="lede">Candidates rejected after a second check of the code. Kept for the record; none of them needs action.</p>
 <div class="tablewrap"><table><thead><tr><th>Finding</th><th>Reason</th></tr></thead><tbody><tr><td><code>deleteProject</code> lacks an ownership check<br><span class="mono">auth-104</span></td><td>best_practice</td></tr><tr><td>Resend webhook accepts unsigned events<br><span class="mono">crypto-102</span></td><td>no_evidence</td></tr><tr><td>PostHog key is public<br><span class="mono">exposure-103</span></td><td>best_practice</td></tr></tbody></table></div>
 </main>
-<footer>Sample report from a synthetic app with seeded bugs. Real reports contain exploit steps for open issues and stay private.</footer>
+<footer>Sample report from a synthetic app with seeded bugs. Real reports name unfixed weaknesses with file and line and stay private.</footer>
 </div>
 <script>addEventListener("beforeprint",()=>document.querySelectorAll("details").forEach((d)=>d.open=true));</script>
 </body>
