@@ -9,7 +9,7 @@ export const LANES: Lane[] = [
     items: [
       { id: "R01", name: "Audyt przyrostowy", code: "--since <commit>", value: "Audytowane są tylko wejścia, których kod zmienił się od ostatniego audytu albo od wskazanego commita. Reszta raportu przenosi się z poprzedniego przebiegu.", done: "Ponowny audyt małej zmiany na aplikacji testowej kosztuje ułamek pełnego, w tokenach i minutach.", shipped: { date: "4 października 2026", pr: "https://github.com/bartek-filipiuk/security-audit-skill/pull/1" } },
       { id: "R02", name: "Profil Supabase i Firebase", value: "Reguły RLS, polityki storage, klucze service-role w kliencie, reguły Firestore. Najczęstszy stack obok Next.js.", done: "Profil ma własną aplikację testową z ukrytymi błędami i wynik na niej." },
-      { id: "R03", name: "Dokładniejsza ocena benchmarku", value: "Dopasowanie znalezisk do klucza odpowiedzi po pliku i linii, nie po słowach kluczowych.", done: "Każde dopasowanie na aplikacji testowej jest dokładne." },
+      { id: "R03", name: "Dokładniejsza ocena benchmarku", value: "Dopasowanie znalezisk do klucza odpowiedzi po pliku i linii, nie po słowach kluczowych.", done: "Każde dopasowanie na aplikacji testowej jest dokładne.", shipped: { date: "5 października 2026", pr: "https://github.com/bartek-filipiuk/security-audit-skill/pull/2" } },
     ],
   },
   {
