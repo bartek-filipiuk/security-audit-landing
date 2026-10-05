@@ -20,6 +20,8 @@ export const LANES: Lane[] = [
       { id: "R06", name: "Profil Python: Django, FastAPI, Flask", value: "Zapytania ORM bez zakresu, bandit, pip-audit.", done: "Własna aplikacja testowa i wynik na niej." },
       { id: "R07", name: "Narzędzia deterministyczne we wstępnym skanie", value: "semgrep z regułami pod stack, zizmor dla GitHub Actions, hadolint i trivy dla Dockerfile i obrazów. Ich wyniki są kandydatami dla audytorów, nigdy znaleziskami bez weryfikacji w kodzie.", done: "Każde narzędzie działa natywnie albo przez docker, uczciwie zgłasza „nie uruchomione”, a jego trafienia pojawiają się jako kandydaci." },
       { id: "R08", name: "Więcej sprawdzeń", value: "CSRF, CI/CD (sekrety w logach, pull_request_target, nieprzypięte akcje), Docker i IaC, łańcuch dostaw (skrypty instalacyjne, integralność lockfile).", done: "Każde ma punkty na checkliście i co najmniej jeden ukryty błąd w aplikacji testowej." },
+      { id: "R21", name: "Sprawdzenia LLM i agentów", value: "Prompt injection do narzędzi i agentów, wynik modelu trafiający do HTML, SQL, powłoki albo URL, wywołania narzędzi bez autoryzacji, nadużycie kosztów i tokenów.", done: "Punkty na checkliście, wzorce i co najmniej dwa ukryte błędy w aplikacji testowej, z wynikiem." },
+      { id: "R22", name: "Rejestr pokrycia", value: "Zapis, które wejścia i klasy błędów zostały sprawdzone, walidowany schematem. Dzięki temu „nic nie znaleziono” odróżnia się od „nikt nie patrzył”.", done: "Sekcje pokrycia i „nie sprawdzone” w raporcie powstają z rejestru, a test walidatora przechodzi." },
     ],
   },
   {
@@ -30,6 +32,10 @@ export const LANES: Lane[] = [
       { id: "R12", name: "Porównanie audytów", value: "Co nowe, co naprawione, co wróciło między dwoma przebiegami.", done: "Raport ma sekcję „od ostatniego audytu”." },
       { id: "R13", name: "Tańsze audytory", value: "Pomiar na benchmarku, czy audytorzy mogą działać na lżejszym modelu bez utraty wykrywalności.", done: "Liczba jest opublikowana, niezależnie od tego, co pokaże." },
       { id: "R14", name: "Lista kontrolna produkcji", value: "Generowana z sekcji „nie sprawdzone”: nagłówki, limity, zmienne środowiskowe, kopie zapasowe, z instrukcją, jak sprawdzić każdą pozycję.", done: "Jest sekcją raportu." },
+      { id: "R23", name: "Wyczerpanie zasobów i koszty", value: "Nieograniczone zapytania, uploady, kolejki i workery; płatne API (SMS, e-mail, AI), które może uruchomić anonim.", done: "Punkty na checkliście i ukryty błąd w aplikacji testowej, z wynikiem." },
+      { id: "R24", name: "Cykl życia danych", value: "Izolacja klientów w cache, wyszukiwarce i eksportach; usuwanie danych, które pomija kopie, pliki albo dane pochodne; przywracanie, które wskrzesza usunięte osoby.", done: "Punkty na checkliście i ukryty błąd w aplikacji testowej, z wynikiem." },
+      { id: "R25", name: "Sprawdzenia po stronie przeglądarki", value: "Wstrzyknięcia w DOM, zaufanie do postMessage, prototype pollution, clickjacking.", done: "Punkty na checkliście i ukryty błąd w aplikacji testowej, z wynikiem." },
+      { id: "R26", name: "Dowolny agent", value: "Instalacja i uruchomienie poza Claude Code (skills CLI), z tym samym raportem.", done: "Benchmark przechodzi od początku do końca w co najmniej jednym innym agencie, wynik opublikowany." },
     ],
   },
   {
@@ -39,6 +45,9 @@ export const LANES: Lane[] = [
       { id: "R16", name: "Profil Ruby on Rails", value: "brakeman.", done: "" },
       { id: "R17", name: "audit-live", value: "Czas każdej fazy, widok per audytor, licznik tokenów.", done: "" },
       { id: "R18", name: "Druga, niepublikowana aplikacja testowa", value: "Do mierzenia zmian w skillu bez ryzyka, że trafiła do danych treningowych.", done: "" },
+      { id: "R27", name: "Kod natywny i bezpieczeństwo pamięci", value: "C, C++, unsafe w Rust. Szerzej niż web, do którego skill powstał.", done: "" },
+      { id: "R28", name: "Mobile i lokalne IPC", value: "Deep linki, webview, eksportowane komponenty.", done: "" },
+      { id: "R29", name: "Protokoły i RPC", value: "gRPC, kolejki, brokery, streaming.", done: "" },
     ],
   },
 ];
