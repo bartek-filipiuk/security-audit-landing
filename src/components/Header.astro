@@ -15,7 +15,7 @@ import { SITE } from "../site";
       <a href="/#faq">FAQ</a>
       <a href="/roadmap">Roadmapa</a>
     </nav>
-    <a class="btn btn-primary buy" href={SITE.repo} rel="noopener">GitHub</a>
+    <a class="btn btn-primary cta-header" href={SITE.repo} rel="noopener">GitHub</a>
   </div>
 </header>
 
@@ -27,9 +27,9 @@ import { SITE } from "../site";
   nav { display: flex; gap: 22px; margin-left: auto; font-size: 0.95rem; }
   nav a { text-decoration: none; color: var(--ink-2); padding-block: 6px; }
   nav a:hover { color: var(--ink); text-decoration: underline; text-decoration-color: var(--accent); }
-  .buy { min-height: 44px; padding: 10px 16px; font-size: 0.95rem; }
+  .cta-header { min-height: 44px; padding: 10px 16px; font-size: 0.95rem; }
   @media (max-width: 820px) {
     nav { display: none; }
-    .buy { margin-left: auto; }
+    .cta-header { margin-left: auto; }
   }
 </style>
