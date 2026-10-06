@@ -23,11 +23,12 @@ const description = "Co dalej w skillu security-audit: nowe stacki, narzędzia d
             <h2>{lane.name} <span class="note">{lane.note}</span></h2>
             <ol>
               {lane.items.map((it) => (
-                <li class={it.shipped ? "is-shipped" : undefined}>
-                  <span class="id mono">{it.id}</span>{it.shipped && <span class="shipped">✓ Gotowe</span>}
+                <li class={it.shipped ? "is-shipped" : it.inProgress ? "is-progress" : undefined}>
+                  <span class="id mono">{it.id}</span>{it.shipped && <span class="shipped">✓ Gotowe</span>}{!it.shipped && it.inProgress && <span class="progress">W toku</span>}
                   <h3>{it.name}{it.code && <> <code class="flag">{it.code}</code></>}</h3>
                   <p>{it.value}</p>
                   {it.done && <p class="done"><b>Gotowe, gdy:</b> {it.done}</p>}
+                  {!it.shipped && it.inProgress && <p class="shipped-note">Kod gotowy, czeka na pomiar na benchmarku · <a href={it.inProgress.pr}>pull request na GitHubie</a></p>}
                   {it.shipped && <p class="shipped-note">Wdrożone {it.shipped.date} · <a href={it.shipped.pr}>pull request na GitHubie</a></p>}
                 </li>
               ))}
@@ -68,6 +69,7 @@ const description = "Co dalej w skillu security-audit: nowe stacki, narzędzia d
   .done { color: var(--ink-3); }
   .done b { font-weight: 600; color: var(--ink-2); }
   .shipped { margin-left: 8px; font-size: var(--step--1); font-weight: 600; color: var(--accent); }
+  .progress { margin-left: 8px; font-size: var(--step--1); font-weight: 600; color: var(--ink-2); border: 1px solid var(--ink-3); border-radius: 999px; padding: 0 8px; }
   .shipped-note { font-size: var(--step--1); color: var(--ink-2); }
   .is-shipped h3 { text-decoration: line-through; text-decoration-thickness: 1px; text-decoration-color: var(--ink-3); }
   .lane-ideas li p { color: var(--ink-3); }
