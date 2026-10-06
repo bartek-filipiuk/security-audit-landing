@@ -1,6 +1,7 @@
 // Public roadmap. Mirrors ROADMAP.md in the skill repo: same ids, same order, no dates.
 // shipped: the item stays in its lane, marked done with a link to the pull request that delivered it.
-export type Item = { id: string; name: string; code?: string; value: string; done: string; shipped?: { date: string; pr: string } };
+// inProgress: code is in an open pull request (usually waiting for the benchmark run).
+export type Item = { id: string; name: string; code?: string; value: string; done: string; shipped?: { date: string; pr: string }; inProgress?: { pr: string } };
 export type Lane = { key: string; name: string; note: string; items: Item[] };
 
 export const LANES: Lane[] = [
@@ -15,12 +16,12 @@ export const LANES: Lane[] = [
   {
     key: "next", name: "Następne", note: "Zaraz po tym, co wyżej.",
     items: [
-      { id: "R04", name: "Wykrywanie stacku i flaga", code: "--stack", value: "Raport mówi, który profil zastosowano i czego ten profil nie obejmuje. Flaga wymusza profil.", done: "Aplikacja testowa, projekt PHP i projekt Python są rozpoznawane poprawnie." },
+      { id: "R04", name: "Wykrywanie stacku i flaga", code: "--stack", value: "Raport mówi, który profil zastosowano i czego ten profil nie obejmuje. Flaga wymusza profil.", done: "Aplikacja testowa, projekt PHP i projekt Python są rozpoznawane poprawnie.", inProgress: { pr: "https://github.com/bartek-filipiuk/security-audit-skill/pull/4" } },
       { id: "R05", name: "Profil PHP: Laravel, Symfony, Drupal", value: "Wejścia z routingu, zapytania Eloquent i Doctrine bez zakresu, composer audit, taint w Psalm.", done: "Własna aplikacja testowa i wynik na niej." },
       { id: "R06", name: "Profil Python: Django, FastAPI, Flask", value: "Zapytania ORM bez zakresu, bandit, pip-audit.", done: "Własna aplikacja testowa i wynik na niej." },
-      { id: "R07", name: "Narzędzia deterministyczne we wstępnym skanie", value: "semgrep z regułami pod stack, zizmor dla GitHub Actions, hadolint i trivy dla Dockerfile i obrazów. Ich wyniki są kandydatami dla audytorów, nigdy znaleziskami bez weryfikacji w kodzie.", done: "Każde narzędzie działa natywnie albo przez docker, uczciwie zgłasza „nie uruchomione”, a jego trafienia pojawiają się jako kandydaci." },
-      { id: "R08", name: "Więcej sprawdzeń", value: "CSRF, CI/CD (sekrety w logach, pull_request_target, nieprzypięte akcje), Docker i IaC, łańcuch dostaw (skrypty instalacyjne, integralność lockfile).", done: "Każde ma punkty na checkliście i co najmniej jeden ukryty błąd w aplikacji testowej." },
-      { id: "R21", name: "Sprawdzenia LLM i agentów", value: "Prompt injection do narzędzi i agentów, wynik modelu trafiający do HTML, SQL, powłoki albo URL, wywołania narzędzi bez autoryzacji, nadużycie kosztów i tokenów.", done: "Punkty na checkliście, wzorce i co najmniej dwa ukryte błędy w aplikacji testowej, z wynikiem." },
+      { id: "R07", name: "Narzędzia deterministyczne we wstępnym skanie", value: "semgrep z regułami pod stack, zizmor dla GitHub Actions, hadolint i trivy dla Dockerfile i obrazów. Ich wyniki są kandydatami dla audytorów, nigdy znaleziskami bez weryfikacji w kodzie.", done: "Każde narzędzie działa natywnie albo przez docker, uczciwie zgłasza „nie uruchomione”, a jego trafienia pojawiają się jako kandydaci.", inProgress: { pr: "https://github.com/bartek-filipiuk/security-audit-skill/pull/5" } },
+      { id: "R08", name: "Więcej sprawdzeń", value: "CSRF, CI/CD (sekrety w logach, pull_request_target, nieprzypięte akcje), Docker i IaC, łańcuch dostaw (skrypty instalacyjne, integralność lockfile).", done: "Każde ma punkty na checkliście i co najmniej jeden ukryty błąd w aplikacji testowej.", inProgress: { pr: "https://github.com/bartek-filipiuk/security-audit-skill/pull/6" } },
+      { id: "R21", name: "Sprawdzenia LLM i agentów", value: "Prompt injection do narzędzi i agentów, wynik modelu trafiający do HTML, SQL, powłoki albo URL, wywołania narzędzi bez autoryzacji, nadużycie kosztów i tokenów.", done: "Punkty na checkliście, wzorce i co najmniej dwa ukryte błędy w aplikacji testowej, z wynikiem.", inProgress: { pr: "https://github.com/bartek-filipiuk/security-audit-skill/pull/7" } },
       { id: "R22", name: "Rejestr pokrycia", value: "Zapis, które wejścia i klasy błędów zostały sprawdzone, walidowany schematem. Dzięki temu „nic nie znaleziono” odróżnia się od „nikt nie patrzył”.", done: "Sekcje pokrycia i „nie sprawdzone” w raporcie powstają z rejestru, a test walidatora przechodzi." },
     ],
   },
