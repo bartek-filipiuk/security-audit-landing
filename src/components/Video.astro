@@ -7,6 +7,7 @@ const chapters = ["Komenda i wstępny skan", "Mapa aplikacji i audyt po obszarac
     <div>
       <h2 class="h2">Pełny przebieg w&nbsp;pięć minut</h2>
       <p class="lead">Ten sam audyt co wyżej, w&nbsp;całości: {SITE.video.minutes}&nbsp;minut zamiast 32. Bez komentarza, bez cięć w&nbsp;treści.</p>
+      <p class="buildlog">Jak powstaje skill, pokazujemy w&nbsp;krótkich standupach na <a href={SITE.youtube} rel="noopener">YouTube</a>.</p>
       <ol>
         {chapters.map((c) => <li>{c}</li>)}
       </ol>
@@ -23,6 +24,7 @@ const chapters = ["Komenda i wstępny skan", "Mapa aplikacji i audyt po obszarac
 </section>
 
 <style>
+  .buildlog { margin-top: 12px; color: var(--ink-2); }
   ol { margin: 22px 0 0; padding-left: 1.3em; color: var(--ink-2); }
   ol li { padding: 4px 0; }
   ol li::marker { font-family: var(--mono); font-size: 0.85em; color: var(--accent-strong); }

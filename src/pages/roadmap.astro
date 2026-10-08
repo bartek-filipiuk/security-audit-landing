@@ -1,6 +1,7 @@
 ---
 import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
+import { SITE } from "../site";
 import Footer from "../components/Footer.astro";
 import { LANES, DONE } from "../roadmap";
 const title = "Roadmapa · Security Audit";
@@ -13,6 +14,7 @@ const description = "Co dalej w skillu security-audit: nowe stacki, narzędzia d
       <div class="wrap">
         <h1 class="h2">Roadmapa</h1>
         <p class="lead">Bez dat. Każda pozycja ma jedno zdanie o&nbsp;tym, co zyskujesz, i&nbsp;jedno o&nbsp;tym, po czym poznamy, że jest gotowa. Zmiany śledzisz na GitHubie, a&nbsp;propozycje i&nbsp;pull requesty są mile widziane.</p>
+        <p class="buildlog">Budujemy to publicznie: krótkie standupy z&nbsp;postępów lecą na <a href={SITE.youtube} rel="noopener">kanale YouTube @SecurityAuditDev</a>.</p>
         <p class="rules">Trzy zasady: profil dla stacku wychodzi dopiero z&nbsp;własną aplikacją testową i&nbsp;wynikiem na niej; wynik narzędzia deterministycznego jest kandydatem dla audytora, nigdy znaleziskiem bez weryfikacji w&nbsp;kodzie; nic w&nbsp;skillu nie opisuje ani nie symuluje ataków.</p>
       </div>
     </section>
@@ -82,4 +84,5 @@ const description = "Co dalej w skillu security-audit: nowe stacki, narzędzia d
   .versions dd { margin: 0; color: var(--ink-2); }
   @media (max-width: 1000px) { .lanes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 600px) { .lanes { grid-template-columns: minmax(0, 1fr); } .versions div { grid-template-columns: minmax(0, 1fr); gap: 4px; } }
+  .buildlog { margin-top: 14px; padding: 12px 16px; border-left: 3px solid var(--accent); background: var(--surface); border-radius: 0 var(--radius) var(--radius) 0; }
 </style>

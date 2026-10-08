@@ -7,6 +7,7 @@ export const SITE = {
   author: "Bartek Filipiuk",
   authorUrl: "https://devince.dev",
   repo: "https://github.com/bartek-filipiuk/security-audit-skill",
+  youtube: "https://www.youtube.com/@SecurityAuditDev",
   install: "git clone https://github.com/bartek-filipiuk/security-audit-skill ~/.claude/skills/security-audit",
   video: { url: "/film/pelny-przebieg.mp4", poster: "/film/pelny-przebieg.jpg", minutes: 5 },
 };
