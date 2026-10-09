@@ -30,7 +30,7 @@ export const LANES: Lane[] = [
     items: [
       { id: "R09", name: "Profil Go i profil Rust", value: "gosec i obsługa błędów; cargo-audit i unsafe.", done: "Własne aplikacje testowe i wyniki na nich." },
       { id: "R11", name: "Eksport znalezisk", value: "SARIF do GitHub code scanning; zadania do Linear i Jira z plikiem, linią i poprawką.", done: "Jedno polecenie tworzy plik albo zadania z wyniku audytu.", shipped: { date: "8 października 2026", pr: "https://github.com/bartek-filipiuk/security-audit-skill/pull/16" } },
-      { id: "R12", name: "Porównanie audytów", value: "Co nowe, co naprawione, co wróciło między dwoma przebiegami.", done: "Raport ma sekcję „od ostatniego audytu”." },
+      { id: "R12", name: "Porównanie audytów", value: "Co nowe, co naprawione, co wróciło między dwoma przebiegami.", done: "Raport ma sekcję „od ostatniego audytu”.", shipped: { date: "9 października 2026", pr: "https://github.com/bartek-filipiuk/security-audit-skill/pull/17" } },
       { id: "R13", name: "Tańsze audytory", value: "Pomiar na benchmarku, czy audytorzy mogą działać na lżejszym modelu bez utraty wykrywalności.", done: "Liczba jest opublikowana, niezależnie od tego, co pokaże." },
       { id: "R14", name: "Lista kontrolna produkcji", value: "Generowana z sekcji „nie sprawdzone”: nagłówki, limity, zmienne środowiskowe, kopie zapasowe, z instrukcją, jak sprawdzić każdą pozycję.", done: "Jest sekcją raportu." },
       { id: "R23", name: "Wyczerpanie zasobów i koszty", value: "Nieograniczone zapytania, uploady, kolejki i workery; płatne API (SMS, e-mail, AI), które może uruchomić anonim.", done: "Punkty na checkliście i ukryty błąd w aplikacji testowej, z wynikiem." },
