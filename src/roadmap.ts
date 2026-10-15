@@ -44,7 +44,7 @@ export const LANES: Lane[] = [
     items: [
       { id: "R15", name: "Audyt na każdy pull request", value: "Bezobsługowo, w CI.", done: "" },
       { id: "R16", name: "Profil Ruby on Rails", value: "brakeman.", done: "" },
-      { id: "R17", name: "audit-live", value: "Czas każdej fazy, widok per audytor, licznik tokenów.", done: "" },
+      { id: "R17", name: "audit-live", value: "Czas każdej fazy, widok per audytor, koszt sesji i zajętość kontekstu w panelu postępu.", done: "Panel Audit pokazuje długość faz, wiersz na audytora i koszt sesji z Claude Code.", shipped: { date: "15 października 2026", pr: "https://github.com/bartek-filipiuk/security-audit-skill/pull/23" } },
       { id: "R18", name: "Druga, niepublikowana aplikacja testowa", value: "Do mierzenia zmian w skillu bez ryzyka, że trafiła do danych treningowych.", done: "" },
       { id: "R27", name: "Kod natywny i bezpieczeństwo pamięci", value: "C, C++, unsafe w Rust. Szerzej niż web, do którego skill powstał.", done: "" },
       { id: "R28", name: "Mobile i lokalne IPC", value: "Deep linki, webview, eksportowane komponenty.", done: "" },
