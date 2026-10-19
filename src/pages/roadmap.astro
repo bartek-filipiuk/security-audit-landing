@@ -3,7 +3,9 @@ import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
 import { SITE } from "../site";
 import Footer from "../components/Footer.astro";
-import { LANES, DONE } from "../roadmap";
+import { LANES, DONE, type Item } from "../roadmap";
+const PLAN = LANES.filter((l) => l.key !== "done");
+const SHIPPED: Item[] = LANES.find((l) => l.key === "done")?.items ?? [];
 const title = "Roadmapa · Security Audit";
 const description = "Co dalej w skillu security-audit: nowe stacki, narzędzia deterministyczne, tańsze audyty. Bez dat, z kryterium gotowości przy każdej pozycji.";
 ---
@@ -20,17 +22,19 @@ const description = "Co dalej w skillu security-audit: nowe stacki, narzędzia d
     </section>
     <section class="section band lanes-section">
       <div class="wrap lanes">
-        {LANES.map((lane) => (
+        {PLAN.map((lane) => (
           <div class={`lane lane-${lane.key}`}>
             <h2>{lane.name} <span class="note">{lane.note}</span></h2>
             <ol>
               {lane.items.map((it) => (
-                <li class={it.shipped ? "is-shipped" : it.inProgress ? "is-progress" : undefined}>
-                  <span class="id mono">{it.id}</span>{it.shipped && <span class="shipped">✓ Gotowe</span>}{!it.shipped && it.inProgress && <span class="progress">W toku</span>}
+                <li class={it.shipped ? "is-shipped" : it.merged ? "is-merged" : it.inProgress ? "is-progress" : undefined}>
+                  <span class="id mono">{it.id}</span>{it.shipped && <span class="shipped">✓ Gotowe</span>}{!it.shipped && it.merged && <span class="progress merged">Zmergowane</span>}{!it.shipped && !it.merged && it.inProgress && <span class="progress">W toku</span>}
                   <h3>{it.name}{it.code && <> <code class="flag">{it.code}</code></>}</h3>
+                  {it.priority && <p class="priority">{it.priority}</p>}
                   <p>{it.value}</p>
                   {it.done && <p class="done"><b>Gotowe, gdy:</b> {it.done}</p>}
-                  {!it.shipped && it.inProgress && <p class="shipped-note">Kod gotowy, czeka na pomiar na benchmarku · <a href={it.inProgress.pr}>pull request na GitHubie</a></p>}
+                  {!it.shipped && it.merged && <p class="shipped-note">Zmergowane {it.merged.date}, {it.merged.waiting ?? "czeka na benchmark"} · <a href={it.merged.pr}>pull request na GitHubie</a></p>}
+                  {!it.shipped && !it.merged && it.inProgress && <p class="shipped-note">Kod w otwartym pull requeście, czeka na pomiar na benchmarku · <a href={it.inProgress.pr}>pull request na GitHubie</a></p>}
                   {it.shipped && <p class="shipped-note">Wdrożone {it.shipped.date} · <a href={it.shipped.pr}>pull request na GitHubie</a></p>}
                 </li>
               ))}
@@ -42,6 +46,17 @@ const description = "Co dalej w skillu security-audit: nowe stacki, narzędzia d
     <section class="section">
       <div class="wrap">
         <h2 class="h2 small">Zrobione</h2>
+        <ol class="shipped-list">
+          {SHIPPED.map((it) => (
+            <li class="is-shipped">
+              <span class="id mono">{it.id}</span><span class="shipped">✓ Gotowe</span>
+              <h3>{it.name}{it.code && <> <code class="flag">{it.code}</code></>}</h3>
+              <p>{it.value}</p>
+              <p class="shipped-note">Wdrożone {it.shipped?.date}{it.shipped && <> · <a href={it.shipped.pr}>pull request na GitHubie</a></>}</p>
+            </li>
+          ))}
+        </ol>
+        <h3 class="releases">Wydania</h3>
         <dl class="versions">
           {DONE.map((v) => (
             <div>
@@ -74,6 +89,11 @@ const description = "Co dalej w skillu security-audit: nowe stacki, narzędzia d
   .progress { margin-left: 8px; font-size: var(--step--1); font-weight: 600; color: var(--ink-2); border: 1px solid var(--ink-3); border-radius: 999px; padding: 0 8px; }
   .shipped-note { font-size: var(--step--1); color: var(--ink-2); }
   .is-shipped h3 { text-decoration: line-through; text-decoration-thickness: 1px; text-decoration-color: var(--ink-3); }
+  .merged { border-color: var(--accent); color: var(--accent-strong); }
+  .priority { font-weight: 600; color: var(--accent-strong) !important; }
+  .shipped-list { margin-top: 12px; max-width: 72ch; }
+  .shipped-list .is-shipped h3 { text-decoration: none; }
+  .releases { margin-top: 32px; font-size: var(--step-1); }
   .lane-ideas li p { color: var(--ink-3); }
   .small { font-size: var(--step-2); }
   .versions { margin: 20px 0 0; max-width: 72ch; }
