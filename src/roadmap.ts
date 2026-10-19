@@ -36,7 +36,7 @@ export const LANES: Lane[] = [
       { id: "R23", name: "Wyczerpanie zasobów i koszty", value: "Nieograniczone zapytania, uploady, kolejki i workery; płatne API (SMS, e-mail, AI), które może uruchomić anonim.", done: "Punkty na checkliście i ukryty błąd w aplikacji testowej, z wynikiem.", inProgress: { pr: "https://github.com/bartek-filipiuk/security-audit-skill/pull/19" } },
       { id: "R24", name: "Cykl życia danych", value: "Izolacja klientów w cache, wyszukiwarce i eksportach; usuwanie danych, które pomija kopie, pliki albo dane pochodne; przywracanie, które wskrzesza usunięte osoby.", done: "Punkty na checkliście i ukryty błąd w aplikacji testowej, z wynikiem.", inProgress: { pr: "https://github.com/bartek-filipiuk/security-audit-skill/pull/20" } },
       { id: "R25", name: "Sprawdzenia po stronie przeglądarki", value: "Wstrzyknięcia w DOM, zaufanie do postMessage, prototype pollution, clickjacking.", done: "Punkty na checkliście i ukryty błąd w aplikacji testowej, z wynikiem.", inProgress: { pr: "https://github.com/bartek-filipiuk/security-audit-skill/pull/21" } },
-      { id: "R26", name: "Dowolny agent", value: "Instalacja i uruchomienie poza Claude Code (skills CLI), z tym samym raportem.", done: "Benchmark przechodzi od początku do końca w co najmniej jednym innym agencie, wynik opublikowany." },
+      { id: "R26", name: "Dowolny agent", value: "Instalacja i uruchomienie poza Claude Code (skills CLI), z tym samym raportem.", done: "Benchmark przechodzi od początku do końca w co najmniej jednym innym agencie, wynik opublikowany.", inProgress: { pr: "https://github.com/bartek-filipiuk/security-audit-skill/pull/24" } },
     ],
   },
   {
