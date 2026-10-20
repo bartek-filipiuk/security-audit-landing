@@ -7,7 +7,7 @@ const target = [
   ["wersja", "3.1.3 (25 lutego 2026), podatna na wszystkie advisory z tabeli"],
   ["polecenie", "/security-audit, bez informacji o advisory"],
   ["model", "Opus 5.5"],
-  ["advisory znalezione", "4 z 11 ręcznie, 3 z 11 automatycznie"],
+  ["advisory znalezione", "4 z 11"],
   ["  najwyżej w raporcie", "SA-CONTRIB-2026-031, krytyczne"],
   ["  znalezione, odrzucone przy weryfikacji", "2"],
   ["fałszywe alarmy", "0"],
@@ -28,7 +28,7 @@ const advisories = [
   ["144", "CVE-2026-87946", "krytyczne 15/25", "porównanie HMAC zależne od czasu, przewidywalne identyfikatory żądań", "nie"],
   ["145", "CVE-2026-87947", "umiarkowanie krytyczne 14/25", "algorytm podpisu wybierany przez odpowiedź SAML", "nie"],
   ["148", "CVE-2026-87950", "umiarkowanie krytyczne 13/25", "dane uwierzytelniające dostawcy zaszyte w kodzie", "znalezione, odrzucone przy weryfikacji"],
-  ["147", "CVE-2026-87949", "umiarkowanie krytyczne 12/25", "atrybuty SAML wypisywane do HTML (XSS)", "znalezione jako drugie miejsce innego XSS (liczone ręcznie)"],
+  ["147", "CVE-2026-87949", "umiarkowanie krytyczne 12/25", "atrybuty SAML wypisywane do HTML (XSS)", "znalezione jako drugie miejsce innego XSS"],
   ["149", "CVE-2026-87951", "umiarkowanie krytyczne 12/25", "hasło do konta dostawcy zapisane w konfiguracji", "nie"],
   ["151", "CVE-2026-87953", "umiarkowanie krytyczne 11/25", "adres metadanych IdP pobierany bez sprawdzenia (SSRF, tylko administrator)", "nie"],
   ["150", "CVE-2026-87952", "umiarkowanie krytyczne 10/25", "brak ochrony przed ponownym użyciem odpowiedzi SAML", "nie"],
@@ -50,7 +50,7 @@ const advisories = [
           </div>
         ))}
       </dl>
-      <p class="fine">Najwyżej w&nbsp;raporcie stoi <a href={SA("031")} rel="noopener">SA-CONTRIB-2026-031</a> (CVE-2026-5343): weryfikacja podpisu SAML zgłasza błąd, ale nie przerywa logowania. Automatyczny scorer dopasowuje tylko główne miejsce znaleziska, stąd różnica między 3 a&nbsp;4.</p>
+      <p class="fine">Najwyżej w&nbsp;raporcie stoi <a href={SA("031")} rel="noopener">SA-CONTRIB-2026-031</a> (CVE-2026-5343): weryfikacja podpisu SAML zgłasza błąd, ale nie przerywa logowania. Scorer liczy też dodatkowe miejsca znaleziska, więc XSS atrybutów SAML (SA-147), wskazany jako drugie miejsce innego znaleziska, jest liczony jako trafiony.</p>
     </div>
     <div>
       <h3>Wersja naprawiona (kontrola)</h3>
