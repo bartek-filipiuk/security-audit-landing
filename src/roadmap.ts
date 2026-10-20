@@ -43,7 +43,7 @@ export const LANES: Lane[] = [
   {
     key: "ideas", name: "Pomysły", note: "Bez zobowiązań.",
     items: [
-      { id: "R30", name: "Mini benchmarki na prawdziwych podatnościach", value: "Krótkie audyty prawdziwych modułów w wersji sprzed publicznej poprawki (np. moduł Drupala z opublikowanym advisory) i sprawdzenie, czy skill znajduje opisaną dziurę. Tylko defensywnie, na publicznych advisory.", done: "" },
+      { id: "R30", name: "Mini benchmarki na prawdziwych podatnościach", value: "Krótkie audyty prawdziwych modułów w wersji sprzed publicznej poprawki (np. moduł Drupala z opublikowanym advisory) i sprawdzenie, czy skill znajduje opisaną dziurę. Tylko defensywnie, na publicznych advisory.", done: "", merged: { date: "20 października 2026", pr: "https://github.com/bartek-filipiuk/security-audit-skill/pull/28", waiting: "pierwsze przebiegi zrobione, wyniki w sekcji Na prawdziwych podatnościach" } },
       { id: "R16", name: "Profil Ruby on Rails", value: "brakeman.", done: "" },
       { id: "R18", name: "Druga, niepublikowana aplikacja testowa", value: "Do mierzenia zmian w skillu bez ryzyka, że trafiła do danych treningowych.", done: "" },
       { id: "R27", name: "Kod natywny i bezpieczeństwo pamięci", value: "C, C++, unsafe w Rust. Szerzej niż web, do którego skill powstał.", done: "" },
