@@ -1,0 +1,111 @@
+---
+const SA = (n: string) => `https://www.drupal.org/sa-contrib-2026-${n}`;
+const RELEASE = (v: string) => `https://www.drupal.org/project/miniorange_saml/releases/${v}`;
+const README = "https://github.com/bartek-filipiuk/security-audit-skill/tree/main/benchmark/real";
+
+const target = [
+  ["wersja", "3.1.3 (25 lutego 2026), podatna na wszystkie advisory z tabeli"],
+  ["polecenie", "/security-audit, bez informacji o advisory"],
+  ["model", "Opus 5.5"],
+  ["advisory znalezione", "4 z 11 ręcznie, 3 z 11 automatycznie"],
+  ["  najwyżej w raporcie", "SA-CONTRIB-2026-031, krytyczne"],
+  ["  znalezione, odrzucone przy weryfikacji", "2"],
+  ["fałszywe alarmy", "0"],
+  ["tokeny / koszt / czas", "3,25 mln / 2,37 USD / 6 min"],
+];
+const control = [
+  ["wersja", "3.2.0 (9 września 2026), z poprawkami wszystkich advisory"],
+  ["naprawione advisory zgłoszone ponownie", "0"],
+  ["uwaga do poprawki SSRF", "1, opis niżej"],
+  ["tokeny / koszt / czas", "4,28 mln / 3,15 USD / 8 min"],
+];
+// [id, CVE, drupal.org risk, what it is, result on 3.1.3]
+const advisories = [
+  ["031", "CVE-2026-5343", "krytyczne 19/25", "nieudana weryfikacja podpisu SAML nie przerywa logowania (obejście uwierzytelnienia)", "znalezione, pierwsze w raporcie"],
+  ["141", "CVE-2026-87943", "krytyczne 18/25", "trasy dostępne dla każdego prowadzą do funkcji administracyjnych", "znalezione, odrzucone przy weryfikacji"],
+  ["143", "CVE-2026-87945", "krytyczne 16/25", "RelayState jako przekierowanie po logowaniu (open redirect)", "znalezione"],
+  ["142", "CVE-2026-87944", "krytyczne 15/25", "wyłączona weryfikacja certyfikatu TLS w połączeniach wychodzących", "znalezione"],
+  ["144", "CVE-2026-87946", "krytyczne 15/25", "porównanie HMAC zależne od czasu, przewidywalne identyfikatory żądań", "nie"],
+  ["145", "CVE-2026-87947", "umiarkowanie krytyczne 14/25", "algorytm podpisu wybierany przez odpowiedź SAML", "nie"],
+  ["148", "CVE-2026-87950", "umiarkowanie krytyczne 13/25", "dane uwierzytelniające dostawcy zaszyte w kodzie", "znalezione, odrzucone przy weryfikacji"],
+  ["147", "CVE-2026-87949", "umiarkowanie krytyczne 12/25", "atrybuty SAML wypisywane do HTML (XSS)", "znalezione jako drugie miejsce innego XSS (liczone ręcznie)"],
+  ["149", "CVE-2026-87951", "umiarkowanie krytyczne 12/25", "hasło do konta dostawcy zapisane w konfiguracji", "nie"],
+  ["151", "CVE-2026-87953", "umiarkowanie krytyczne 11/25", "adres metadanych IdP pobierany bez sprawdzenia (SSRF, tylko administrator)", "nie"],
+  ["150", "CVE-2026-87952", "umiarkowanie krytyczne 10/25", "brak ochrony przed ponownym użyciem odpowiedzi SAML", "nie"],
+];
+---
+<section class="section" id="prawdziwe">
+  <div class="wrap">
+    <h2 class="h2">Na prawdziwych podatnościach</h2>
+    <p class="lead">Aplikację testową z&nbsp;sekcji wyżej pisaliśmy razem ze skillem. Tu jest kod, którego nie pisaliśmy: moduł Drupala <a href="https://www.drupal.org/project/miniorange_saml" rel="noopener">miniorange_saml</a> („SAML SSO - Service Provider”) w&nbsp;wersji <a href={RELEASE("3.1.3")} rel="noopener">3.1.3</a>, dla której drupal.org opublikował advisory, i&nbsp;w&nbsp;wersji <a href={RELEASE("3.2.0")} rel="noopener">3.2.0</a>, która je naprawia. Skill dostał tylko polecenie <code>/security-audit</code>.</p>
+  </div>
+  <div class="wrap split cards">
+    <div>
+      <h3>Wersja podatna</h3>
+      <dl class="run mono" aria-label="Przebieg na wersji 3.1.3">
+        {target.map(([k, v]) => (
+          <div class:list={{ sub: k.startsWith("  ") }}>
+            <dt>{k.trim()}</dt>
+            <dd>{v}</dd>
+          </div>
+        ))}
+      </dl>
+      <p class="fine">Najwyżej w&nbsp;raporcie stoi <a href={SA("031")} rel="noopener">SA-CONTRIB-2026-031</a> (CVE-2026-5343): weryfikacja podpisu SAML zgłasza błąd, ale nie przerywa logowania. Automatyczny scorer dopasowuje tylko główne miejsce znaleziska, stąd różnica między 3 a&nbsp;4.</p>
+    </div>
+    <div>
+      <h3>Wersja naprawiona (kontrola)</h3>
+      <dl class="run mono" aria-label="Przebieg na wersji 3.2.0">
+        {control.map(([k, v]) => (
+          <div>
+            <dt>{k}</dt>
+            <dd>{v}</dd>
+          </div>
+        ))}
+      </dl>
+      <p class="fine">Żadne z&nbsp;naprawionych advisory nie wróciło w&nbsp;raporcie. Jedno znalezisko dotyczy poprawki SSRF z&nbsp;<a href={SA("151")} rel="noopener">SA-CONTRIB-2026-151</a>: skill uważa, że da się ją obejść przekierowaniem albo DNS rebindingiem, wciąż tylko z&nbsp;konta administratora. Scorer liczy to jako trafienie w&nbsp;pułapkę, my czytamy to jako problem, który po poprawce został.</p>
+    </div>
+  </div>
+  <div class="wrap compare">
+    <h3>11 advisory na wersji 3.1.3</h3>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Advisory</th><th>Ryzyko wg drupal.org</th><th>Czego dotyczy</th><th>Wynik</th></tr></thead>
+        <tbody>
+          {advisories.map(([n, cve, risk, what, result]) => (
+            <tr>
+              <th scope="row"><a href={SA(n)} rel="noopener">SA-CONTRIB-2026-{n}</a><br /><span class="cve mono">{cve}</span></th>
+              <td>{risk}</td>
+              <td>{what}</td>
+              <td class:list={{ miss: result === "nie" }}>{result}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="fine">Przebiegi z&nbsp;19 października 2026, Opus 5.5, po jednym na wersję. Zastrzeżenia: to jeden moduł i&nbsp;jedna rodzina błędów, głównie obsługa odpowiedzi SAML. SA-CONTRIB-2026-031 jest z&nbsp;kwietnia 2026 i&nbsp;może być w&nbsp;danych treningowych modelu; paczka z&nbsp;września raczej nie. Przebiegi LLM się różnią, powtórka na 3.1.3 jeszcze czeka. Znalezienie publicznego, już naprawionego błędu to dolna granica tego, co skill robi na nieznanym kodzie, a&nbsp;nie górna, i&nbsp;nie dowód, że znalazłby go pierwszy.</p>
+    <p class="fine"><strong>Sprawdź u&nbsp;siebie.</strong> Moduł nie jest kopiowany do repozytorium: skrypt pobiera wydanie z&nbsp;drupal.org, sprawdza sumę sha256 i&nbsp;przygotowuje katalog do audytu, a&nbsp;klucz odpowiedzi ocenia wynik. <a href={README} rel="noopener">Instrukcja, klucze i&nbsp;tabela wyników</a>.</p>
+  </div>
+</section>
+
+<style>
+  .cards { margin-top: clamp(32px, 5vw, 56px); }
+  .cards h3, .compare h3 { font-size: var(--step-1); font-weight: 700; font-stretch: 108%; max-width: 50ch; margin: 0 0 14px; }
+  .fine { margin-top: 14px; }
+  .run { margin: 0; font-size: 0.86rem; border-top: 2px solid var(--ink); }
+  .run div { display: flex; justify-content: space-between; gap: 20px; padding: 11px 0; border-bottom: 1px dashed var(--rule); }
+  .run dt { color: var(--ink-2); }
+  .run dd { margin: 0; text-align: right; font-weight: 600; }
+  .run .sub dt { padding-left: 2ch; color: var(--ink-3); }
+  .run .sub dd { font-weight: 400; color: var(--ink-2); }
+  .run div:last-child { border-bottom: 2px solid var(--ink); }
+  .compare { margin-top: clamp(48px, 7vw, 80px); }
+  .scroll { overflow-x: auto; margin-top: 18px; }
+  table { width: 100%; border-collapse: collapse; font-size: var(--step--1); min-width: 640px; }
+  th, td { text-align: left; vertical-align: top; padding: 11px 14px 11px 0; border-bottom: 1px solid var(--rule); }
+  thead th { font-weight: 650; border-bottom: 2px solid var(--ink); }
+  tbody th { font-weight: 600; color: var(--ink-2); white-space: nowrap; }
+  td { color: var(--ink-2); }
+  td.miss { color: var(--ink-3); }
+  .cve { font-size: 0.8rem; font-weight: 400; color: var(--ink-3); }
+  .compare .fine { margin-top: 12px; max-width: 80ch; }
+</style>
