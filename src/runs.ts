@@ -52,7 +52,7 @@ export const RUNS: Run[] = [
     ...MO, date: "2026-10-19", version: "3.2.0", role: "control", label: "R30, przebieg B", skillSha: "7f956ef",
     advisories: [],
     total: 0, decoyFp: 1, unmatched: 7, costUsd: 3.15, minutes: 8,
-    note: "Żadne naprawione advisory nie wróciło. Jedno trafienie w pułapkę to poprawka SSRF z SA-CONTRIB-2026-151, opisana na stronie głównej.",
+    note: "Żadne naprawione advisory nie wróciło. Jedno trafienie w pułapkę jest w przeglądzie.",
   },
   {
     ...MO, date: "2026-10-19", version: "3.1.3", role: "target", label: "R30, przebieg A", skillSha: "7f956ef",
