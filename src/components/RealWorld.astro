@@ -16,7 +16,7 @@ const target = [
 const control = [
   ["wersja", "3.2.0 (9 września 2026), z poprawkami wszystkich advisory"],
   ["naprawione advisory zgłoszone ponownie", "0"],
-  ["uwaga do poprawki SSRF", "1, opis niżej"],
+  ["trafienia w pułapkę", "1, w przeglądzie"],
   ["tokeny / koszt / czas", "4,28 mln / 3,15 USD / 8 min"],
 ];
 // [id, CVE, drupal.org risk, what it is, result on 3.1.3]
@@ -62,7 +62,7 @@ const advisories = [
           </div>
         ))}
       </dl>
-      <p class="fine">Żadne z&nbsp;naprawionych advisory nie wróciło w&nbsp;raporcie. Jedno znalezisko dotyczy poprawki SSRF z&nbsp;<a href={SA("151")} rel="noopener">SA-CONTRIB-2026-151</a>: skill uważa, że da się ją obejść przekierowaniem albo DNS rebindingiem, wciąż tylko z&nbsp;konta administratora. Scorer liczy to jako trafienie w&nbsp;pułapkę, my czytamy to jako problem, który po poprawce został.</p>
+      <p class="fine">Żadne z&nbsp;naprawionych advisory nie wróciło w&nbsp;raporcie.</p>
     </div>
   </div>
   <div class="wrap compare">
