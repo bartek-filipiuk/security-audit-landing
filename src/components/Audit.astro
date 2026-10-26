@@ -1,0 +1,35 @@
+---
+const EMAIL = "bartek@devince.dev";
+const subject = "Audyt bezpieczeństwa kodu";
+const body = [
+  "Dzień dobry,",
+  "",
+  "Repozytorium i stack:",
+  "Wielkość kodu (mniej więcej):",
+  "Zakres (całość albo część, np. logowanie, płatności):",
+  "Termin:",
+  "",
+].join("\n");
+const mailto = `mailto:${EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+---
+<section class="section" id="audyt">
+  <div class="wrap split">
+    <div>
+      <h2 class="h2">Audyt z&nbsp;opiekunem projektu</h2>
+    </div>
+    <div class="text">
+      <p class="lead">Skill jest darmowy i&nbsp;open source. Jeśli chcesz, żeby jego autor przeszedł nim Twój kod i&nbsp;podpisał się pod wynikiem, napisz.</p>
+      <p>Można zacząć od części kodu zamiast całości, np. od logowania, płatności i&nbsp;webhooków albo od kilkunastu najbardziej ryzykownych wejść.</p>
+      <p>Cena zależy od wielkości kodu i&nbsp;stacku, ustalamy ją po rozmowie. Zakres to przegląd kodu, bez testów na systemach produkcyjnych.</p>
+      <p class="cta"><a class="btn btn-primary" href={mailto}>Napisz: {EMAIL}</a></p>
+      <p class="fine">W&nbsp;mailu przydadzą się: repozytorium i&nbsp;stack, wielkość kodu, zakres i&nbsp;termin.</p>
+      <p class="fine">Administrator danych: devince. Dane z&nbsp;maila służą tylko do odpowiedzi na zapytanie; bez umowy usuwamy je po 90 dniach.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  .text p:not(.lead) { margin-top: 14px; color: var(--ink-2); max-width: 60ch; }
+  .text .fine { color: var(--ink-3); }
+  .cta { margin-top: 26px !important; }
+</style>

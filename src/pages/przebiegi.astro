@@ -1,0 +1,104 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { RUNS, recall, type Found } from "../runs";
+const title = "Przebiegi · Security Audit";
+const description = "Każdy przebieg skilla security-audit na prawdziwym module z opublikowanymi advisory: data, wersja, ile advisory znalazł, koszt i czas.";
+const COMMIT = (sha: string) => `https://github.com/bartek-filipiuk/security-audit-skill/commit/${sha}`;
+const ROLE = { target: "podatna", control: "kontrola" } as const;
+const STATUS: Record<Found, string> = {
+  found: "znalezione",
+  "found-secondary": "znalezione jako drugie miejsce innego znaleziska",
+  dropped: "znalezione, odrzucone przy weryfikacji",
+  missed: "nie",
+};
+const pl = (n: number, d = 2) => n.toLocaleString("pl-PL", { minimumFractionDigits: 0, maximumFractionDigits: d });
+const dateText = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateString("pl-PL", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+---
+<Base title={title} description={description}>
+  <Header />
+  <main id="tresc">
+    <section class="section">
+      <div class="wrap">
+        <h1 class="h2">Przebiegi</h1>
+        <p class="lead">Przebieg to jeden audyt prawdziwego modułu, puszczony samym poleceniem <code>/security-audit</code>, bez podpowiedzi o&nbsp;advisory. Potem scorer porównuje raport z&nbsp;kluczem: listą miejsc w&nbsp;kodzie, które zmieniła publiczna poprawka.</p>
+        <p class="rules">Wersja <b>podatna</b> to wydanie sprzed poprawki: liczymy, ile advisory skill znalazł. Wersja <b>kontrolna</b> to wydanie z&nbsp;poprawkami: sprawdzamy, czy skill nie zgłasza ponownie tego, co już naprawiono (trafienia w&nbsp;pułapkę).</p>
+        <p class="rules">Publikujemy tylko to, co pasuje do opublikowanych i&nbsp;naprawionych advisory. Inne znaleziska podajemy wyłącznie jako liczbę („w&nbsp;przeglądzie”), bo najpierw trafiają do opiekunów modułu. O&nbsp;bieżących wersjach modułów nie piszemy nic ponad to.</p>
+      </div>
+    </section>
+    <section class="section band">
+      <div class="wrap">
+        <div class="scroll">
+          <table>
+            <thead>
+              <tr><th>Data</th><th>Moduł</th><th>Wersja</th><th>Advisory</th><th>Pułapki</th><th>W&nbsp;przeglądzie</th><th>Koszt / czas</th><th>Skill</th></tr>
+            </thead>
+            <tbody>
+              {RUNS.map((r) => (
+                <tr>
+                  <td class="nowrap">{dateText(r.date)}</td>
+                  <td><a href={r.moduleUrl} rel="noopener">{r.module}</a><br /><span class="dim">{r.ecosystem}</span></td>
+                  <td class="mono nowrap">{r.version}<br /><span class="dim">{ROLE[r.role]}</span></td>
+                  <td class="mono">{r.role === "control" ? "—" : `${recall(r)}/${r.total}`}</td>
+                  <td class="mono">{r.decoyFp}</td>
+                  <td class="mono">{r.unmatched}</td>
+                  <td class="mono nowrap">{pl(r.costUsd)} USD / {pl(r.minutes, 1)} min</td>
+                  <td class="mono"><a href={COMMIT(r.skillSha)} rel="noopener">{r.skillSha}</a></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="fine">Pułapki: znaleziska, które zgłaszają już naprawiony kod. W&nbsp;przeglądzie: zweryfikowane znaleziska spoza klucza, podane tylko liczbą. Koszt to tokeny modelu w&nbsp;Claude Code.</p>
+      </div>
+    </section>
+    <section class="section">
+      <div class="wrap runs">
+        <h2 class="h2 small">Szczegóły</h2>
+        {RUNS.map((r) => (
+          <details>
+            <summary>
+              <span class="mono">{r.date}</span> · {r.module} {r.version} ({ROLE[r.role]}) · {r.label}
+            </summary>
+            {r.note && <p>{r.note}</p>}
+            {r.advisories.length > 0 ? (
+              <ul class="adv">
+                {r.advisories.map((a) => (
+                  <li class:list={{ miss: a.found === "missed" }}>
+                    <a href={a.url} rel="noopener">{a.id}</a> <span>{STATUS[a.found]}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p class="dim">Wersja z&nbsp;poprawkami, więc bez listy advisory do znalezienia. Trafienia w&nbsp;pułapkę: {r.decoyFp}, w&nbsp;przeglądzie: {r.unmatched}.</p>
+            )}
+          </details>
+        ))}
+        <p class="fine">Opis modułu, ryzyka advisory i&nbsp;zastrzeżenia są w&nbsp;sekcji <a href="/#prawdziwe">Na prawdziwych podatnościach</a>. Klucze i&nbsp;skrypty do powtórzenia przebiegu: <a href="https://github.com/bartek-filipiuk/security-audit-skill/tree/main/benchmark/real" rel="noopener">benchmark/real</a>.</p>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .rules { margin-top: 16px; color: var(--ink-2); max-width: 70ch; }
+  .small { font-size: var(--step-2); }
+  .scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: var(--step--1); min-width: 760px; }
+  th, td { text-align: left; vertical-align: top; padding: 11px 14px 11px 0; border-bottom: 1px solid var(--rule); }
+  thead th { font-weight: 650; border-bottom: 2px solid var(--ink); }
+  td { color: var(--ink-2); }
+  .nowrap { white-space: nowrap; }
+  .dim { color: var(--ink-3); font-size: 0.85em; }
+  .fine { margin-top: 14px; max-width: 80ch; }
+  .runs details { border-bottom: 1px solid var(--rule); padding: 14px 0; max-width: 80ch; }
+  .runs details:first-of-type { border-top: 2px solid var(--ink); margin-top: 16px; }
+  .runs summary { cursor: pointer; font-weight: 600; }
+  .runs details p { margin-top: 10px; color: var(--ink-2); }
+  .adv { list-style: none; margin: 10px 0 0; padding: 0; font-size: var(--step--1); }
+  .adv li { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 6px 0; border-bottom: 1px dashed var(--rule); }
+  .adv li span { color: var(--ink-2); }
+  .adv li.miss span { color: var(--ink-3); }
+</style>
