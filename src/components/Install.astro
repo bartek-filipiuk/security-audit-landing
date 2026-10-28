@@ -6,6 +6,11 @@ const steps = [
   ["Opcjonalnie: panel postępu na żywo", "cp -r ~/.claude/skills/security-audit/audit-live ~/.claude/skills/"],
   ["W swoim projekcie, w Claude Code", "/security-audit --scope top20"],
 ];
+const opencode = [
+  ["Pobierz repozytorium", `git clone ${SITE.repo} && cd security-audit-skill`],
+  ["Zbuduj i zainstaluj agentów, z modelami od wybranego dostawcy", "node opencode/build.mjs && node dist/opencode/install.mjs --auditor-model <dostawca/model> --verifier-model <dostawca/model>"],
+  ["W swoim projekcie, w OpenCode", "/security-audit --scope top20"],
+];
 ---
 <section class="section tint" id="instalacja">
   <div class="wrap">
@@ -28,11 +33,27 @@ const steps = [
         ))}
       </ol>
     </article>
+    <article class="offer oc" id="opencode">
+      <div class="left">
+        <h2 class="h2">W OpenCode</h2>
+        <p class="note">Ten sam audyt jako agenci OpenCode (2.1+), z&nbsp;modelem od dowolnego dostawcy. Zasady są tu wymuszone uprawnieniami: audyt pisze tylko do <code>.security-audit/</code>, nie czyta <code>.env</code> i&nbsp;nie wychodzi do sieci.</p>
+        <p class="fine">Weryfikatorowi daj najmocniejszy model, jaki masz, najlepiej od innego dostawcy niż audytorzy. Względem Claude Code nie ma naprawiania (Faza 6), <code>--mutation</code> ani panelu na żywo. Szczegóły: <a href={`${SITE.repo}/blob/main/opencode/README.md`} rel="noopener">opencode/README.md</a>.</p>
+      </div>
+      <ol class="steps">
+        {opencode.map(([label, cmd]) => (
+          <li>
+            <span class="label">{label}</span>
+            <pre><code><span class="p" aria-hidden="true">&gt;</span> <span class="sel">{cmd}</span></code></pre>
+          </li>
+        ))}
+      </ol>
+    </article>
   </div>
 </section>
 
 <style>
   .tint { background: var(--accent-tint); }
+  .oc { margin-top: clamp(20px, 3vw, 32px); box-shadow: inset 0 0 0 1px var(--rule); scroll-margin-top: calc(var(--header-h) + 16px); }
   .offer { background: var(--surface); border-radius: var(--radius); box-shadow: inset 0 0 0 2px var(--accent); padding: clamp(28px, 5vw, 56px); display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: clamp(28px, 5vw, 72px); align-items: start; }
   .note { margin: 16px 0 26px; color: var(--ink-2); max-width: 40ch; }
   .cta { display: flex; flex-wrap: wrap; gap: 12px; }

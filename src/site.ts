@@ -1,9 +1,9 @@
 // Everything that changes in one place.
 export const SITE = {
   name: "Security Audit",
-  title: "Security Audit · open source skill do Claude Code",
+  title: "Security Audit · open source skill do Claude Code i OpenCode",
   description:
-    "Open source skill do Claude Code, który sprawdza bezpieczeństwo Twojego kodu i oddaje raport: co naprawić, co jest dobrze i czego nie dało się sprawdzić. Każde znalezisko ma plik, linię i opis skutku.",
+    "Open source skill do Claude Code i OpenCode, który sprawdza bezpieczeństwo Twojego kodu i oddaje raport: co naprawić, co jest dobrze i czego nie dało się sprawdzić. Każde znalezisko ma plik, linię i opis skutku.",
   author: "Bartek Filipiuk",
   authorUrl: "https://devince.dev",
   repo: "https://github.com/bartek-filipiuk/security-audit-skill",
