@@ -37,7 +37,7 @@ const opencode = [
       <div class="left">
         <h2 class="h2">W OpenCode</h2>
         <p class="note">Ten sam audyt jako agenci OpenCode (2.1+), z&nbsp;modelem od dowolnego dostawcy. Zasady są tu wymuszone uprawnieniami: audyt pisze tylko do <code>.security-audit/</code>, nie czyta <code>.env</code> i&nbsp;nie wychodzi do sieci.</p>
-        <p class="fine">Weryfikatorowi daj najmocniejszy model, jaki masz, najlepiej od innego dostawcy niż audytorzy. Względem Claude Code nie ma naprawiania (Faza 6), <code>--mutation</code> ani panelu na żywo. Szczegóły: <a href={`${SITE.repo}/blob/main/opencode/README.md`} rel="noopener">opencode/README.md</a>.</p>
+        <p class="fine">Weryfikatorowi daj najmocniejszy model, jaki masz, najlepiej od innego dostawcy niż audytorzy. Względem Claude Code nie ma naprawiania (Faza 6), <code>--mutation</code> ani panelu na żywo. Szczegóły: <a href={`${SITE.repo}/blob/main/opencode/README.md`} rel="noopener">opencode/README.md</a>. Jak wypadają różne modele: <a href="/benchmarks">benchmarki</a>.</p>
       </div>
       <ol class="steps">
         {opencode.map(([label, cmd]) => (
