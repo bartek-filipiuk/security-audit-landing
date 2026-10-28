@@ -1,0 +1,193 @@
+---
+import Base from "../../layouts/Base.astro";
+import Header from "../../components/Header.astro";
+import Footer from "../../components/Footer.astro";
+// Generated in audit-model-bench by `node bench.mjs export` (latest line per run, no finding titles or locations).
+import RUNS from "../../data/bench-runs.json";
+type Run = (typeof RUNS)[number];
+
+const MODELS = [
+  { id: "claude-code", name: "Claude Code", by: "Anthropic, agent Claude Code", note: "T1: sam Opus 5.5. T3: Opus 5.5 z subagentami Sonnet 5.5. Koszt to tokeny po cenach API, nie abonament." },
+  { id: "deepseek/deepseek-v4-pro", name: "DeepSeek V4 Pro", by: "OpenCode 2.1.4, API DeepSeek" },
+  { id: "hinoki/hinoki-offensive", name: "Hinoki Offensive One", by: "OpenCode 2.1.4, hinoki.security", note: "OpenCode nie zna ceny Hinoki: koszt (~) to zapisane tokeny razy cennik z API Hinoki (0,80 / 0,08 / 1,20 USD za milion tokenów wejścia / z cache / wyjścia)." },
+  { id: "openrouter/google/gemma-4-31b-it", name: "Gemma 4 31B", by: "OpenCode 2.1.4, OpenRouter" },
+  { id: "openrouter/moonshotai/kimi-k3.1-pro", name: "Kimi K3.1 Pro", by: "OpenCode 2.1.4, OpenRouter" },
+  { id: "openrouter/x-ai/grok-4.7", name: "Grok 4.7", by: "OpenCode 2.1.4, OpenRouter" },
+];
+const TARGETS: Record<string, string> = {
+  T1: "T1: RCE w module Drupala",
+  T2: "T2: LiteLLM, cały proxy",
+  T2m: "T2m: LiteLLM, MCP i autoryzacja",
+  T3: "T3: Ledgerly",
+};
+const ORDER = ["T1", "T2m", "T2", "T3"];
+const ADVISORY: Record<string, { label: string; url: string }> = {
+  "SA-2026-220": { label: "SA-CONTRIB-2026-220", url: "https://www.drupal.org/sa-contrib-2026-220" },
+  "GHSA-v4p8-mg3p-g94g": { label: "GHSA-v4p8", url: "https://github.com/BerriAI/litellm/security/advisories/GHSA-v4p8-mg3p-g94g" },
+  "GHSA-r75f-5x8p-qvmc": { label: "GHSA-r75f", url: "https://github.com/BerriAI/litellm/security/advisories/GHSA-r75f-5x8p-qvmc" },
+};
+const STATUS: Record<string, string> = { found: "znalezione", missed: "nie", dropped: "odrzucone przez weryfikator" };
+const BROKEN: Record<string, string> = {
+  "T2m-C3-1": "skończyły się kredyty OpenRouter przed raportem",
+  "T3-C1-1": "skończyło się saldo u dostawcy przed raportem",
+};
+
+const runsOf = (id: string) =>
+  RUNS.filter((r) => (r.model ?? "claude-code") === id).sort((a, b) => ORDER.indexOf(a.target) - ORDER.indexOf(b.target));
+const num = (n: number, d: number) => n.toLocaleString("pl-PL", { minimumFractionDigits: d, maximumFractionDigits: d });
+const usd = (r: Run) => (r.cost_usd == null ? "—" : `${r.cost_estimated ? "~" : ""}${num(r.cost_usd, 2)} USD`);
+const mln = (n: number) => `${num(n / 1e6, 2)} mln`;
+const cls = (r: Run) => (r.error ? "off" : r.found === r.total ? "ok" : r.found ? "part" : "miss");
+const sum = (list: Run[], f: (r: Run) => number | null) => list.reduce((s, r) => s + (f(r) ?? 0), 0);
+const matrix = (id: string, t: string) => RUNS.find((r) => (r.model ?? "claude-code") === id && r.target === t);
+
+const title = "Wyniki per model · Security Audit";
+const description = "Każdy przebieg benchmarku per model: wynik na każdym advisory, pułapki, dowody, czas, koszt, tokeny i wywołania narzędzi.";
+---
+<Base title={title} description={description} image="/og-benchmarks.png">
+  <Header />
+  <main id="tresc">
+    <section class="section intro">
+      <div class="wrap">
+        <p class="crumb"><a href="/benchmarks">Benchmarki</a> / Wyniki per model</p>
+        <h1 class="h2">Wyniki per model</h1>
+        <p class="lead">Każdy przebieg z&nbsp;benchmarku: wynik na każdym advisory, pułapki, dowody, czas, koszt i&nbsp;to, ile pracy model wykonał. Opis celów, metody i&nbsp;zastrzeżenia są na stronie <a href="/benchmarks">Benchmarki</a>.</p>
+
+        <div class="scroll">
+          <table class="matrix">
+            <caption class="sr">Wynik, czas i koszt każdego modelu na każdym celu</caption>
+            <thead><tr><th scope="col">Model</th>{["T1", "T2m", "T3"].map((t) => <th scope="col">{TARGETS[t]}</th>)}</tr></thead>
+            <tbody>
+              {MODELS.map((m) => (
+                <tr>
+                  <th scope="row"><a href={`#${m.id.replace(/\W+/g, "-")}`}>{m.name}</a></th>
+                  {["T1", "T2m", "T3"].map((t) => {
+                    const r = matrix(m.id, t);
+                    if (!r) return <td class="none">nie testowany</td>;
+                    return (
+                      <td>
+                        <span class:list={["mark", cls(r)]}>{r.error ? "przerwany" : `${r.found}/${r.total}`}</span>
+                        <span class="sub">{r.minutes != null ? `${num(r.minutes, 1)} min · ` : ""}{usd(r)}</span>
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    {MODELS.map((m, i) => {
+      const list = runsOf(m.id);
+      return (
+        <section id={m.id.replace(/\W+/g, "-")} class:list={["section", "model", { band: i % 2 === 0 }]}>
+          <div class="wrap">
+            <div class="mhead">
+              <div>
+                <h2 class="h2 small">{m.name}</h2>
+                <p class="by">{m.by}</p>
+              </div>
+              <dl class="totals">
+                <div><dt>Przebiegi</dt><dd>{list.length}</dd></div>
+                <div><dt>Łączny czas</dt><dd>{num(sum(list, (r) => r.minutes), 1)} min</dd></div>
+                <div><dt>Łączny koszt</dt><dd>{list.some((r) => r.cost_estimated) ? "~" : ""}{num(sum(list, (r) => r.cost_usd), 2)} USD</dd></div>
+              </dl>
+            </div>
+            {m.note && <p class="note">{m.note}</p>}
+            <div class="runs">
+              {list.map((r) => (
+                <article class="run">
+                  <header>
+                    <h3>{TARGETS[r.target] ?? r.target}</h3>
+                    <span class:list={["mark", cls(r)]}>{r.error ? "przerwany" : `${r.found}/${r.total}`}</span>
+                  </header>
+                  {r.error ? (
+                    <p class="why">Bez raportu: {BROKEN[r.label] ?? r.error}. Przebieg się nie liczy.</p>
+                  ) : r.per_bug && r.total! <= 3 ? (
+                    <ul class="adv">
+                      {Object.entries(r.per_bug).map(([id, s]) => (
+                        <li class:list={{ miss: s !== "found" }}>
+                          {ADVISORY[id] ? <a href={ADVISORY[id].url} rel="noopener">{ADVISORY[id].label}</a> : id} <span>{STATUS[s] ?? s}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p class="why">{r.found} z&nbsp;{r.total} zasianych podatności znalezione.</p>
+                  )}
+                  <dl class="facts">
+                    {!r.error && r.target === "T3" && <div><dt>Pułapki</dt><dd>{r.decoy_fp}</dd></div>}
+                    {!r.error && <div><dt>Spoza klucza</dt><dd>{r.unmatched}</dd></div>}
+                    {!r.error && <div><dt>Zweryfikowane / odrzucone</dt><dd>{r.verified} / {r.rejected}</dd></div>}
+                    {r.proofs && <div><dt>Dowód testem</dt><dd>{r.proofs.test ?? 0} z&nbsp;{r.verified}</dd></div>}
+                    <div><dt>Czas</dt><dd>{r.minutes != null ? `${num(r.minutes, 1)} min` : "—"}</dd></div>
+                    <div><dt>Koszt</dt><dd>{usd(r)}</dd></div>
+                    {r.tokens && <div><dt>Tokeny: wejście / wyjście / z cache</dt><dd>{mln(r.tokens.input)} / {mln(r.tokens.output + r.tokens.reasoning)} / {mln(r.tokens.cache.read)}</dd></div>}
+                    {r.tool_calls && <div><dt>Wywołania narzędzi (nieudane)</dt><dd>{r.tool_calls.calls} ({r.tool_calls.failed})</dd></div>}
+                    {r.subagents != null && <div><dt>Subagenci</dt><dd>{r.subagents}</dd></div>}
+                  </dl>
+                  <p class="meta mono">{r.label} · {r.date} · skill {r.skill_sha ?? "—"}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    })}
+
+    <section class="section">
+      <div class="wrap">
+        <p class="fine legal">Ścisły scorer: znalezisko musi wskazać plik i&nbsp;linie z&nbsp;poprawki (±2). Pułapki są tylko w&nbsp;kluczu T3. Znaleziska spoza klucza podajemy wyłącznie liczbą, bo mogą to być nieujawnione błędy w&nbsp;kodzie open source. Jeden przebieg na model i&nbsp;cel. Wyjście tokenów liczy też rozumowanie modelu. Dane generuje <code>node bench.mjs export</code> z&nbsp;wyników benchmarku.</p>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .small { font-size: var(--step-2); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .crumb { font-size: var(--step--1); color: var(--ink-3); margin-bottom: 14px; }
+
+  .scroll { overflow-x: auto; margin-top: 34px; }
+  .matrix { width: 100%; border-collapse: collapse; min-width: 720px; background: var(--surface); border-radius: var(--radius); box-shadow: 0 0 0 1px var(--rule); }
+  .matrix th, .matrix td { text-align: left; padding: 14px 18px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .matrix thead th { font-size: var(--step--1); color: var(--ink-3); font-weight: 500; }
+  .matrix tbody tr:last-child > * { border-bottom: 0; }
+  .matrix tbody th a { font-weight: 650; text-decoration: none; }
+  .matrix tbody th a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .sub { display: block; color: var(--ink-3); font-size: var(--step--1); font-family: var(--mono); }
+  .none { color: var(--ink-3); font-size: var(--step--1); }
+
+  .mark { font-family: var(--mono); font-weight: 650; white-space: nowrap; }
+  .mark.ok { color: var(--safe); } .mark.ok::before { content: "✓ "; }
+  .mark.part { color: var(--ink); } .mark.part::before { content: "◐ "; }
+  .mark.miss { color: var(--crit); } .mark.miss::before { content: "✗ "; }
+  .mark.off { color: var(--ink-3); font-family: var(--font); font-weight: 500; }
+
+  .model { padding-block: clamp(44px, 6vw, 72px); }
+  .mhead { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: end; gap: 18px 40px; }
+  .by { color: var(--ink-3); margin-top: 4px; }
+  .totals { display: flex; gap: 28px; margin: 0; }
+  .totals dt { font-size: var(--step--1); color: var(--ink-3); }
+  .totals dd { margin: 0; font: 650 var(--step-1) var(--mono); }
+  .note { margin-top: 14px; color: var(--ink-2); font-size: var(--step--1); max-width: 80ch; }
+
+  .runs { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-top: 26px; }
+  .run { background: var(--surface); border-radius: var(--radius); box-shadow: 0 0 0 1px var(--rule); padding: 20px 22px; display: grid; gap: 12px; align-content: start; }
+  .band .run { background: var(--paper); }
+  .run header { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+  .run h3 { font-size: var(--step-0); font-weight: 650; }
+  .why { color: var(--ink-2); font-size: var(--step--1); }
+  .adv { list-style: none; margin: 0; padding: 0; font-size: var(--step--1); display: grid; gap: 4px; }
+  .adv li { display: flex; justify-content: space-between; gap: 10px; }
+  .adv li span { color: var(--safe); font-weight: 600; }
+  .adv li.miss span { color: var(--ink-3); font-weight: 400; }
+  .facts { margin: 0; display: grid; gap: 6px; font-size: var(--step--1); border-top: 1px solid var(--rule); padding-top: 12px; }
+  .facts div { display: flex; justify-content: space-between; gap: 12px; }
+  .facts dt { color: var(--ink-3); }
+  .facts dd { margin: 0; font-family: var(--mono); color: var(--ink); text-align: right; }
+  .meta { color: var(--ink-3); font-size: 0.78rem; }
+  .legal { max-width: 80ch; }
+</style>

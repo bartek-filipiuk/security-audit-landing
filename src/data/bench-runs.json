@@ -1,0 +1,599 @@
+[
+  {
+    "label": "T1-C1-1",
+    "target": "T1",
+    "config": "C1",
+    "model": "deepseek/deepseek-v4-pro",
+    "skill_sha": "9c42770",
+    "date": "2026-10-27",
+    "error": null,
+    "per_bug": {
+      "SA-2026-220": "found"
+    },
+    "found": 1,
+    "total": 1,
+    "decoy_fp": 0,
+    "unmatched": 0,
+    "verified": 1,
+    "rejected": 0,
+    "proofs": {
+      "static": 1
+    },
+    "minutes": 5.7,
+    "cost_usd": 0.1987,
+    "cost_estimated": false,
+    "tokens": {
+      "input": 80184,
+      "output": 11982,
+      "reasoning": 29835,
+      "cache": {
+        "read": 2862592,
+        "write": 0
+      }
+    },
+    "steps": 50,
+    "subagents": 0,
+    "tool_calls": {
+      "calls": 68,
+      "succeeded": 59,
+      "failed": 9,
+      "unfinished": 0
+    }
+  },
+  {
+    "label": "T1-C2-1",
+    "target": "T1",
+    "config": "C2",
+    "model": "openrouter/moonshotai/kimi-k3.1-pro",
+    "skill_sha": "9c42770",
+    "date": "2026-10-27",
+    "error": null,
+    "per_bug": {
+      "SA-2026-220": "missed"
+    },
+    "found": 0,
+    "total": 1,
+    "decoy_fp": 0,
+    "unmatched": 2,
+    "verified": 2,
+    "rejected": 1,
+    "proofs": {
+      "static": 2
+    },
+    "minutes": 13.2,
+    "cost_usd": 0.9444,
+    "cost_estimated": false,
+    "tokens": {
+      "input": 103140,
+      "output": 17755,
+      "reasoning": 13824,
+      "cache": {
+        "read": 2111488,
+        "write": 0
+      }
+    },
+    "steps": 33,
+    "subagents": 0,
+    "tool_calls": {
+      "calls": 88,
+      "succeeded": 79,
+      "failed": 9,
+      "unfinished": 0
+    }
+  },
+  {
+    "label": "T2-C1-1",
+    "target": "T2",
+    "config": "C1",
+    "model": "deepseek/deepseek-v4-pro",
+    "skill_sha": "9c42770",
+    "date": "2026-10-27",
+    "error": null,
+    "per_bug": {
+      "GHSA-r75f-5x8p-qvmc": "missed",
+      "GHSA-v4p8-mg3p-g94g": "missed"
+    },
+    "found": 0,
+    "total": 2,
+    "decoy_fp": 0,
+    "unmatched": 21,
+    "verified": 21,
+    "rejected": 1,
+    "proofs": {
+      "static": 21
+    },
+    "minutes": 28.9,
+    "cost_usd": 2.9144,
+    "cost_estimated": false,
+    "tokens": {
+      "input": 1388053,
+      "output": 131067,
+      "reasoning": 214956,
+      "cache": {
+        "read": 59690496,
+        "write": 0
+      }
+    },
+    "steps": 428,
+    "subagents": 8,
+    "tool_calls": {
+      "calls": 684,
+      "succeeded": 644,
+      "failed": 40,
+      "unfinished": 0
+    }
+  },
+  {
+    "label": "T1-C3-1",
+    "target": "T1",
+    "config": "C3",
+    "model": "openrouter/x-ai/grok-4.7",
+    "skill_sha": "a956d62",
+    "date": "2026-10-27",
+    "error": null,
+    "per_bug": {
+      "SA-2026-220": "missed"
+    },
+    "found": 0,
+    "total": 1,
+    "decoy_fp": 0,
+    "unmatched": 1,
+    "verified": 1,
+    "rejected": 0,
+    "proofs": {
+      "static": 1
+    },
+    "minutes": 8,
+    "cost_usd": 1.3129,
+    "cost_estimated": false,
+    "tokens": {
+      "input": 122098,
+      "output": 11955,
+      "reasoning": 24599,
+      "cache": {
+        "read": 1698688,
+        "write": 0
+      }
+    },
+    "steps": 30,
+    "subagents": 0,
+    "tool_calls": {
+      "calls": 71,
+      "succeeded": 67,
+      "failed": 4,
+      "unfinished": 0
+    }
+  },
+  {
+    "label": "T1-C4-1",
+    "target": "T1",
+    "config": "C4",
+    "model": "openrouter/google/gemma-4-31b-it",
+    "skill_sha": "46910ca",
+    "date": "2026-10-27",
+    "error": null,
+    "per_bug": {
+      "SA-2026-220": "found"
+    },
+    "found": 1,
+    "total": 1,
+    "decoy_fp": 0,
+    "unmatched": 1,
+    "verified": 2,
+    "rejected": 0,
+    "proofs": {
+      "static": 2
+    },
+    "minutes": 6.7,
+    "cost_usd": 0.0481,
+    "cost_estimated": false,
+    "tokens": {
+      "input": 193726,
+      "output": 23352,
+      "reasoning": 0,
+      "cache": {
+        "read": 1490560,
+        "write": 0
+      }
+    },
+    "steps": 87,
+    "subagents": 6,
+    "tool_calls": {
+      "calls": 102,
+      "succeeded": 98,
+      "failed": 4,
+      "unfinished": 0
+    }
+  },
+  {
+    "label": "T2m-C1-1",
+    "target": "T2m",
+    "config": "C1",
+    "model": "deepseek/deepseek-v4-pro",
+    "skill_sha": "46910ca",
+    "date": "2026-10-27",
+    "error": null,
+    "per_bug": {
+      "GHSA-r75f-5x8p-qvmc": "missed",
+      "GHSA-v4p8-mg3p-g94g": "found"
+    },
+    "found": 1,
+    "total": 2,
+    "decoy_fp": 0,
+    "unmatched": 6,
+    "verified": 8,
+    "rejected": 0,
+    "proofs": {
+      "static": 8
+    },
+    "minutes": 24.9,
+    "cost_usd": 1.0446,
+    "cost_estimated": false,
+    "tokens": {
+      "input": 516176,
+      "output": 60989,
+      "reasoning": 103101,
+      "cache": {
+        "read": 17230592,
+        "write": 0
+      }
+    },
+    "steps": 175,
+    "subagents": 5,
+    "tool_calls": {
+      "calls": 274,
+      "succeeded": 253,
+      "failed": 21,
+      "unfinished": 0
+    }
+  },
+  {
+    "label": "T2m-C2-1",
+    "target": "T2m",
+    "config": "C2",
+    "model": "openrouter/moonshotai/kimi-k3.1-pro",
+    "skill_sha": "46910ca",
+    "date": "2026-10-27",
+    "error": null,
+    "per_bug": {
+      "GHSA-r75f-5x8p-qvmc": "missed",
+      "GHSA-v4p8-mg3p-g94g": "missed"
+    },
+    "found": 0,
+    "total": 2,
+    "decoy_fp": 0,
+    "unmatched": 9,
+    "verified": 9,
+    "rejected": 0,
+    "proofs": {
+      "test": 4,
+      "static": 5
+    },
+    "minutes": 29.7,
+    "cost_usd": 4.8671,
+    "cost_estimated": false,
+    "tokens": {
+      "input": 390211,
+      "output": 39410,
+      "reasoning": 20850,
+      "cache": {
+        "read": 17420288,
+        "write": 0
+      }
+    },
+    "steps": 70,
+    "subagents": 0,
+    "tool_calls": {
+      "calls": 189,
+      "succeeded": 185,
+      "failed": 4,
+      "unfinished": 0
+    }
+  },
+  {
+    "label": "T2m-C3-1",
+    "target": "T2m",
+    "config": "C3",
+    "model": "openrouter/x-ai/grok-4.7",
+    "skill_sha": null,
+    "date": "2026-10-27",
+    "error": "no report: the audit stopped before Phase 5",
+    "per_bug": null,
+    "found": null,
+    "total": null,
+    "decoy_fp": null,
+    "unmatched": null,
+    "verified": null,
+    "rejected": null,
+    "proofs": null,
+    "minutes": 40.5,
+    "cost_usd": 24.1305,
+    "cost_estimated": false,
+    "tokens": {
+      "input": 1439205,
+      "output": 161367,
+      "reasoning": 217089,
+      "cache": {
+        "read": 37514752,
+        "write": 0
+      }
+    },
+    "steps": 384,
+    "subagents": 9,
+    "tool_calls": {
+      "calls": 1051,
+      "succeeded": 1016,
+      "failed": 35,
+      "unfinished": 0
+    }
+  },
+  {
+    "label": "T3-C1-1",
+    "target": "T3",
+    "config": "C1",
+    "model": "deepseek/deepseek-v4-pro",
+    "skill_sha": null,
+    "date": "2026-10-27",
+    "error": "no report: the audit stopped before Phase 5",
+    "per_bug": null,
+    "found": null,
+    "total": null,
+    "decoy_fp": null,
+    "unmatched": null,
+    "verified": null,
+    "rejected": null,
+    "proofs": null,
+    "minutes": 27.7,
+    "cost_usd": 1.8746,
+    "cost_estimated": false,
+    "tokens": {
+      "input": 741150,
+      "output": 172193,
+      "reasoning": 287517,
+      "cache": {
+        "read": 21598976,
+        "write": 0
+      }
+    },
+    "steps": 318,
+    "subagents": 10,
+    "tool_calls": {
+      "calls": 1046,
+      "succeeded": 1012,
+      "failed": 34,
+      "unfinished": 0
+    }
+  },
+  {
+    "label": "T1-C8-1",
+    "target": "T1",
+    "config": "C8",
+    "model": "hinoki/hinoki-offensive",
+    "skill_sha": "46910ca",
+    "date": "2026-10-28",
+    "error": null,
+    "per_bug": {
+      "SA-2026-220": "found"
+    },
+    "found": 1,
+    "total": 1,
+    "decoy_fp": 0,
+    "unmatched": 1,
+    "verified": 3,
+    "rejected": 0,
+    "proofs": {
+      "static": 3
+    },
+    "minutes": 25.6,
+    "cost_usd": 1.27,
+    "cost_estimated": true,
+    "tokens": {
+      "input": 449871,
+      "output": 57154,
+      "reasoning": 52594,
+      "cache": {
+        "read": 9728192,
+        "write": 0
+      }
+    },
+    "steps": 141,
+    "subagents": 2,
+    "tool_calls": {
+      "calls": 217,
+      "succeeded": 191,
+      "failed": 26,
+      "unfinished": 0
+    }
+  },
+  {
+    "label": "T3-C0-1",
+    "target": "T3",
+    "config": "C0",
+    "model": "claude-code",
+    "skill_sha": "46910ca",
+    "date": "2026-10-28",
+    "error": null,
+    "per_bug": {
+      "B01": "found",
+      "B02": "found",
+      "B03": "found",
+      "B04": "found",
+      "B05": "found",
+      "B06": "found",
+      "B07": "found",
+      "B08": "found",
+      "B09": "found",
+      "B10": "found",
+      "B11": "found",
+      "B12": "found",
+      "B13": "found",
+      "B14": "found",
+      "B15": "found",
+      "B16": "found",
+      "B17": "found",
+      "B18": "found",
+      "B19": "found",
+      "B20": "found",
+      "B21": "found",
+      "B22": "found",
+      "B23": "found",
+      "B24": "found",
+      "B25": "found",
+      "B26": "found"
+    },
+    "found": 26,
+    "total": 26,
+    "decoy_fp": 2,
+    "unmatched": 4,
+    "verified": 40,
+    "rejected": 18,
+    "proofs": {
+      "test": 21,
+      "static": 19
+    },
+    "minutes": 33,
+    "cost_usd": 18,
+    "cost_estimated": false,
+    "tokens": null,
+    "steps": null,
+    "subagents": null,
+    "tool_calls": null
+  },
+  {
+    "label": "T1-C0-1",
+    "target": "T1",
+    "config": "C0",
+    "model": "claude-code",
+    "skill_sha": "46910ca",
+    "date": "2026-10-28",
+    "error": null,
+    "per_bug": {
+      "SA-2026-220": "found"
+    },
+    "found": 1,
+    "total": 1,
+    "decoy_fp": 0,
+    "unmatched": 1,
+    "verified": 3,
+    "rejected": 0,
+    "proofs": {
+      "static": 3
+    },
+    "minutes": 3.3,
+    "cost_usd": 1.35,
+    "cost_estimated": false,
+    "tokens": null,
+    "steps": null,
+    "subagents": null,
+    "tool_calls": null
+  },
+  {
+    "label": "T2m-C8-1",
+    "target": "T2m",
+    "config": "C8",
+    "model": "hinoki/hinoki-offensive",
+    "skill_sha": "46910ca",
+    "date": "2026-10-28",
+    "error": null,
+    "per_bug": {
+      "GHSA-r75f-5x8p-qvmc": "missed",
+      "GHSA-v4p8-mg3p-g94g": "found"
+    },
+    "found": 1,
+    "total": 2,
+    "decoy_fp": 0,
+    "unmatched": 34,
+    "verified": 37,
+    "rejected": 6,
+    "proofs": {
+      "static": 32,
+      "test": 5
+    },
+    "minutes": 105.5,
+    "cost_usd": 10.29,
+    "cost_estimated": true,
+    "tokens": {
+      "input": 2963157,
+      "output": 307800,
+      "reasoning": 155733,
+      "cache": {
+        "read": 92026560,
+        "write": 0
+      }
+    },
+    "steps": 1081,
+    "subagents": 8,
+    "tool_calls": {
+      "calls": 1401,
+      "succeeded": 1297,
+      "failed": 104,
+      "unfinished": 0
+    }
+  },
+  {
+    "label": "T3-C8-1",
+    "target": "T3",
+    "config": "C8",
+    "model": "hinoki/hinoki-offensive",
+    "skill_sha": "46910ca",
+    "date": "2026-10-28",
+    "error": null,
+    "per_bug": {
+      "B01": "found",
+      "B02": "found",
+      "B03": "found",
+      "B04": "found",
+      "B05": "found",
+      "B06": "found",
+      "B07": "found",
+      "B08": "found",
+      "B09": "found",
+      "B10": "found",
+      "B11": "found",
+      "B12": "found",
+      "B13": "found",
+      "B14": "found",
+      "B15": "found",
+      "B16": "found",
+      "B17": "found",
+      "B18": "found",
+      "B19": "found",
+      "B20": "found",
+      "B21": "found",
+      "B22": "found",
+      "B23": "found",
+      "B24": "found",
+      "B25": "found",
+      "B26": "found"
+    },
+    "found": 26,
+    "total": 26,
+    "decoy_fp": 5,
+    "unmatched": 12,
+    "verified": 59,
+    "rejected": 15,
+    "proofs": {
+      "static": 59
+    },
+    "minutes": 71.4,
+    "cost_usd": 8.22,
+    "cost_estimated": true,
+    "tokens": {
+      "input": 3307700,
+      "output": 361011,
+      "reasoning": 175509,
+      "cache": {
+        "read": 61687296,
+        "write": 0
+      }
+    },
+    "steps": 783,
+    "subagents": 12,
+    "tool_calls": {
+      "calls": 1526,
+      "succeeded": 1436,
+      "failed": 90,
+      "unfinished": 0
+    }
+  }
+]
