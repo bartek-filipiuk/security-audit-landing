@@ -1,0 +1,194 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { TARGETS, type Row, type Target } from "../benchmarks";
+const title = "Benchmarki modeli · Security Audit";
+const description = "Ten sam skill security-audit, różne modele i agenci: Claude Code, DeepSeek, Gemma, Hinoki, Kimi i Grok w OpenCode. Wyniki na prawdziwych advisory i na Ledgerly, z czasem i kosztem.";
+const pl = (n: number, d = 2) => n.toLocaleString("pl-PL", { minimumFractionDigits: 0, maximumFractionDigits: d });
+const usd = (n: number) => `${n.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+// Each bar column is scaled to its own maximum within one target: two measures, two scales, never one axis.
+const max = (t: Target, k: "minutes" | "costUsd") => Math.max(...t.rows.map((r) => r[k] ?? 0));
+const width = (v: number, m: number) => `${Math.max(2, (v / m) * 100)}%`;
+const hasDecoys = (t: Target) => t.rows.some((r) => r.decoyFp !== undefined);
+const hasProofs = (t: Target) => t.rows.some((r) => r.verified !== undefined);
+const result = (r: Row, t: Target) =>
+  r.outcome.kind === "broken" ? null : { cls: r.outcome.found === t.total ? "ok" : r.outcome.found > 0 ? "part" : "miss", text: `${r.outcome.found}/${t.total}` };
+---
+<Base title={title} description={description}>
+  <Header />
+  <main id="tresc">
+    <section class="section intro">
+      <div class="wrap">
+        <h1 class="h2">Benchmarki modeli</h1>
+        <p class="lead">Ten sam skill, to samo polecenie <code>/security-audit</code>, bez podpowiedzi o&nbsp;błędzie. Zmieniamy tylko model i&nbsp;agenta. Scorer sprawdza raport automatycznie i&nbsp;ściśle: liczy się znalezisko wskazujące linie, które zmieniła publiczna poprawka.</p>
+        <ol class="glance">
+          {TARGETS.map((t) => (
+            <li>
+              <a href={`#${t.id}`}>
+                <span class="tid mono">{t.name.split(":")[0]}</span>
+                <span class="tname">{t.name.replace(/^T\w+: /, "")}</span>
+                <span class="tline">{t.glance}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+        <p class="fine dates">Przebiegi z&nbsp;27 i&nbsp;28 października 2026, po jednym na model i&nbsp;cel. Szczegóły metody i&nbsp;zastrzeżenia są <a href="#metoda">na dole strony</a>.</p>
+      </div>
+    </section>
+
+    {TARGETS.map((t, i) => (
+      <section id={t.id} class:list={["section", "target", { band: i % 2 === 0 }]}>
+        <div class="wrap">
+          <h2 class="h2 small">{t.name}</h2>
+          <p class="what">{t.what}</p>
+          <p class="key"><b>Klucz:</b> {t.key} {t.links.map((l, j) => <>{j > 0 && " · "}<a href={l.url} rel="noopener">{l.label}</a></>)}</p>
+          <p class="takeaway">{t.takeaway}</p>
+          <div class="scroll">
+            <table>
+              <caption class="sr">{t.name}: wynik, pułapki, znaleziska spoza klucza, czas i&nbsp;koszt na model</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Model</th>
+                  <th scope="col">Wynik</th>
+                  {hasDecoys(t) && <th scope="col">Pułapki</th>}
+                  <th scope="col">Spoza klucza</th>
+                  {hasProofs(t) && <th scope="col">Dowód testem</th>}
+                  <th scope="col" class="barcol">Czas <span class="unit">min, mniej = lepiej</span></th>
+                  <th scope="col" class="barcol">Koszt <span class="unit">USD, mniej = lepiej</span></th>
+                </tr>
+              </thead>
+              <tbody>
+                {t.rows.map((r) => {
+                  const res = result(r, t);
+                  return (
+                    <tr class:list={{ broken: !res }}>
+                      <th scope="row"><span class="model">{r.model}</span><span class="agent">{r.agent}</span></th>
+                      <td class="res" data-l="Wynik">
+                        {res ? (
+                          <span class:list={["mark", res.cls]}><span aria-hidden="true">{{ ok: "✓", part: "◐", miss: "✗" }[res.cls]}</span> {res.text}</span>
+                        ) : (
+                          <span class="mark off"><span aria-hidden="true">–</span> przerwany</span>
+                        )}
+                        {!res && r.outcome.kind === "broken" && <span class="why">{r.outcome.why}</span>}
+                      </td>
+                      {hasDecoys(t) && <td class="mono" data-l="Pułapki">{r.decoyFp ?? "—"}</td>}
+                      <td class="mono" data-l="Spoza klucza">{r.unmatched ?? "—"}</td>
+                      {hasProofs(t) && <td class="mono" data-l="Dowód testem">{r.verified !== undefined ? `${r.testProofs} z ${r.verified}` : "—"}</td>}
+                      <td class="barcol" data-l="Czas, min">
+                        {r.minutes !== undefined ? (
+                          <span class="bar"><span class="track"><span class="fill" style={`width:${width(r.minutes, max(t, "minutes"))}`}></span></span><span class="val">{r.minutes.toLocaleString("pl-PL", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</span></span>
+                        ) : <span class="na">—</span>}
+                      </td>
+                      <td class="barcol" data-l="Koszt">
+                        {r.costUsd !== undefined ? (
+                          <span class="bar"><span class="track"><span class="fill" style={`width:${width(r.costUsd, max(t, "costUsd"))}`}></span></span><span class="val">{r.costApprox ? "~" : ""}{usd(r.costUsd)}</span></span>
+                        ) : <span class="na">—</span>}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+          <ul class="notes">
+            {t.notes.map((n) => <li>{n}</li>)}
+          </ul>
+        </div>
+      </section>
+    ))}
+
+    <section id="metoda" class="section">
+      <div class="wrap split">
+        <div>
+          <h2 class="h2 small">Jak mierzymy</h2>
+          <ul class="method">
+            <li><b>Ten sam skill.</b> Commit <a href="https://github.com/bartek-filipiuk/security-audit-skill/commit/46910ca" rel="noopener" class="mono">46910ca</a>. Trzy pierwsze przebiegi T1 szły na wcześniejszych commitach, które różnią się tylko strażnikiem ścieżek w&nbsp;OpenCode.</li>
+            <li><b>Agent.</b> W&nbsp;OpenCode 2.1.4 jeden model gra wszystkie role: głównego audytora i&nbsp;subagentów. Claude Code dobiera modele sam: na T1 był to sam Opus 5.5, na T3 Opus 5.5 z&nbsp;subagentami Sonnet 5.5.</li>
+            <li><b>Izolacja.</b> Każdy przebieg w&nbsp;świeżym katalogu, w&nbsp;nowej sesji, bez wspólnej pamięci. Strażnik odmawia czytania poza katalogiem przebiegu. Logi sprawdziliśmy: żaden model nie widział klucza ani innych przebiegów.</li>
+            <li><b>Ścisły scorer.</b> Znalezisko musi wskazać plik i&nbsp;linie z&nbsp;poprawki, z&nbsp;tolerancją ±2 linii. Klucze ustaliliśmy przed przebiegami i&nbsp;nie poszerzamy ich pod odpowiedzi modeli.</li>
+            <li><b>Koszt.</b> Dla OpenCode to ceny z&nbsp;cennika dostawcy zapisane przy przebiegu. Dla Claude Code to zużyte tokeny przeliczone po cenach API, nie koszt abonamentu. OpenCode nie zna ceny Hinoki, więc jego koszt (z&nbsp;„~”) wyliczyliśmy z&nbsp;zapisanych tokenów i&nbsp;cennika, który zwraca API Hinoki: 0,80 USD za milion tokenów wejścia, 0,08 z&nbsp;cache, 1,20 wyjścia.</li>
+            <li><b>Spoza klucza.</b> Zweryfikowane znaleziska, których nie ma w&nbsp;kluczu, podajemy tylko liczbą. W&nbsp;kodzie open source mogą to być prawdziwe, nieujawnione błędy, więc najpierw przeglądamy je ręcznie.</li>
+          </ul>
+        </div>
+        <div>
+          <h2 class="h2 small">Czego to nie mówi</h2>
+          <ul class="method">
+            <li>Jeden przebieg na model i&nbsp;cel. Małe różnice w&nbsp;czasie i&nbsp;koszcie traktuj jak szum.</li>
+            <li>Ścisły scorer zaniża błędy typu „brakuje sprawdzenia”, bo nie mają jednej oczywistej linii. Dwa nietrafienia na T1 i&nbsp;jedno na T2m to dobry opis w&nbsp;złym miejscu.</li>
+            <li>Ledgerly to nasza publiczna aplikacja testowa, na której powstawał skill. 26/26 znaczy, że skill pokrywa te klasy błędów, a&nbsp;nie że model tak samo poradzi sobie w&nbsp;nieznanym kodzie.</li>
+            <li>Kod idzie do dostawcy modelu. Do kodu klientów używaj tylko dostawcy, któremu ufasz na piśmie.</li>
+          </ul>
+          <p class="fine more">Przebiegi samego skilla w&nbsp;Claude Code na prawdziwych modułach są na stronie <a href="/przebiegi">Przebiegi</a>. Jak zainstalować skill w&nbsp;OpenCode: <a href="/#opencode">Instalacja</a>.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</Base>
+
+<style>
+  .small { font-size: var(--step-2); }
+  .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+  .glance { list-style: none; padding: 0; margin: 36px 0 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+  .glance a {
+    display: grid; gap: 6px; height: 100%; padding: 18px 20px; text-decoration: none;
+    background: var(--surface); border-radius: var(--radius); box-shadow: 0 0 0 1px var(--rule);
+    transition: box-shadow 140ms ease-out;
+  }
+  .glance a:hover { box-shadow: 0 0 0 2px var(--accent); }
+  .tid { color: var(--accent-strong); font-weight: 600; }
+  .tname { font-weight: 650; line-height: 1.3; }
+  .tline { color: var(--ink-2); font-size: var(--step--1); }
+  .dates { margin-top: 18px; }
+  @media (max-width: 760px) { .glance { grid-template-columns: minmax(0, 1fr); } }
+
+  .what { margin-top: 14px; color: var(--ink-2); max-width: 72ch; }
+  .key { margin-top: 8px; font-size: var(--step--1); color: var(--ink-2); max-width: 80ch; }
+  .key a { overflow-wrap: anywhere; }
+  .takeaway { margin-top: 20px; padding-left: 16px; border-left: 3px solid var(--accent); font-size: var(--step-1); line-height: 1.5; max-width: 66ch; }
+
+  .scroll { overflow-x: auto; margin-top: 28px; }
+  table { width: 100%; border-collapse: collapse; font-size: var(--step--1); min-width: 820px; }
+  th, td { text-align: left; vertical-align: middle; padding: 12px 16px 12px 0; border-bottom: 1px solid var(--rule); }
+  thead th { font-weight: 650; border-bottom: 2px solid var(--ink); vertical-align: bottom; }
+  .unit { display: block; font-weight: 400; color: var(--ink-3); font-size: 0.85em; }
+  tbody th { font-weight: 400; }
+  .model { display: block; font-weight: 650; color: var(--ink); }
+  .agent { display: block; color: var(--ink-3); font-size: 0.88em; }
+  td { color: var(--ink-2); }
+
+  .mark { font-family: var(--mono); font-weight: 600; white-space: nowrap; }
+  .mark.ok { color: var(--safe); }
+  .mark.part { color: var(--ink); }
+  .mark.miss { color: var(--crit); }
+  .mark.off { color: var(--ink-3); font-family: var(--font); }
+  .why { display: block; color: var(--ink-3); font-size: 0.88em; max-width: 26ch; }
+  tr.broken .model { color: var(--ink-2); }
+
+  .barcol { width: 26%; }
+  .bar { display: grid; grid-template-columns: minmax(0, 1fr) 6.5em; align-items: center; gap: 8px; }
+  .fill { display: block; height: 12px; background: var(--accent); border-radius: 0 4px 4px 0; }
+  .val { font-family: var(--mono); color: var(--ink); white-space: nowrap; }
+  .na { color: var(--ink-3); font-size: 0.88em; display: block; max-width: 30ch; }
+
+  .notes { margin: 18px 0 0; padding-left: 18px; color: var(--ink-2); font-size: var(--step--1); max-width: 80ch; display: grid; gap: 6px; }
+
+  /* Phones: each model becomes a card, so the bars stay on screen instead of in a sideways scroll. */
+  @media (max-width: 700px) {
+    table, tbody, tr, th, td { display: block; }
+    table { min-width: 0; }
+    thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    tbody tr { padding: 14px 0; border-bottom: 1px solid var(--rule); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 12px; }
+    tbody tr:first-child { border-top: 2px solid var(--ink); }
+    th, td { padding: 0; border: 0; }
+    tbody th, td.barcol { grid-column: 1 / -1; width: auto; }
+    td[data-l]::before { content: attr(data-l); display: block; color: var(--ink-3); font: 400 0.8em var(--font); }
+    .why, .na { max-width: none; }
+  }
+
+  .method { margin: 18px 0 0; padding-left: 18px; color: var(--ink-2); display: grid; gap: 10px; max-width: 60ch; }
+  .method b { color: var(--ink); }
+  .more { margin-top: 20px; }
+</style>
