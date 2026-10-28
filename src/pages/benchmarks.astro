@@ -83,7 +83,7 @@ const result = (r: Row, t: Target) =>
                       <td class="barcol" data-l="Koszt">
                         {r.costUsd !== undefined ? (
                           <span class="bar"><span class="track"><span class="fill" style={`width:${width(r.costUsd, max(t, "costUsd"))}`}></span></span><span class="val">{r.costApprox ? "~" : ""}{usd(r.costUsd)}</span></span>
-                        ) : <span class="na">{r.costNote}</span>}
+                        ) : <span class="na">—</span>}
                       </td>
                     </tr>
                   );
@@ -107,7 +107,7 @@ const result = (r: Row, t: Target) =>
             <li><b>Agent.</b> W&nbsp;OpenCode 2.1.4 jeden model gra wszystkie role: głównego audytora i&nbsp;subagentów. Claude Code dobiera modele sam: na T1 był to sam Opus 5.5, na T3 Opus 5.5 z&nbsp;subagentami Sonnet 5.5.</li>
             <li><b>Izolacja.</b> Każdy przebieg w&nbsp;świeżym katalogu, w&nbsp;nowej sesji, bez wspólnej pamięci. Strażnik odmawia czytania poza katalogiem przebiegu. Logi sprawdziliśmy: żaden model nie widział klucza ani innych przebiegów.</li>
             <li><b>Ścisły scorer.</b> Znalezisko musi wskazać plik i&nbsp;linie z&nbsp;poprawki, z&nbsp;tolerancją ±2 linii. Klucze ustaliliśmy przed przebiegami i&nbsp;nie poszerzamy ich pod odpowiedzi modeli.</li>
-            <li><b>Koszt.</b> Dla OpenCode to ceny z&nbsp;cennika dostawcy zapisane przy przebiegu. Dla Claude Code to zużyte tokeny przeliczone po cenach API, nie koszt abonamentu.</li>
+            <li><b>Koszt.</b> Dla OpenCode to ceny z&nbsp;cennika dostawcy zapisane przy przebiegu. Dla Claude Code to zużyte tokeny przeliczone po cenach API, nie koszt abonamentu. OpenCode nie zna ceny Hinoki, więc jego koszt (z&nbsp;„~”) wyliczyliśmy z&nbsp;zapisanych tokenów i&nbsp;cennika, który zwraca API Hinoki: 0,80 USD za milion tokenów wejścia, 0,08 z&nbsp;cache, 1,20 wyjścia.</li>
             <li><b>Spoza klucza.</b> Zweryfikowane znaleziska, których nie ma w&nbsp;kluczu, podajemy tylko liczbą. W&nbsp;kodzie open source mogą to być prawdziwe, nieujawnione błędy, więc najpierw przeglądamy je ręcznie.</li>
           </ul>
         </div>

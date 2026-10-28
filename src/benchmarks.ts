@@ -15,8 +15,7 @@ export type Row = {
   verified?: number;
   minutes?: number;
   costUsd?: number;
-  costApprox?: boolean; // read off the provider panel, not recorded per run
-  costNote?: string; // shown instead of a bar when the cost is unknown
+  costApprox?: boolean; // computed from recorded tokens and the provider price list, not billed per run
   note?: string;
 };
 export type Target = {
@@ -33,7 +32,6 @@ export type Target = {
 };
 
 const OC = "OpenCode 2.1.4";
-const HINOKI_COST = "brak danych: OpenCode nie zna ceny Hinoki, czekamy na odczyt z panelu";
 
 export const TARGETS: Target[] = [
   {
@@ -49,13 +47,13 @@ export const TARGETS: Target[] = [
       { model: "Opus 5.5", agent: "Claude Code", outcome: { kind: "scored", found: 1 }, unmatched: 1, minutes: 3.3, costUsd: 1.35 },
       { model: "Gemma 4 31B", agent: `${OC}, OpenRouter`, outcome: { kind: "scored", found: 1 }, unmatched: 1, minutes: 6.7, costUsd: 0.05 },
       { model: "DeepSeek V4 Pro", agent: `${OC}, API DeepSeek`, outcome: { kind: "scored", found: 1 }, unmatched: 0, minutes: 5.7, costUsd: 0.2 },
-      { model: "Hinoki Offensive One", agent: `${OC}, hinoki.security`, outcome: { kind: "scored", found: 1 }, unmatched: 1, minutes: 25.6, costUsd: 0.2, costApprox: true },
+      { model: "Hinoki Offensive One", agent: `${OC}, hinoki.security`, outcome: { kind: "scored", found: 1 }, unmatched: 1, minutes: 25.6, costUsd: 1.27, costApprox: true },
       { model: "Kimi K3.1 Pro", agent: `${OC}, OpenRouter`, outcome: { kind: "scored", found: 0 }, unmatched: 2, minutes: 13.2, costUsd: 0.94 },
       { model: "Grok 4.7", agent: `${OC}, OpenRouter`, outcome: { kind: "scored", found: 0 }, unmatched: 1, minutes: 8.0, costUsd: 1.31 },
     ],
     notes: [
       "Hinoki był najdokładniejszy w przebiegu (217 wywołań narzędzi, 3 pliki testów), ale też najwolniejszy.",
-      "Koszt Hinoki to przybliżony odczyt z panelu dostawcy, podobny do DeepSeek.",
+      "Hinoki płaci za ten sam typ pracy więcej niż DeepSeek, bo czyta z cache kilka razy więcej tokenów: na T1 9,7 mln wobec 2,9 mln.",
     ],
   },
   {
@@ -69,10 +67,10 @@ export const TARGETS: Target[] = [
       { label: "GHSA-r75f-5x8p-qvmc", url: "https://github.com/BerriAI/litellm/security/advisories/GHSA-r75f-5x8p-qvmc" },
     ],
     glance: "1 z 2 advisory: DeepSeek i Hinoki, drugie poza zakresem",
-    takeaway: "GHSA-v4p8 znalazły DeepSeek i Hinoki. GHSA-r75f nie znalazł nikt: miejsce, które naprawia poprawka (proxy/utils.py), leży poza zakresem tego przebiegu. Hinoki zgłosił najwięcej znalezisk spoza klucza i pracował ponad cztery razy dłużej niż DeepSeek.",
+    takeaway: "GHSA-v4p8 znalazły DeepSeek i Hinoki. GHSA-r75f nie znalazł nikt: miejsce, które naprawia poprawka (proxy/utils.py), leży poza zakresem tego przebiegu. Hinoki zgłosił najwięcej znalezisk spoza klucza pracował ponad cztery razy dłużej niż DeepSeek i kosztował prawie dziesięć razy więcej.",
     rows: [
       { model: "DeepSeek V4 Pro", agent: `${OC}, API DeepSeek`, outcome: { kind: "scored", found: 1 }, unmatched: 6, minutes: 24.9, costUsd: 1.04 },
-      { model: "Hinoki Offensive One", agent: `${OC}, hinoki.security`, outcome: { kind: "scored", found: 1 }, unmatched: 34, testProofs: 5, verified: 37, minutes: 105.5, costNote: HINOKI_COST },
+      { model: "Hinoki Offensive One", agent: `${OC}, hinoki.security`, outcome: { kind: "scored", found: 1 }, unmatched: 34, testProofs: 5, verified: 37, minutes: 105.5, costUsd: 10.29, costApprox: true },
       { model: "Kimi K3.1 Pro", agent: `${OC}, OpenRouter`, outcome: { kind: "scored", found: 0 }, unmatched: 9, minutes: 29.7, costUsd: 4.87 },
       { model: "Grok 4.7", agent: `${OC}, OpenRouter`, outcome: { kind: "broken", why: "przerwany przed raportem: skończyły się kredyty OpenRouter" }, costUsd: 24.13 },
     ],
@@ -90,10 +88,10 @@ export const TARGETS: Target[] = [
     total: 26,
     links: [{ label: "benchmark/app", url: "https://github.com/bartek-filipiuk/security-audit-skill/tree/main/benchmark/app" }],
     glance: "26/26: Claude Code i Hinoki w OpenCode",
-    takeaway: "Wszystkie 26 podatności znalazły Claude Code i Hinoki w OpenCode. Claude Code miał mniej fałszywych alarmów (2 wobec 5), potwierdził testem 21 z 40 znalezisk i skończył ponad dwa razy szybciej. Hinoki zweryfikował wszystkie 59 znalezisk tylko analizą kodu.",
+    takeaway: "Wszystkie 26 podatności znalazły Claude Code i Hinoki w OpenCode. Claude Code miał mniej fałszywych alarmów (2 wobec 5), potwierdził testem 21 z 40 znalezisk i skończył ponad dwa razy szybciej. Hinoki zweryfikował wszystkie 59 znalezisk tylko analizą kodu, za mniej niż połowę kosztu.",
     rows: [
       { model: "Opus 5.5 + subagenty Sonnet 5.5", agent: "Claude Code", outcome: { kind: "scored", found: 26 }, decoyFp: 2, unmatched: 4, testProofs: 21, verified: 40, minutes: 33, costUsd: 18 },
-      { model: "Hinoki Offensive One", agent: `${OC}, hinoki.security`, outcome: { kind: "scored", found: 26 }, decoyFp: 5, unmatched: 12, testProofs: 0, verified: 59, minutes: 71.4, costNote: HINOKI_COST },
+      { model: "Hinoki Offensive One", agent: `${OC}, hinoki.security`, outcome: { kind: "scored", found: 26 }, decoyFp: 5, unmatched: 12, testProofs: 0, verified: 59, minutes: 71.4, costUsd: 8.22, costApprox: true },
       { model: "DeepSeek V4 Pro", agent: `${OC}, API DeepSeek`, outcome: { kind: "broken", why: "przerwany przed raportem: skończyło się saldo u dostawcy" }, costUsd: 1.87 },
     ],
     notes: [
