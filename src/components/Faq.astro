@@ -4,7 +4,7 @@
     <div class="list">
       <details>
         <summary>Czego potrzebuję, żeby to uruchomić?</summary>
-        <p>Claude Code z&nbsp;płatnym planem albo kluczem API, Node 20 lub nowszy i&nbsp;docker do skanu zależności i&nbsp;sekretów. Bez dockera audyt też działa, a&nbsp;raport wypisze te dwa sprawdzenia jako niezrobione.</p>
+        <p>Claude Code z&nbsp;płatnym planem albo kluczem API (albo OpenCode 2.1+ z&nbsp;kluczem do wybranego dostawcy modeli), Node 20 lub nowszy i&nbsp;docker do skanu zależności i&nbsp;sekretów. Bez dockera audyt też działa, a&nbsp;raport wypisze te dwa sprawdzenia jako niezrobione.</p>
       </details>
       <details>
         <summary>Ile kosztuje jeden audyt w&nbsp;tokenach?</summary>
@@ -12,7 +12,7 @@
       </details>
       <details>
         <summary>Czy mój kod gdzieś wychodzi?</summary>
-        <p>Skill działa w&nbsp;Twoim Claude Code, na takich samych zasadach jak każda inna praca z&nbsp;kodem. Skan sekretów działa lokalnie i&nbsp;maskuje wartości. Skan zależności wysyła do publicznej bazy podatności nazwy i&nbsp;wersje pakietów. Wyniki trafiają do katalogu <code>.security-audit/</code>, który skill sam dopisuje do <code>.gitignore</code>.</p>
+        <p>Skill działa w&nbsp;Twoim Claude Code, na takich samych zasadach jak każda inna praca z&nbsp;kodem. Skan sekretów działa lokalnie i&nbsp;maskuje wartości. Skan zależności wysyła do publicznej bazy podatności nazwy i&nbsp;wersje pakietów. Wyniki trafiają do katalogu <code>.security-audit/</code>, który skill sam dopisuje do <code>.gitignore</code>. W&nbsp;OpenCode kod trafia do dostawcy modelu, którego wybierzesz: darmowe i&nbsp;testowe modele mogą go przechowywać albo na nim trenować, więc nie audytuj tam kodu, którego nie możesz mu udostępnić.</p>
       </details>
       <details>
         <summary>Jak zainstalować i&nbsp;aktualizować?</summary>

@@ -23,8 +23,9 @@ const fixFirst = [
     <div class="split grid">
       <div class="pitch">
         <p class="cmd"><span class="prompt" aria-hidden="true">&gt;</span> /security-audit<span class="caret" aria-hidden="true"></span></p>
+        <p class="new"><b>Nowość:</b> działa też w&nbsp;<a href="#opencode">OpenCode</a>, z&nbsp;modelem od wybranego dostawcy.</p>
         <p class="lead">
-          Skill do Claude Code, który sprawdza Twoją aplikację i&nbsp;oddaje raport: co naprawić, co jest dobrze
+          Skill do Claude Code i&nbsp;OpenCode, który sprawdza Twoją aplikację i&nbsp;oddaje raport: co naprawić, co jest dobrze
           i&nbsp;czego nie dało się sprawdzić. Każde znalezisko ma plik, linię i&nbsp;opis skutku.
         </p>
         <ul class="stats" aria-label="Wynik na aplikacji testowej">
@@ -36,7 +37,7 @@ const fixFirst = [
           <a class="btn btn-primary" href="#instalacja">Zainstaluj za darmo</a>
           <a class="btn btn-ghost" href="#raport">Zobacz przykładowy raport</a>
         </div>
-        <p class="fine">Open source na licencji MIT. Dla tych, którzy budują w&nbsp;Claude Code i&nbsp;wdrażają na produkcję. <a href={SITE.repo} rel="noopener">Kod na GitHubie</a>.</p>
+        <p class="fine">Open source na licencji MIT. Dla tych, którzy budują z&nbsp;agentami AI i&nbsp;wdrażają na produkcję. <a href={SITE.repo} rel="noopener">Kod na GitHubie</a>.</p>
       </div>
 
       <figure class="sheet">
@@ -84,7 +85,9 @@ const fixFirst = [
   }
   .prompt { color: #8f9bff; }
   .caret { width: 0.6ch; height: 1.15em; background: #8f9bff; margin-left: 0.3ch; }
-  .lead { margin-top: 24px; }
+  .new { margin-top: 22px; display: inline-block; padding: 6px 12px; border-radius: 999px; background: var(--accent-tint); color: var(--ink); font-size: var(--step--1); }
+  .new b { color: var(--accent-strong); }
+  .lead { margin-top: 18px; }
   .stats { list-style: none; margin: 26px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px 32px; }
   .stats b { display: block; font-size: var(--step-3); font-weight: 760; font-stretch: 112%; letter-spacing: -0.03em; line-height: 1; }
   .stats span { display: block; margin-top: 6px; font-size: var(--step--1); color: var(--ink-3); }
