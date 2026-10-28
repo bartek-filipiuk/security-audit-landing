@@ -15,7 +15,7 @@ const hasProofs = (t: Target) => t.rows.some((r) => r.verified !== undefined);
 const result = (r: Row, t: Target) =>
   r.outcome.kind === "broken" ? null : { cls: r.outcome.found === t.total ? "ok" : r.outcome.found > 0 ? "part" : "miss", text: `${r.outcome.found}/${t.total}` };
 ---
-<Base title={title} description={description}>
+<Base title={title} description={description} image="/og-benchmarks.png">
   <Header />
   <main id="tresc">
     <section class="section intro">
@@ -120,6 +120,7 @@ const result = (r: Row, t: Target) =>
             <li>Kod idzie do dostawcy modelu. Do kodu klientów używaj tylko dostawcy, któremu ufasz na piśmie.</li>
           </ul>
           <p class="fine more">Przebiegi samego skilla w&nbsp;Claude Code na prawdziwych modułach są na stronie <a href="/przebiegi">Przebiegi</a>. Jak zainstalować skill w&nbsp;OpenCode: <a href="/#opencode">Instalacja</a>.</p>
+          <p class="fine more">Grafiki do udostępnienia: <a href="/benchmarks/t1.png">T1</a>, <a href="/benchmarks/t2m.png">T2m</a>, <a href="/benchmarks/t3.png">T3</a>, <a href="/benchmarks/podsumowanie.png">wszystkie trzy</a>.</p>
         </div>
       </div>
     </section>
