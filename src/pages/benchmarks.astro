@@ -4,7 +4,7 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import { TARGETS, type Row, type Target } from "../benchmarks";
 const title = "Benchmarki modeli · Security Audit";
-const description = "Ten sam skill security-audit, różne modele i agenci: Claude Code, DeepSeek, Gemma, Hinoki, Kimi i Grok w OpenCode. Wyniki na prawdziwych advisory i na Ledgerly, z czasem i kosztem.";
+const description = "Ten sam skill security-audit, różne modele i agenci: Claude Code, DeepSeek, Gemma, Hinoki, Kimi i Grok w OpenCode oraz gpt-6-astra w Codex CLI. Wyniki na prawdziwych advisory i na Ledgerly, z czasem i kosztem.";
 const pl = (n: number, d = 2) => n.toLocaleString("pl-PL", { minimumFractionDigits: 0, maximumFractionDigits: d });
 const usd = (n: number) => `${n.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
 // Each bar column is scaled to its own maximum within one target: two measures, two scales, never one axis.

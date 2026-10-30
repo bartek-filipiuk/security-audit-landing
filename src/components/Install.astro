@@ -11,6 +11,12 @@ const opencode = [
   ["Zbuduj i zainstaluj agentów, z modelami od wybranego dostawcy", "node opencode/build.mjs && node dist/opencode/install.mjs --auditor-model <dostawca/model> --verifier-model <dostawca/model>"],
   ["W swoim projekcie, w OpenCode", "/security-audit --scope top20"],
 ];
+const codex = [
+  ["Pobierz repozytorium", `git clone ${SITE.repo} && cd security-audit-skill`],
+  ["Zainstaluj skill i strażnika (hook)", "node codex/install.mjs"],
+  ["Raz zaufaj hookom: codex, potem /hooks", "codex --sandbox workspace-write"],
+  ["W swoim projekcie, w Codex CLI", "$security-audit --scope top20"],
+];
 ---
 <section class="section tint" id="instalacja">
   <div class="wrap">
@@ -41,6 +47,21 @@ const opencode = [
       </div>
       <ol class="steps">
         {opencode.map(([label, cmd]) => (
+          <li>
+            <span class="label">{label}</span>
+            <pre><code><span class="p" aria-hidden="true">&gt;</span> <span class="sel">{cmd}</span></code></pre>
+          </li>
+        ))}
+      </ol>
+    </article>
+    <article class="offer oc" id="codex">
+      <div class="left">
+        <h2 class="h2">W Codex CLI</h2>
+        <p class="note">Ten sam audyt jako skill Codex CLI (0.155+), z&nbsp;subagentami Codexa. Sandbox Codexa pozwala pisać tylko w&nbsp;projekcie i&nbsp;odcina sieć, a&nbsp;hook pilnuje reszty zasad: zapis tylko do <code>.security-audit/</code> i&nbsp;<code>.gitignore</code>, bez czytania <code>.env</code> i&nbsp;plików spoza projektu. Hook działa tylko w&nbsp;sesji zaczętej od <code>$security-audit</code>.</p>
+        <p class="fine">Bez sieci skan zależności i&nbsp;skanery z&nbsp;dockera wypisują się jako niezrobione. Względem Claude Code nie ma naprawiania (Faza 6), <code>--mutation</code> ani panelu na żywo. Szczegóły: <a href={`${SITE.repo}/blob/main/codex/README.md`} rel="noopener">codex/README.md</a>. Wyniki: <a href="/benchmarks">benchmarki</a>.</p>
+      </div>
+      <ol class="steps">
+        {codex.map(([label, cmd]) => (
           <li>
             <span class="label">{label}</span>
             <pre><code><span class="p" aria-hidden="true">&gt;</span> <span class="sel">{cmd}</span></code></pre>
