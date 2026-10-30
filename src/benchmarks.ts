@@ -32,6 +32,7 @@ export type Target = {
 };
 
 const OC = "OpenCode 2.1.4";
+const CX = "Codex CLI 0.155.1";
 
 export const TARGETS: Target[] = [
   {
@@ -93,11 +94,33 @@ export const TARGETS: Target[] = [
       { model: "Opus 5.5 + subagenty Sonnet 5.5", agent: "Claude Code", outcome: { kind: "scored", found: 26 }, decoyFp: 2, unmatched: 4, testProofs: 21, verified: 40, minutes: 33, costUsd: 18 },
       { model: "Hinoki Offensive One", agent: `${OC}, hinoki.security`, outcome: { kind: "scored", found: 26 }, decoyFp: 5, unmatched: 12, testProofs: 0, verified: 59, minutes: 71.4, costUsd: 8.22, costApprox: true },
       { model: "DeepSeek V4 Pro", agent: `${OC}, API DeepSeek`, outcome: { kind: "broken", why: "przerwany przed raportem: skończyło się saldo u dostawcy" }, costUsd: 1.87 },
+      { model: "gpt-6-astra + 9 subagentów", agent: `${CX}, plan ChatGPT`, outcome: { kind: "scored", found: 21 }, decoyFp: 1, unmatched: 2, testProofs: 0, verified: 25, minutes: 20.6 },
     ],
     notes: [
       "To pierwszy pełny przebieg Ledgerly w OpenCode. Zanim DeepSeek się zatrzymał, częściowe znaleziska dawały 26/26 bez trafień w pułapki, ale bez raportu przebieg się nie liczy.",
       "Wszystkie trafienia w pułapki, u obu modeli, to znaleziska o innym problemie w tych samych liniach (współbieżność, brak rotacji kluczy API, role w organizacji, brak logów bezpieczeństwa). Żadne nie twierdzi, że chroniona kontrola jest zepsuta.",
+      "Codex CLI (30 października 2026, jeden przebieg) szedł na planie ChatGPT, więc nie ma kosztu per przebieg; zużył ok. 10 mln tokenów wejścia, prawie wszystko z cache. Szedł z hookiem strażnika i bez sieci: osv-scanner i gitleaks się nie uruchomiły, stąd dwa z czterech pudeł (podatna wersja Next.js, sekret w historii gita). Pozostałe dwa: skrypt instalacyjny pobierający zdalny skrypt i HTML z odpowiedzi modelu. Testów nie dało się uruchomić (brak vitest bez sieci), więc wszystkie dowody są z analizy kodu.",
       "Ledgerly jest publiczny od października 2026, a skill powstawał na nim. Wynik pokazuje, że skill pokrywa te klasy błędów. Nie mówi, jak model radzi sobie z nieznanym kodem.",
+    ],
+  },
+  {
+    id: "t4",
+    name: "T4: py-clinic w Codex CLI",
+    what: "py-clinic, nasza aplikacja testowa w Pythonie (Django, FastAPI i Flask, 48 plików) z 18 zasianymi podatnościami i 18 pułapkami.",
+    key: "18 podatności i 18 pułapek. Trafienie w pułapkę to fałszywy alarm.",
+    total: 18,
+    links: [{ label: "benchmark/py-clinic", url: "https://github.com/bartek-filipiuk/security-audit-skill/tree/main/benchmark/py-clinic" }],
+    glance: "17/18 bez strażnika, 12/18 ze strażnikiem",
+    takeaway: "Bez hooka strażnika Codex znalazł 17 z 18 podatności bez fałszywych alarmów. W obu przebiegach ze strażnikiem znalazł 12. Większość brakujących to znaleziska, które są w raporcie, ale wskazują początek funkcji zamiast linii z błędem (3-4 linie wcześniej), więc ścisły scorer ich nie liczy.",
+    rows: [
+      { model: "gpt-6-astra, bez strażnika", agent: `${CX}, plan ChatGPT`, outcome: { kind: "scored", found: 17 }, decoyFp: 0, unmatched: 0, testProofs: 0, verified: 18, minutes: 7.7 },
+      { model: "gpt-6-astra, strażnik v1", agent: `${CX}, plan ChatGPT`, outcome: { kind: "scored", found: 12 }, decoyFp: 1, unmatched: 6, testProofs: 0, verified: 19, minutes: 7.2 },
+      { model: "gpt-6-astra, strażnik v2", agent: `${CX}, plan ChatGPT`, outcome: { kind: "scored", found: 12 }, decoyFp: 0, unmatched: 6, testProofs: 0, verified: 19, minutes: 8.3 },
+    ],
+    notes: [
+      "Trzy przebiegi z 30 października 2026, po jednym na konfigurację. Plan ChatGPT, więc bez kosztu per przebieg: 0,8–1,6 mln tokenów wejścia, ponad 90% z cache.",
+      "Strażnik v2 poprawia fałszywe blokady z v1. Najważniejsza: audyt znowu dopisuje .security-audit/ do .gitignore.",
+      "Bez sieci i bez Django w środowisku testy się nie uruchomiły, wszystkie dowody są z analizy kodu.",
     ],
   },
 ];
