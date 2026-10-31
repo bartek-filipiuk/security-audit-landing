@@ -38,7 +38,6 @@ export const LANES: Lane[] = [
     items: [
       { id: "R09 · R10", name: "Profil Go i profil Rust", value: "gosec i obsługa błędów; cargo-audit i unsafe.", done: "Własne aplikacje testowe i wyniki na nich." },
       { id: "R13", name: "Tańsze audytory", value: "Pomiar na benchmarku, czy audytorzy mogą działać na lżejszym modelu bez utraty wykrywalności.", done: "Liczba jest opublikowana, niezależnie od tego, co pokaże." },
-      { id: "R26", name: "Dowolny agent", value: "Instalacja i uruchomienie poza Claude Code (skills CLI), z tym samym raportem.", done: "Benchmark przechodzi od początku do końca w co najmniej jednym innym agencie, wynik opublikowany.", merged: { date: "17 października 2026", pr: "https://github.com/bartek-filipiuk/security-audit-skill/pull/24", waiting: "czeka na benchmark od początku do końca w innym agencie (najpierw OpenCode)" } },
     ],
   },
   {
@@ -55,6 +54,7 @@ export const LANES: Lane[] = [
   {
     key: "done", name: "Zrobione", note: "Wdrożone, z linkiem do pull requesta.",
     items: [
+      { id: "R26", name: "Dowolny agent", value: "Instalacja i uruchomienie poza Claude Code (skills CLI), z tym samym raportem.", done: "Benchmark przechodzi od początku do końca w co najmniej jednym innym agencie, wynik opublikowany.", shipped: { date: "30 października 2026", pr: "https://github.com/bartek-filipiuk/security-audit-skill/pull/46" } },
       { id: "R17", name: "audit-live", value: "Czas każdej fazy, widok per audytor, koszt sesji i zajętość kontekstu w panelu postępu.", done: "Panel Audit pokazuje długość faz, wiersz na audytora i koszt sesji z Claude Code.", shipped: { date: "15 października 2026", pr: "https://github.com/bartek-filipiuk/security-audit-skill/pull/23" } },
       { id: "R14", name: "Lista kontrolna produkcji", value: "Generowana z sekcji „nie sprawdzone”: nagłówki, limity, zmienne środowiskowe, kopie zapasowe, z instrukcją, jak sprawdzić każdą pozycję.", done: "Jest sekcją raportu.", shipped: { date: "9 października 2026", pr: "https://github.com/bartek-filipiuk/security-audit-skill/pull/18" } },
       { id: "R12", name: "Porównanie audytów", value: "Co nowe, co naprawione, co wróciło między dwoma przebiegami.", done: "Raport ma sekcję „od ostatniego audytu”.", shipped: { date: "9 października 2026", pr: "https://github.com/bartek-filipiuk/security-audit-skill/pull/17" } },
