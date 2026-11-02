@@ -1,0 +1,774 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-MvG1Y1OXXFh4tBOYtX9sG5URhwYMP8MBEzSXtqOVaCk='; img-src data:">
+<meta name="robots" content="noindex">
+<title>Security audit · py-clinic</title>
+<style>
+:root {
+  --paper: #f6f2ea; --paper-2: #efe9dd; --ink: #1d1b18; --ink-2: #5b554b; --rule: #d9d1c1;
+  --crit: #a3171d; --high: #cf3a1c; --med: #b7791f; --low: #4f6489; --safe: #1f7a4d; --fixed: #2f6f7e; --gap: #9a9184;
+  --tint-crit: #f3dcd8; --tint-safe: #dcebe1; --tint-gap: #e8e3da; --code: #ebe4d6;
+  /* Darker steps for severity badges that carry text (>= 4.5:1 with --paper); bars and dots keep the brighter ones. */
+  --high-ink: #b8330f; --med-ink: #94590a;
+  --display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Charter, "Bitstream Charter", Georgia, serif;
+  --text: "Avenir Next", "Segoe UI Variable Text", "Segoe UI", "Helvetica Neue", Ubuntu, Cantarell, sans-serif;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #16140f; --paper-2: #1e1b15; --ink: #ece6d8; --ink-2: #a89f8e;
+    --rule: #353025; --crit: #f0695e; --high: #f28c5b; --med: #e0b45a; --low: #8ea5cf; --safe: #5cc28c; --fixed: #6fb6c6; --gap: #8b8377;
+    --tint-crit: #3a1d19; --tint-safe: #17301f; --tint-gap: #29251e; --code: #24201a;
+    --high-ink: #f28c5b; --med-ink: #e0b45a;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { background: var(--paper); }
+body { margin: 0; color: var(--ink); font: 16px/1.55 var(--text); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+::selection { background: var(--crit); color: var(--paper); }
+:focus-visible { outline: 2px solid var(--crit); outline-offset: 3px; border-radius: 4px; }
+a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+code, pre { font-family: var(--mono); font-size: 0.86em; }
+code { background: var(--code); padding: 0.08em 0.35em; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: 0.9rem 1rem; border-radius: 10px; overflow-x: auto; line-height: 1.45; }
+pre code { background: none; padding: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 48px); display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 56px; }
+header { grid-column: 1 / -1; padding: 56px 0 28px; border-bottom: 1px solid var(--rule); }
+header .meta { color: var(--ink-2); font-size: 0.92rem; margin: 0 0 18px; }
+h1 { font: 600 clamp(2.4rem, 5vw, 3.6rem)/1.05 var(--display); letter-spacing: -0.02em; margin: 0 0 22px; }
+.verdict { font: 500 clamp(1.4rem, 2.6vw, 1.9rem)/1.25 var(--display); margin: 0 0 6px; max-width: 34ch; }
+.secondary { color: var(--ink-2); margin: 0 0 26px; }
+.ledger { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: var(--paper-2); gap: 2px; animation: reveal 900ms cubic-bezier(.2,.7,.1,1) 120ms both; }
+.ledger span { flex-grow: var(--n); min-width: 6px; }
+@keyframes reveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@media (prefers-reduced-motion: reduce) { .ledger { animation: none; } }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 12px 0 0; padding: 0; list-style: none; font-size: 0.86rem; color: var(--ink-2); }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; vertical-align: 0; }
+.c-critical { background: var(--crit); } .c-high { background: var(--high); } .c-medium { background: var(--med); } .c-low { background: var(--low); }
+.c-fixed { background: var(--fixed); } .c-safe { background: var(--safe); } .c-gap { background: var(--gap); }
+.scope { margin: 18px 0 0; padding: 10px 14px; background: var(--tint-gap); border-radius: 10px; font-size: 0.92rem; }
+.profile p { margin: 0.25em 0; max-width: 90ch; }
+nav { position: sticky; top: 0; align-self: start; padding-top: 28px; }
+nav ol { list-style: none; margin: 0; padding: 0; }
+nav a { display: flex; justify-content: space-between; padding: 6px 0; text-decoration: none; color: var(--ink-2); border-bottom: 1px solid transparent; }
+nav a:hover { color: var(--ink); border-bottom-color: var(--rule); }
+nav b { font-weight: 500; color: var(--ink); }
+main { padding: 28px 0 96px; min-width: 0; }
+h2 { font: 600 1.75rem/1.2 var(--display); letter-spacing: -0.015em; margin: 72px 0 6px; scroll-margin-top: 24px; }
+main > h2:first-child { margin-top: 0; }
+h2 + .lede { color: var(--ink-2); margin: 0 0 22px; max-width: 70ch; }
+h3 { font: 600 0.8rem/1 var(--text); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); margin: 34px 0 10px; }
+.first { counter-reset: n; list-style: none; padding: 0; margin: 0 0 8px; }
+.first li { counter-increment: n; display: grid; grid-template-columns: 2.2rem minmax(0, 1fr); padding: 14px 0; border-top: 1px solid var(--rule); }
+.first li::before { content: counter(n); font: 600 1.5rem/1.1 var(--display); color: var(--crit); }
+.first a { font-weight: 600; text-decoration: none; }
+.first a:hover { text-decoration: underline; }
+.first small { display: block; color: var(--ink-2); margin-top: 2px; }
+.row { border-top: 1px solid var(--rule); }
+.row:last-child { border-bottom: 1px solid var(--rule); }
+.row summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; padding: 14px 4px; cursor: pointer; list-style: none; }
+.row summary::-webkit-details-marker { display: none; }
+.row summary:hover .title { text-decoration: underline; text-decoration-color: var(--rule); }
+.row[open] summary { background: var(--paper-2); }
+.sev { font: 600 0.72rem/1 var(--text); letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 7px; border-radius: 5px; color: var(--paper); }
+.sev-critical .sev { background: var(--crit); } .sev-high .sev { background: var(--high-ink); } .sev-medium .sev { background: var(--med-ink); } .sev-low .sev { background: var(--low); }
+.title { font-weight: 600; flex: 1 1 320px; }
+.loc { font: 0.82rem var(--mono); color: var(--ink-2); flex-basis: 100%; padding-left: 0; overflow-wrap: anywhere; }
+.chip { font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.chip-proof { background: var(--crit); color: var(--paper); }
+.chip-static { box-shadow: inset 0 0 0 1px var(--ink-2); color: var(--ink-2); }
+.chip-warn { background: var(--med-ink); color: var(--paper); }
+.chip-muted { box-shadow: inset 0 0 0 1px var(--gap); color: var(--ink-2); }
+.body { padding: 4px 4px 22px; max-width: 78ch; }
+.body h4 { font: 600 0.78rem/1 var(--text); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); margin: 20px 0 6px; }
+.body p, .body li { margin: 0.3em 0; }
+.body .meta { color: var(--ink-2); font-size: 0.85rem; margin-top: 18px; }
+.diff { list-style: none; padding: 0; margin: 0; }
+.diff li { padding: 10px 0; border-top: 1px solid var(--rule); }
+.diff .why { color: var(--ink-2); font-size: 0.9rem; display: block; }
+.good, .gap { list-style: none; padding: 0; margin: 0; }
+.good li, .gap li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 0 12px; padding: 12px 0; border-top: 1px solid var(--rule); }
+.good svg { color: var(--safe); margin-top: 3px; } .gap svg { color: var(--gap); margin-top: 3px; }
+.good .why, .gap .why { color: var(--ink-2); font-size: 0.94rem; display: block; max-width: 72ch; }
+.good code { font-size: 0.8rem; }
+.prod .how { display: block; margin-top: 4px; font-size: 0.94rem; max-width: 72ch; }
+.prod .chip { vertical-align: 1px; }
+details.cat > summary { cursor: pointer; padding: 10px 0; font-weight: 600; list-style: none; display: flex; justify-content: space-between; border-top: 1px solid var(--rule); }
+details.cat > summary::-webkit-details-marker { display: none; }
+details.cat > summary span { color: var(--safe); font-weight: 500; }
+.band-safe { background: var(--tint-safe); border-radius: 14px; padding: 6px 20px 14px; }
+.band-gap { background: var(--tint-gap); border-radius: 14px; padding: 6px 20px 14px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th { text-align: left; font: 600 0.74rem/1 var(--text); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); padding: 10px 8px; border-bottom: 1px solid var(--rule); }
+td { padding: 9px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+td.mono { font: 0.8rem var(--mono); overflow-wrap: anywhere; }
+td.where { width: 46%; }
+.score { display: inline-block; height: 6px; border-radius: 3px; background: var(--high); vertical-align: middle; margin-right: 8px; }
+.tablewrap { overflow-x: auto; }
+.empty { color: var(--ink-2); padding: 14px 0; border-top: 1px solid var(--rule); }
+footer { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding: 24px 0 48px; color: var(--ink-2); font-size: 0.85rem; }
+@media (max-width: 860px) {
+  .wrap { grid-template-columns: 1fr; gap: 0; }
+  nav { position: static; padding-top: 20px; }
+  nav ol { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  nav a { gap: 6px; min-height: 44px; align-items: center; }
+}
+@media print { nav, .ledger { display: none; } .wrap { display: block; } h2 { break-after: avoid; } .row { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<p class="meta">Security audit · 2026-11-02 · commit 7fa059c · deps: NOT RUN: install osv-scanner or docker · secrets: gitleaks: 0 hits, 1 commits of this repo</p>
+<h1>app</h1>
+<p class="verdict">22 issues to fix (4 critical, 11 high, 5 medium, 2 low).</p>
+<p class="secondary">14 areas verified safe · 7 checks not assessed</p>
+<div class="ledger" role="img" aria-label="4 critical, 11 high, 5 medium, 2 low, 14 verified safe, 7 not assessed"><span class="c-critical" style="--n:4"></span><span class="c-high" style="--n:11"></span><span class="c-medium" style="--n:5"></span><span class="c-low" style="--n:2"></span><span class="c-safe" style="--n:14"></span><span class="c-gap" style="--n:7"></span></div>
+<ul class="legend"><li><i class="c-critical"></i>4 critical</li><li><i class="c-high"></i>11 high</li><li><i class="c-medium"></i>5 medium</li><li><i class="c-low"></i>2 low</li><li><i class="c-safe"></i>14 verified safe</li><li><i class="c-gap"></i>7 not assessed</li></ul>
+
+<div class="scope profile"><p><strong>Profile: Python (Django, Django REST framework, Flask, FastAPI, SQLAlchemy): dedicated profile.</strong></p><p>Covers: Django urls.py entry points through the include() chain and DRF router.register rows, with login_required/permission_required/mixins, permission_classes or the REST_FRAMEWORK default, csrf_exempt and read-only viewsets; FastAPI @app/@router entry points with APIRouter/include_router prefixes, auth dependencies (Depends/Security) and response_model; Flask @bp.route/@bp.get entry points with blueprint prefixes, *_required decorators and before_request session checks; Python hotspot ranking by the view body: no auth guard, csrf_exempt without a signature check, records loaded by id or user-owned models queried without a filter on the caller, secret fields in response_model, raw/text()/execute SQL built from strings, render_template_string, send_file and os.path.join with request data, pickle/yaml.load, outbound requests to a caller URL, shell=True; |safe, autoescape off, DEBUG, ALLOWED_HOSTS, literal secret keys and CORS with credentials; Python, Django, FastAPI and Flask stack patterns and checklist sections for the auditors; dependency advisories on the Python lockfile or requirements (osv-scanner, pip-audit --no-deps --disable-pip as fallback) and secrets in git history (gitleaks); bandit through the rule-scanner runner when it is installed (it parses the code, never imports it).</p><p>Does not cover: regex and indentation, not an AST: DRF @action routes, routes added in loops, i18n_patterns and blueprints registered under computed names are not seen; routes of other Python frameworks (Starlette alone, Litestar, aiohttp, Tornado, Sanic) are not enumerated: recon finds those entry points by reading the code; rule scanners (semgrep, zizmor, hadolint, trivy, bandit, gosec, govulncheck) run only when installed or docker is available; one that did not run is listed in not-assessed.md.</p></div>
+
+</header>
+<nav aria-label="Sections"><ol><li><a href="#fix">To fix <b>22</b></a></li><li><a href="#safe">Verified safe <b>14</b></a></li><li><a href="#gaps">Not assessed <b>7</b></a></li><li><a href="#prod">Production checklist <b>3</b></a></li><li><a href="#hotspots">Hotspots <b>20</b></a></li><li><a href="#deps">Dependencies <b>0</b></a></li><li><a href="#secrets">Secrets <b>0</b></a></li><li><a href="#filtered">Filtered out <b>2</b></a></li></ol></nav>
+<main>
+<h2 id="fix">To fix</h2>
+<p class="lede">Verified findings, most severe first. “Failing test” means a regression test in the project’s own runner fails today; “code reading only” means it was confirmed by tracing the code.</p>
+<h3>Fix first</h3>
+<ol class="first"><li><div><a href="#chain-901">Forged back-office session + template injection = remote code execution without credentials</a><small>critical · code reading only · backoffice/app.py:9</small></div></li><li><div><a href="#exposure-103">Lab result PDFs downloadable by anyone, without sign-in, by sequential id</a><small>critical · code reading only · labs/routers/results.py:49-54</small></div></li><li><div><a href="#injection-101">Unsafe YAML deserialization in medical history import (records/import)</a><small>critical · code reading only · records/views.py:45</small></div></li></ol>
+<h3>critical · 4</h3><details class="row sev-critical" id="chain-901">
+<summary><span class="sev">critical</span><span class="title">Forged back-office session + template injection = remote code execution without credentials</span><span class="chip chip-static">Code reading only</span><span class="loc">backoffice/app.py:9</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Fix crypto-105 (random key from the environment, rotate now) and injection-102 (fixed template); each alone breaks the chain.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>backoffice/app.py:9</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>app.secret_key = &quot;backoffice-session-key&quot;          # backoffice/app.py:9
+...
+template = &#39;&lt;article ...&gt;&#39; + request.form.get(&quot;body&quot;, &quot;&quot;) + &quot;&lt;/article&gt;&quot;
+return render_template_string(template, clinic=&quot;Clinic&quot;)   # backoffice/views.py:64-65</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: a session cookie signed with the literal key (crypto-105)</li>
+<li><strong>Transformations</strong>: Flask-Login trusts <code>_user_id</code> from the signed session (<code>backoffice/app.py:22-24</code>)</li>
+<li><strong>Sink</strong>: <code>render_template_string</code> (injection-102, <code>backoffice/views.py:65</code>) or <code>send_file</code> (injection-107, <code>views.py:78</code>)</li>
+<li><strong>Sanitization</strong>: none</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone who knows the source can sign their own cookie as any staff user and then execute code on the back-office server (or read any file through the export download), with no password at all. auth-104 additionally lets them make a forged clerk an admin.</p></section>
+<section><h4>Regression test</h4><p>proof: static — the repo has no test suite or runner, and Django, Flask and FastAPI are not installed in this environment (installing them needs network, which the audit does not use).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>crypto-105, injection-102, injection-107, auth-104</li>
+</ul></section>
+<p class="meta">chain-901 · Chains</p>
+</div></details>
+<details class="row sev-critical" id="exposure-103">
+<summary><span class="sev">critical</span><span class="title">Lab result PDFs downloadable by anyone, without sign-in, by sequential id</span><span class="chip chip-static">Code reading only</span><span class="loc">labs/routers/results.py:49-54</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Add <code>user: Account = Depends(get_current_user)</code> and load with <code>select(LabResult).where(LabResult.id == result_id, LabResult.patient_id == user.patient_id)</code> as <code>get_result</code> does.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>labs/routers/results.py:49-54</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>@router.get(&quot;/{result_id}/pdf&quot;)
+def result_pdf(result_id: int, db: Session = Depends(get_db)):
+    result = db.get(LabResult, result_id)
+    if result is None:
+        raise HTTPException(status_code=404)
+    return FileResponse(os.path.join(RESULTS_DIR, result.pdf_path), media_type=&quot;application/pdf&quot;)</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: path parameter <code>result_id</code> (<code>labs/routers/results.py:50</code>)</li>
+<li><strong>Transformations</strong>: none; the route has no <code>get_current_user</code> dependency and the router (<code>results.py:13</code>) has no router-level dependency</li>
+<li><strong>Sink</strong>: <code>db.get(LabResult, result_id)</code> + <code>FileResponse</code> (<code>results.py:51-54</code>)</li>
+<li><strong>Sanitization</strong>: none: no authentication and no <code>patient_id</code> check, unlike <code>get_result</code> at <code>results.py:43</code></li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone on the internet can download every patient&#39;s lab result PDF by iterating <code>/results/1/pdf</code>, <code>/results/2/pdf</code>, …: mass exposure of health data, contradicting the README claim that lab results are visible to their patient only.</p></section>
+<section><h4>Regression test</h4><p>proof: static — the repo has no test suite or runner, and Django, Flask and FastAPI are not installed in this environment (installing them needs network, which the audit does not use).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">exposure-103 · Data exposure &amp; secrets</p>
+</div></details>
+<details class="row sev-critical" id="injection-101">
+<summary><span class="sev">critical</span><span class="title">Unsafe YAML deserialization in medical history import (records/import)</span><span class="chip chip-static">Code reading only</span><span class="loc">records/views.py:45</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Use <code>yaml.safe_load</code> and validate the structure (a dict with an <code>entries</code> list of dicts with string <code>kind</code>/<code>note</code>).</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>records/views.py:45</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>@login_required
+@require_POST
+def import_history(request):
+    data = yaml.load(request.FILES[&quot;file&quot;].read(), Loader=yaml.Loader)
+    for item in data.get(&quot;entries&quot;, []):</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: uploaded file <code>file</code> in POST /records/import/ (<code>records/views.py:45</code>)</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: <code>yaml.load(..., Loader=yaml.Loader)</code> (<code>records/views.py:45</code>) builds arbitrary Python objects, including <code>!!python/object/apply</code> calls</li>
+<li><strong>Sanitization</strong>: none; <code>yaml.Loader</code> is the unsafe loader (PyYAML pinned 6.0.2 in requirements.txt:3)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in patient can run arbitrary code on the portal server by uploading a YAML file with a <code>!!python/object/apply</code> tag, which gives them the database credentials and every patient&#39;s records.</p></section>
+<section><h4>Regression test</h4><p>proof: static — no test runner in the repo and Django is not installed here. The library behaviour was checked locally: on PyYAML 6.0.1, <code>yaml.load(&#39;!!python/object/apply:builtins.len [[1,2,3]]&#39;, Loader=yaml.Loader)</code> returned 3 (the call ran), while <code>yaml.safe_load</code> raised ConstructorError. The repo pins 6.0.2, which I assume behaves the same (not run).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">injection-101 · Injection &amp; SSRF</p>
+</div></details>
+<details class="row sev-critical" id="injection-102">
+<summary><span class="sev">critical</span><span class="title">Server-side template injection in back-office letter preview</span><span class="chip chip-static">Code reading only</span><span class="loc">backoffice/views.py:61-65</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Never build template source from input: render a fixed template (<code>letter.html</code>) and pass <code>body</code> as a variable, as <code>letter_send</code> already does.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>backoffice/views.py:61-65</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>@bp.route(&quot;/letters/preview&quot;, methods=[&quot;POST&quot;])
+@login_required
+def letter_preview():
+    template = &#39;&lt;article class=&quot;letter&quot;&gt;&lt;h1&gt;{{ clinic }}&lt;/h1&gt;&#39; + request.form.get(&quot;body&quot;, &quot;&quot;) + &quot;&lt;/article&gt;&quot;
+    return render_template_string(template, clinic=&quot;Clinic&quot;)</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: form field <code>body</code> (<code>backoffice/views.py:64</code>)</li>
+<li><strong>Transformations</strong>: concatenated into the template source</li>
+<li><strong>Sink</strong>: <code>render_template_string</code> (<code>backoffice/views.py:65</code>): Flask&#39;s non-sandboxed Jinja2 environment compiles and runs it</li>
+<li><strong>Sanitization</strong>: none</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in back-office user, including a clerk, can execute arbitrary Python on the back-office server (e.g. <code>{{ cycler.__init__.__globals__.os.popen(&#39;id&#39;).read() }}</code>), reading the staff database and any file the process can read. CRITICAL is kept regardless of the login requirement because the impact is code execution.</p></section>
+<section><h4>Regression test</h4><p>proof: static — the repo has no test suite or runner, and Django, Flask and FastAPI are not installed in this environment (installing them needs network, which the audit does not use).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>chain-901, crypto-105</li>
+</ul></section>
+<p class="meta">injection-102 · Injection &amp; SSRF</p>
+</div></details>
+<h3>high · 11</h3><details class="row sev-high" id="auth-104">
+<summary><span class="sev">high</span><span class="title">Staff role change endpoint has no authentication or admin check</span><span class="chip chip-static">Code reading only</span><span class="loc">backoffice/views.py:53-58</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Add <code>@login_required</code> and <code>@admin_required</code>, allow-list the role values, and add CSRF protection (Flask-WTF <code>CSRFProtect</code>).</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>backoffice/views.py:53-58</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>@bp.route(&quot;/staff/&lt;int:user_id&gt;/role&quot;, methods=[&quot;POST&quot;])
+def set_role(user_id):
+    user = db.get_or_404(StaffUser, user_id)
+    user.role = request.form[&quot;role&quot;]
+    db.session.commit()
+    return redirect(url_for(&quot;views.staff_list&quot;))</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: path <code>user_id</code> and form field <code>role</code> (<code>backoffice/views.py:54-56</code>)</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: <code>user.role = ...; db.session.commit()</code> (<code>views.py:56-57</code>)</li>
+<li><strong>Sanitization</strong>: none: no <code>@login_required</code>, no <code>@admin_required</code> (compare <code>staff_list</code> at <code>views.py:47-48</code>), no CSRF token</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone, without signing in, can set the role of any staff account: a clerk can make themselves <code>admin</code> (gaining the staff list and the price list import), and an outsider can demote every admin. The README says role changes are for admins only.</p></section>
+<section><h4>Regression test</h4><p>proof: static — the repo has no test suite or runner, and Django, Flask and FastAPI are not installed in this environment (installing them needs network, which the audit does not use).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>chain-901</li>
+</ul></section>
+<p class="meta">auth-104 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="auth-110">
+<summary><span class="sev">high</span><span class="title">Appointment detail page shows any patient&#39;s appointment and message thread (IDOR)</span><span class="chip chip-static">Code reading only</span><span class="loc">appointments/views.py:34-38</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Filter by owner: <code>get_object_or_404(Appointment.objects.select_related(&quot;doctor&quot;), pk=pk, patient=request.user)</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>appointments/views.py:34-38</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>@login_required
+def appointment_detail(request, pk):
+    appointment = get_object_or_404(Appointment.objects.select_related(&quot;doctor&quot;), pk=pk)
+    thread = appointment.messages.select_related(&quot;author&quot;).order_by(&quot;created_at&quot;)
+    return render(request, &quot;appointments/detail.html&quot;, {&quot;appointment&quot;: appointment, &quot;thread&quot;: thread})</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: URL <code>pk</code> (<code>appointments/urls.py:11</code>)</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: <code>get_object_or_404(..., pk=pk)</code> (<code>views.py:36</code>) and the template render</li>
+<li><strong>Sanitization</strong>: <code>@login_required</code> only; no <code>patient=request.user</code> filter (compare <code>post_message</code> at <code>views.py:44</code>)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in patient can read every other patient&#39;s appointments, including the reason, doctor&#39;s notes and the full message thread, by changing the id in <code>/appointments/&lt;id&gt;/</code>.</p></section>
+<section><h4>Regression test</h4><p>proof: static — the repo has no test suite or runner, and Django, Flask and FastAPI are not installed in this environment (installing them needs network, which the audit does not use).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>chain-902, injection-114</li>
+</ul></section>
+<p class="meta">auth-110 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="auth-111">
+<summary><span class="sev">high</span><span class="title">Prescriptions API returns every patient&#39;s prescriptions</span><span class="chip chip-static">Code reading only</span><span class="loc">appointments/api.py:23-25</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Add <code>def get_queryset(self): return Prescription.objects.filter(patient=self.request.user).select_related(&quot;doctor&quot;)</code>, as <code>AppointmentViewSet</code> does.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>appointments/api.py:23-25</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>class PrescriptionViewSet(viewsets.ReadOnlyModelViewSet):
+    queryset = Prescription.objects.select_related(&quot;doctor&quot;).order_by(&quot;-issued_at&quot;)
+    serializer_class = PrescriptionSerializer</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: GET /api/prescriptions/ and /api/prescriptions/&lt;id&gt;/ (<code>appointments/api_urls.py:8</code>)</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: class-level <code>queryset</code> (<code>api.py:24</code>) with no <code>get_queryset</code> filter</li>
+<li><strong>Sanitization</strong>: default <code>IsAuthenticated</code> (<code>clinic/settings.py:64</code>) only; no object-level scope</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in patient can list all patients&#39; prescriptions (drug, dosage, patient id, doctor), contrary to the README&#39;s claim that patients only see their own prescriptions.</p></section>
+<section><h4>Regression test</h4><p>proof: static — the repo has no test suite or runner, and Django, Flask and FastAPI are not installed in this environment (installing them needs network, which the audit does not use).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">auth-111 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="auth-112">
+<summary><span class="sev">high</span><span class="title">Patient contact list export has no authentication</span><span class="chip chip-static">Code reading only</span><span class="loc">records/views.py:51-60</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Require staff: <code>@login_required</code> + <code>@user_passes_test(lambda u: u.is_staff)</code> (or move the export to the Django admin).</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>records/views.py:51-60</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>def export_patients(request):
+    buffer = io.StringIO()
+    writer = csv.writer(buffer)
+    writer.writerow([&quot;id&quot;, &quot;name&quot;, &quot;email&quot;, &quot;phone&quot;])
+    for user in get_user_model().objects.filter(is_staff=False).select_related(&quot;contact&quot;):</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: GET /records/export/patients.csv (<code>records/urls.py:12</code>)</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: CSV response with every non-staff user (<code>views.py:55-59</code>)</li>
+<li><strong>Sanitization</strong>: none: no <code>@login_required</code>, no staff check (every other view in the file has <code>@login_required</code>)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone, without signing in, can download the name, e-mail and phone number of every patient of the clinic.</p></section>
+<section><h4>Regression test</h4><p>proof: static — the repo has no test suite or runner, and Django, Flask and FastAPI are not installed in this environment (installing them needs network, which the audit does not use).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">auth-112 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="chain-902">
+<summary><span class="sev">high</span><span class="title">Stored XSS reachable through the appointment IDOR leads to patient account takeover</span><span class="chip chip-static">Code reading only</span><span class="loc">appointments/templates/appointments/detail.html:13</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Fix injection-114 (no <code>|safe</code>) and auth-110 (owner filter); require the password to change the e-mail (auth-115).</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>appointments/templates/appointments/detail.html:13</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>&lt;div class=&quot;body&quot;&gt;{{ message.body|safe }}&lt;/div&gt;          # detail.html:13
+appointment = get_object_or_404(..., pk=pk)                 # views.py:36, no owner filter
+@csrf_exempt ... request.user.email = contact.email         # views.py:49-58</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: attacker&#39;s message on their own appointment (injection-114)</li>
+<li><strong>Transformations</strong>: victim opens <code>/appointments/&lt;attacker&#39;s id&gt;/</code>, allowed by auth-110</li>
+<li><strong>Sink</strong>: script POSTs to <code>/appointments/contact/</code> (auth-115) and sets the victim&#39;s e-mail; password reset (<code>clinic/urls.py:8</code>) then mails the link to the attacker</li>
+<li><strong>Sanitization</strong>: none</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>A signed-in patient can take over any other patient&#39;s account by getting them to open one link: the script changes the victim&#39;s e-mail and the attacker resets the password, gaining their appointments, records and prescriptions.</p></section>
+<section><h4>Regression test</h4><p>proof: static — the repo has no test suite or runner, and Django, Flask and FastAPI are not installed in this environment (installing them needs network, which the audit does not use).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>injection-114, auth-110, auth-115</li>
+</ul></section>
+<p class="meta">chain-902 · Chains</p>
+</div></details>
+<details class="row sev-high" id="crypto-105">
+<summary><span class="sev">high</span><span class="title">Back-office Flask session signing key is a literal in source</span><span class="chip chip-static">Code reading only</span><span class="loc">backoffice/app.py:9</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Read the key from the environment (fail to start when missing), generate a fresh random key per deployment and rotate it now; all existing sessions become invalid.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>backoffice/app.py:9</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>app = Flask(__name__)
+app.secret_key = &quot;backoffice-session-key&quot;</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: the literal key in the repository (<code>backoffice/app.py:9</code>)</li>
+<li><strong>Transformations</strong>: Flask signs the session cookie (which holds Flask-Login&#39;s <code>_user_id</code>) with this key</li>
+<li><strong>Sink</strong>: session verification in every request (<code>backoffice/app.py:22-24</code> <code>load_user</code>)</li>
+<li><strong>Sanitization</strong>: none: the key is not read from the environment, so every deployment uses the same value</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone who has seen the source (repo access, a leaked copy, a former contractor) can forge a session cookie with <code>_user_id</code> of any staff member, including an admin, and use the whole back office without a password.</p></section>
+<section><h4>Regression test</h4><p>proof: static — the repo has no test suite or runner, and Django, Flask and FastAPI are not installed in this environment (installing them needs network, which the audit does not use).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>chain-901, injection-102, injection-107</li>
+</ul></section>
+<p class="meta">crypto-105 · Cryptography</p>
+</div></details>
+<details class="row sev-high" id="injection-107">
+<summary><span class="sev">high</span><span class="title">Path traversal in back-office export download reads arbitrary files</span><span class="chip chip-static">Code reading only</span><span class="loc">backoffice/views.py:74-78</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Use <code>send_from_directory(EXPORT_DIR, name)</code> (it rejects paths outside the directory), ideally with an allow-list of export names.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>backoffice/views.py:74-78</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>@bp.route(&quot;/exports/download&quot;)
+@login_required
+def download_export():
+    name = request.args.get(&quot;name&quot;, &quot;&quot;)
+    return send_file(os.path.join(current_app.config[&quot;EXPORT_DIR&quot;], name), as_attachment=True)</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: query parameter <code>name</code> (<code>backoffice/views.py:77</code>)</li>
+<li><strong>Transformations</strong>: <code>os.path.join</code> (<code>views.py:78</code>): <code>../</code> or an absolute path escapes <code>EXPORT_DIR</code></li>
+<li><strong>Sink</strong>: <code>send_file</code> (<code>views.py:78</code>)</li>
+<li><strong>Sanitization</strong>: none (contrast <code>report</code> at <code>views.py:84</code>, which uses <code>secure_filename</code> + <code>send_from_directory</code>)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in back-office user, including a clerk, can download any file the process can read, e.g. <code>?name=/proc/self/environ</code> (secrets in the environment) or the staff database with password hashes.</p></section>
+<section><h4>Regression test</h4><p>proof: static — the repo has no test suite or runner, and Django, Flask and FastAPI are not installed in this environment (installing them needs network, which the audit does not use).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>crypto-105</li>
+</ul></section>
+<p class="meta">injection-107 · Injection &amp; SSRF</p>
+</div></details>
+<details class="row sev-high" id="injection-108">
+<summary><span class="sev">high</span><span class="title">SQL injection in portal appointment search</span><span class="chip chip-static">Code reading only</span><span class="loc">appointments/views.py:25-31</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Pass the term as a parameter (<code>... ILIKE %s</code>, <code>[f&quot;%{term}%&quot;]</code>) or use the ORM: <code>Appointment.objects.filter(patient=request.user, reason__icontains=term)</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>appointments/views.py:25-31</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>@login_required
+def search(request):
+    term = request.GET.get(&quot;q&quot;, &quot;&quot;)
+    appointments = Appointment.objects.raw(
+        f&quot;SELECT * FROM appointments_appointment WHERE patient_id = {request.user.id} AND reason ILIKE &#39;%{term}%&#39;&quot;
+    )</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: query parameter <code>q</code> (<code>appointments/views.py:27</code>)</li>
+<li><strong>Transformations</strong>: f-string into the SQL text (<code>views.py:29</code>)</li>
+<li><strong>Sink</strong>: <code>Appointment.objects.raw</code> (<code>views.py:28</code>) executed without parameters</li>
+<li><strong>Sanitization</strong>: none</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in patient can run their own SQL against the portal database: <code>q=&#39; OR 1=1 --</code> lists every patient&#39;s appointments, and UNION queries read any table, including <code>auth_user</code> password hashes and other patients&#39; records and prescriptions.</p></section>
+<section><h4>Regression test</h4><p>proof: static — the repo has no test suite or runner, and Django, Flask and FastAPI are not installed in this environment (installing them needs network, which the audit does not use).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">injection-108 · Injection &amp; SSRF</p>
+</div></details>
+<details class="row sev-high" id="injection-109">
+<summary><span class="sev">high</span><span class="title">SQL injection in lab results search</span><span class="chip chip-static">Code reading only</span><span class="loc">labs/routers/results.py:23-29</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Bind it: <code>title ILIKE :pattern</code> with <code>{&quot;pattern&quot;: f&quot;%{q}%&quot;}</code>, or use <code>select(LabResult).where(..., LabResult.title.ilike(...))</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>labs/routers/results.py:23-29</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>@router.get(&quot;/search&quot;, response_model=list[LabResultOut])
+def search_results(q: str, user: Account = Depends(get_current_user), db: Session = Depends(get_db)):
+    rows = db.execute(
+        text(f&quot;SELECT * FROM lab_results WHERE patient_id = :pid AND title ILIKE &#39;%{q}%&#39; ORDER BY created_at DESC&quot;),
+        {&quot;pid&quot;: user.patient_id},
+    )</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: query parameter <code>q</code> (<code>labs/routers/results.py:24</code>)</li>
+<li><strong>Transformations</strong>: f-string into <code>text()</code> (<code>results.py:26</code>)</li>
+<li><strong>Sink</strong>: <code>db.execute</code> (<code>results.py:25</code>)</li>
+<li><strong>Sanitization</strong>: only <code>:pid</code> is bound; <code>q</code> is not</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in lab user (patient or partner clinic) can read other patients&#39; lab results (<code>q=&#39; OR &#39;1&#39;=&#39;1</code>) and, through UNION queries, the <code>accounts</code> table with password hashes and TOTP secrets.</p></section>
+<section><h4>Regression test</h4><p>proof: static — the repo has no test suite or runner, and Django, Flask and FastAPI are not installed in this environment (installing them needs network, which the audit does not use).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">injection-109 · Injection &amp; SSRF</p>
+</div></details>
+<details class="row sev-high" id="injection-113">
+<summary><span class="sev">high</span><span class="title">SSRF with response read-back through lab order callback URL</span><span class="chip chip-static">Code reading only</span><span class="loc">labs/routers/orders.py:14-20</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Allow-list partner callback hosts per account, resolve and reject private/loopback/link-local addresses (also after redirects), and do not return the callback response body to the caller.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>labs/routers/orders.py:14-20</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>def notify_callback(url: str, order_id: int) -&gt; None:
+    with SessionLocal() as db:
+        order = db.get(LabOrder, order_id)
+        response = httpx.post(url, json={&quot;id&quot;: order.id, &quot;status&quot;: order.status}, timeout=10)
+        order.callback_status = response.status_code
+        order.callback_response = response.text[:2000]</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>callback_url</code> in the POST /orders body (<code>labs/schemas.py:18</code>, <code>orders.py:35</code>)</li>
+<li><strong>Transformations</strong>: <code>HttpUrl</code> validation (scheme/syntax only) and <code>str()</code> (<code>orders.py:40</code>)</li>
+<li><strong>Sink</strong>: <code>httpx.post(url, ...)</code> (<code>orders.py:17</code>); the reply is stored and returned by GET /orders through <code>LabOrderOut.callback_response</code> (<code>schemas.py:28</code>)</li>
+<li><strong>Sanitization</strong>: none: no host allow-list, no block of private, loopback or link-local addresses</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in lab user can make the lab server send POST requests to internal hosts (localhost services, the database network, cloud metadata) and read the first 2000 characters of each reply via GET /orders.</p></section>
+<section><h4>Regression test</h4><p>proof: static — the repo has no test suite or runner, and Django, Flask and FastAPI are not installed in this environment (installing them needs network, which the audit does not use).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>config-116</li>
+</ul></section>
+<p class="meta">injection-113 · Injection &amp; SSRF</p>
+</div></details>
+<details class="row sev-high" id="upload-106">
+<summary><span class="sev">high</span><span class="title">Path traversal in record upload lets a patient write files anywhere the portal process can write</span><span class="chip chip-static">Code reading only</span><span class="loc">records/views.py:24-32</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Ignore the client-supplied name: store under a generated name (uuid) and keep the title separately, or at least <code>os.path.basename</code> + <code>get_valid_filename</code> and verify <code>Path(target).resolve()</code> is inside <code>RECORDS_ROOT/&lt;user id&gt;</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>records/views.py:24-32</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>def upload(request):
+    upload = request.FILES[&quot;file&quot;]
+    name = request.POST.get(&quot;filename&quot;) or upload.name
+    target = os.path.join(settings.RECORDS_ROOT, str(request.user.id), name)
+    os.makedirs(os.path.dirname(target), exist_ok=True)
+    with open(target, &quot;wb&quot;) as out:</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: form field <code>filename</code> (or the client file name) in POST /records/upload/ (<code>records/views.py:26</code>)</li>
+<li><strong>Transformations</strong>: <code>os.path.join</code> (<code>views.py:27</code>): <code>../</code> segments climb out, and an absolute name replaces the base entirely</li>
+<li><strong>Sink</strong>: <code>open(target, &quot;wb&quot;)</code> (<code>views.py:29</code>)</li>
+<li><strong>Sanitization</strong>: none (no <code>get_valid_filename</code>, no check that the resolved path stays under <code>RECORDS_ROOT</code>)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in patient can overwrite other patients&#39; record files (<code>media/records/&lt;other id&gt;/…</code>) and any file the web process can write; where the code or config directory is writable (as with the README&#39;s <code>runserver</code> setup) this becomes code execution on the portal.</p></section>
+<section><h4>Regression test</h4><p>proof: static — the repo has no test suite or runner, and Django, Flask and FastAPI are not installed in this environment (installing them needs network, which the audit does not use).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">upload-106 · File upload &amp; storage</p>
+</div></details>
+<h3>medium · 5</h3><details class="row sev-medium" id="auth-115">
+<summary><span class="sev">medium</span><span class="title">Contact e-mail change is CSRF-exempt and needs no re-authentication</span><span class="loc">appointments/views.py:49-59</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Remove <code>@csrf_exempt</code>; require the current password (or confirm the new address by a link sent to the old one) before changing the account e-mail.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>appointments/views.py:49-59</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>@csrf_exempt
+@login_required
+@require_POST
+def update_contact(request):
+    contact, _ = ContactDetails.objects.get_or_create(user=request.user)
+    contact.email = request.POST.get(&quot;email&quot;, contact.email)
+    ...
+    request.user.email = contact.email
+    request.user.save(update_fields=[&quot;email&quot;])</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: form fields <code>email</code>/<code>phone</code> in POST /appointments/contact/ (<code>views.py:54-55</code>)</li>
+<li><strong>Transformations</strong>: none (no form validation)</li>
+<li><strong>Sink</strong>: <code>request.user.save(update_fields=[&quot;email&quot;])</code> (<code>views.py:57-58</code>); this is the address password reset links go to (<code>clinic/urls.py:8</code>, README)</li>
+<li><strong>Sanitization</strong>: <code>@csrf_exempt</code> removes the CSRF check; Django&#39;s default <code>SESSION_COOKIE_SAMESITE=&#39;Lax&#39;</code> (not overridden in <code>clinic/settings.py</code>) still keeps the session cookie off cross-site POSTs</li>
+<li><strong>Verdict</strong>: PARTIAL</li>
+</ul></section>
+<section><h4>Impact</h4><p>A page on any same-site origin (another subdomain of the clinic domain), or any site for users of browsers without SameSite enforcement, can change a signed-in patient&#39;s e-mail to the attacker&#39;s and then request a password reset: account takeover. Any script running in the portal (injection-114) can do the same.</p></section>
+
+<section><h4>Chained with</h4><ul>
+<li>chain-902</li>
+</ul></section>
+<p class="meta">auth-115 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-medium" id="config-116">
+<summary><span class="sev">medium</span><span class="title">Lab API CORS allows any origin with credentials</span><span class="loc">labs/main.py:8-14</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>List the real front-end origins in <code>allow_origins</code>; keep <code>allow_credentials=True</code> only with an explicit list.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>labs/main.py:8-14</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[&quot;*&quot;],
+    allow_credentials=True,
+    allow_methods=[&quot;*&quot;],
+    allow_headers=[&quot;*&quot;],
+)</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: the <code>Origin</code> header of any web page</li>
+<li><strong>Transformations</strong>: Starlette&#39;s CORSMiddleware echoes the caller&#39;s origin when <code>allow_origins=[&#39;*&#39;]</code> is combined with credentials and a cookie is present</li>
+<li><strong>Sink</strong>: every lab route authenticated by the <code>lab_session</code> cookie (<code>labs/auth.py:12</code>)</li>
+<li><strong>Sanitization</strong>: depends on the cookie&#39;s SameSite attribute, which is set outside this repo (no login route in <code>labs/</code>)</li>
+<li><strong>Verdict</strong>: PARTIAL</li>
+</ul></section>
+<section><h4>Impact</h4><p>A web page on another origin that the browser sends <code>lab_session</code> to (any same-site subdomain; any site if the cookie is <code>SameSite=None</code>) can read a signed-in patient&#39;s lab results and orders and create orders (which drives injection-113).</p></section>
+
+<section><h4>Chained with</h4><ul>
+<li>injection-113</li>
+</ul></section>
+<p class="meta">config-116 · Headers, CORS, build &amp; deploy configuration</p>
+</div></details>
+<details class="row sev-medium" id="exposure-117">
+<summary><span class="sev">medium</span><span class="title">Technician list returns password hashes and TOTP secrets</span><span class="loc">labs/routers/staff.py:18-20</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Use <code>response_model=list[AccountPublic]</code> and never put secret columns in a response schema.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>labs/routers/staff.py:18-20</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>@router.get(&quot;/technicians&quot;, response_model=list[AccountRecord])
+def technicians(db: Session = Depends(get_db)):
+    return db.scalars(select(Account).where(Account.role == &quot;technician&quot;).order_by(Account.full_name)).all()</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: GET /staff/technicians (<code>staff.py:18</code>)</li>
+<li><strong>Transformations</strong>: serialized with <code>AccountRecord</code> (<code>labs/schemas.py:40-43</code>), which includes <code>password_hash</code> and <code>totp_secret</code></li>
+<li><strong>Sink</strong>: JSON response</li>
+<li><strong>Sanitization</strong>: router-level <code>require_staff</code> (<code>staff.py:10</code>) limits callers to technicians</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any technician can read every other technician&#39;s password hash and TOTP seed, which lets them crack passwords offline and generate the second factor, i.e. sign in as a colleague.</p></section>
+
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">exposure-117 · Data exposure &amp; secrets</p>
+</div></details>
+<details class="row sev-medium" id="injection-114">
+<summary><span class="sev">medium</span><span class="title">Stored XSS in appointment message thread (<code>|safe</code>)</span><span class="loc">appointments/templates/appointments/detail.html:13</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Remove <code>|safe</code> (use <code>|linebreaksbr</code> like the notes), or sanitize with an allow-list HTML sanitizer (nh3/bleach) if rich text is needed; add a CSP.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>appointments/templates/appointments/detail.html:13</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>{% for message in thread %}
+    &lt;article&gt;
+      &lt;header&gt;{{ message.author.get_full_name }} &amp;middot; {{ message.created_at|date:&quot;j M H:i&quot; }}&lt;/header&gt;
+      &lt;div class=&quot;body&quot;&gt;{{ message.body|safe }}&lt;/div&gt;
+    &lt;/article&gt;
+  {% endfor %}</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: form field <code>body</code> in POST /appointments/&lt;pk&gt;/messages/ (<code>appointments/views.py:45</code>)</li>
+<li><strong>Transformations</strong>: stored as is in <code>Message.body</code></li>
+<li><strong>Sink</strong>: <code>{{ message.body|safe }}</code> (<code>detail.html:13</code>) disables autoescaping</li>
+<li><strong>Sanitization</strong>: none</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>A signed-in patient can store a script in a message on their own appointment; it runs in the session of anyone who opens that page. Through auth-110 that includes any other signed-in patient the attacker sends the link to (see chain-902).</p></section>
+
+<section><h4>Chained with</h4><ul>
+<li>chain-902, auth-110</li>
+</ul></section>
+<p class="meta">injection-114 · Injection &amp; SSRF</p>
+</div></details>
+<details class="row sev-medium" id="rate-limit-118">
+<summary><span class="sev">medium</span><span class="title">No brute-force throttling on portal and back-office sign-in</span><span class="loc">backoffice/views.py:36-43</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Add per-account and per-IP throttling (django-axes for the portal, Flask-Limiter for the back office) and 2FA for staff.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>backoffice/views.py:36-43</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>@bp.route(&quot;/login&quot;, methods=[&quot;GET&quot;, &quot;POST&quot;])
+def login():
+    if request.method == &quot;POST&quot;:
+        user = StaffUser.query.filter_by(email=request.form[&quot;email&quot;]).first()
+        if user and check_password_hash(user.password_hash, request.form[&quot;password&quot;]):</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: POST /backoffice/login (<code>backoffice/views.py:36</code>) and POST /accounts/login/ (<code>clinic/urls.py:7</code>, stock <code>LoginView</code>)</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: password check</li>
+<li><strong>Sanitization</strong>: none in code: no attempt counter, lockout, delay or rate limit on either route, no second factor (a proxy-level limit is not visible in the repo)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone can try unlimited passwords against staff and patient accounts; the back office has a single factor and admin rights behind it.</p></section>
+
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">rate-limit-118 · Rate limiting &amp; abuse</p>
+</div></details>
+<h3>low · 2</h3><details class="row sev-low" id="config-119">
+<summary><span class="sev">low</span><span class="title">Django SECRET_KEY falls back to a public literal</span><span class="loc">clinic/settings.py:6</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Fail at start-up when <code>DJANGO_SECRET_KEY</code> is missing (<code>os.environ[&quot;DJANGO_SECRET_KEY&quot;]</code>).</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>clinic/settings.py:6</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>SECRET_KEY = os.environ.get(&quot;DJANGO_SECRET_KEY&quot;, &quot;clinic-local-signing-key-change-me&quot;)</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: the default value in source</li>
+<li><strong>Transformations</strong>: used when <code>DJANGO_SECRET_KEY</code> is unset</li>
+<li><strong>Sink</strong>: Django signing (password reset tokens, signed cookies, messages)</li>
+<li><strong>Sanitization</strong>: sessions are database-backed (default engine), and reset tokens also hash the password and last login, which limits what a known key gives</li>
+<li><strong>Verdict</strong>: PARTIAL</li>
+</ul></section>
+<section><h4>Impact</h4><p>If a deployment forgets <code>DJANGO_SECRET_KEY</code>, anyone who knows the source can forge Django-signed values; no direct account takeover was found with the current settings.</p></section>
+
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">config-119 · Headers, CORS, build &amp; deploy configuration</p>
+</div></details>
+<details class="row sev-low" id="rate-limit-120">
+<summary><span class="sev">low</span><span class="title">Record upload has no size or count limit</span><span class="loc">records/views.py:25-31</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Check <code>upload.size</code> against a limit, cap the request body at the proxy (<code>client_max_body_size</code>) and add a per-user quota.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>records/views.py:25-31</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>upload = request.FILES[&quot;file&quot;]
+    ...
+    with open(target, &quot;wb&quot;) as out:
+        for chunk in upload.chunks():
+            out.write(chunk)</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: POST /records/upload/ (<code>records/urls.py:9</code>)</li>
+<li><strong>Transformations</strong>: Django streams large files to a temp file; <code>DATA_UPLOAD_MAX_MEMORY_SIZE</code> does not apply to file content</li>
+<li><strong>Sink</strong>: disk write (<code>views.py:29-31</code>)</li>
+<li><strong>Sanitization</strong>: none in code (no <code>FILE_UPLOAD</code> size check in <code>clinic/settings.py</code>, no quota)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>A signed-in patient can fill the server disk with large or repeated uploads, taking the portal down for everyone.</p></section>
+
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">rate-limit-120 · Rate limiting &amp; abuse</p>
+</div></details>
+
+
+
+
+<h2 id="safe">Verified safe</h2>
+<p class="lede">Areas the audit examined and found protected, each with the control that protects it.</p>
+<div class="band-safe"><details class="cat" open><summary>Authentication &amp; authorization <span>7</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Appointment API (list, create, update, delete)<span class="why"><code>get_queryset</code> filters by the signed-in patient and <code>perform_create</code> forces the owner, so no other patient&#39;s appointment is reachable or creatable. · <code>appointments/api.py:10-14</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Lab results list, single result, by-code, and orders list<span class="why">Each query filters on <code>patient_id == user.patient_id</code> taken from the session, never from the request. · <code>labs/routers/results.py:19</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Payment webhook authenticity<span class="why">HMAC-SHA256 over the raw body, constant-time compare, and it refuses (503) when the secret is not configured. · <code>payments/views.py:16-21</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Record download and posting a message<span class="why">Both load the object with an owner filter from the session. · <code>records/views.py:38</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Lab <code>/staff</code> routes<span class="why">The router-level dependency <code>require_staff</code> checks <code>role == &#39;technician&#39;</code> on every route of the router. · <code>labs/routers/staff.py:10</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Back-office CSRF (no CSRF tokens)<span class="why">The session cookie is <code>SameSite=Lax</code>, so browsers do not send it on cross-site POSTs; residual risk is same-site origins only. Adding CSRFProtect is still recommended. · <code>backoffice/app.py:13</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Public doctor directory<span class="why">Read-only viewset and the serializer exposes only name, specialty and bio: public by design. · <code>appointments/api.py:17-20</code></span></div></li></ul></details><details class="cat" open><summary>Injection &amp; SSRF <span>5</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Parameterized SQL in <code>upcoming</code> and lab <code>by-code</code><span class="why">Both pass values as bound parameters (<code>%s</code> list / <code>:pid</code>, <code>:code</code> dict), not string-built SQL. · <code>appointments/views.py:18-21</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Back-office report download path<span class="why"><code>secure_filename</code> strips path separators and <code>send_from_directory</code> refuses paths outside REPORT_DIR. · <code>backoffice/views.py:84</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Back-office letter send (XSS)<span class="why">The body is rendered as a variable in an <code>.html</code> template, which Flask autoescapes. · <code>backoffice/templates/letter.html:6</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Price list import (deserialization, authz)<span class="why">Uses <code>yaml.safe_load</code> and is guarded by <code>login_required</code> + <code>admin_required</code>. · <code>backoffice/views.py:87-91</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Status badge and search box output (XSS)<span class="why"><code>format_html</code> escapes its arguments; the search term is rendered with autoescape. · <code>appointments/templatetags/clinic_tags.py:12</code></span></div></li></ul></details><details class="cat"><summary>Business logic <span>1</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Mass assignment of appointment status / paid flag<span class="why"><code>status</code> is read-only and <code>paid</code> is not in the serializer fields, so patients cannot mark appointments paid or done. · <code>appointments/serializers.py:15-16</code></span></div></li></ul></details><details class="cat"><summary>Headers, CORS, build &amp; deploy configuration <span>1</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Django transport and framing settings<span class="why">DEBUG is off unless explicitly enabled, cookies are Secure, HSTS is set and the clickjacking middleware is installed. · <code>clinic/settings.py:8</code></span></div></li></ul></details></div>
+
+<h2 id="gaps">Not assessed</h2>
+<p class="lede">Nobody checked these. They are unknown, not safe.</p>
+<div class="band-gap"><ul class="gap"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>known-vulnerable versions</strong><span class="why">osv-scanner, pip-audit and docker unavailable; not filled from memory · dependency</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>security event logging and log redaction</strong><span class="why">no LOGGING config or logger calls in the repo; the production log pipeline is not in the repo · logging</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>proxy-level rate limits and body size limits</strong><span class="why">no reverse proxy or deployment config in the repo · rate-limit</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>Dependencies scan</strong><span class="why">NOT RUN: install osv-scanner or docker · dependency</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>semgrep rule scan (p/django, p/fastapi, p/flask, p/python)</strong><span class="why">NOT RUN: semgrep not installed and docker unavailable; to enable: `pipx install semgrep` or `brew install semgrep`, or a running docker (pulls semgrep/semgrep:1.179.0, pinned by digest) (prepass) · code</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>Python static analysis (bandit)</strong><span class="why">NOT RUN: bandit not installed (no docker fallback); to enable: `pipx install bandit` (it only parses the code, it never imports or runs it) (prepass) · code</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>CVE scan of requirements.txt, labs/requirements.txt, backoffice/requirements.txt</strong><span class="why">osv-scanner, pip-audit and docker unavailable (prepass: NOT RUN); versions not checked from memory · dependency</span></div></li></ul></div>
+
+<h2 id="prod">Production checklist</h2>
+<p class="lede">Deployment and runtime checks the code audit cannot settle. Items marked &quot;from this audit&quot; come from rows under Not Assessed; the baseline items apply to any production deploy. Each says how to verify it on your own host; none of them changes anything.</p>
+
+<ul class="gap prod"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Request size, upload and rate limits</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: rate-limit · proxy-level rate limits and body size limits (no reverse proxy or deployment config in the repo)</span><span class="how">How to check: Write down the limits the deployment actually applies: reverse-proxy body size (e.g. <code>client_max_body_size</code>), the framework&#39;s body parser limit, the upload maximum, the login throttle. On staging, with your own test account, confirm an oversized upload is refused (413) and repeated failed logins get throttled.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Logging, monitoring and alerts</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: logging · security event logging and log redaction (no LOGGING config or logger calls in the repo; the production log pipeline is not in the repo)</span><span class="how">How to check: On staging, cause a harmless error (a 404, a failed login with your own test account) and confirm it reaches the log store with a timestamp and request id, and without passwords, tokens or session ids. Confirm someone is alerted on a burst of 5xx responses or failed logins.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Dependency and runtime updates</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: dependency · known-vulnerable versions (osv-scanner, pip-audit and docker unavailable; not filled from memory)</span><span class="why">Not assessed: dependency · Dependencies scan (NOT RUN: install osv-scanner or docker)</span><span class="why">Not assessed: dependency · CVE scan of requirements.txt, labs/requirements.txt, backoffice/requirements.txt (osv-scanner, pip-audit and docker unavailable (prepass: NOT RUN); versions not checked from memory)</span><span class="how">How to check: Run the ecosystem&#39;s audit on the lockfile that is deployed (<code>npm audit --omit=dev</code>, <code>composer audit</code>, <code>pip-audit</code>). Check that the runtime and base image versions in production are still supported, and that update pull requests (Dependabot, Renovate) have an owner.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Security headers</strong> <span class="chip chip-muted">Baseline</span><span class="how">How to check: <code>curl -sI https://&lt;your-host&gt;/</code> and look for <code>Content-Security-Policy</code>, <code>Strict-Transport-Security</code>, <code>X-Content-Type-Options: nosniff</code>, <code>frame-ancestors</code> (or <code>X-Frame-Options</code>) and <code>Referrer-Policy</code>. Repeat on an API route and on an error page; a CDN or proxy can add or strip them.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>TLS and HTTPS redirect</strong> <span class="chip chip-muted">Baseline</span><span class="how">How to check: <code>curl -sI http://&lt;your-host&gt;/</code> should answer with a redirect to <code>https://</code>. <code>openssl s_client -connect &lt;your-host&gt;:443 -servername &lt;your-host&gt; &lt;/dev/null | openssl x509 -noout -dates</code> shows the certificate expiry; confirm renewal is automated.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Environment variables and debug flags</strong> <span class="chip chip-muted">Baseline</span><span class="how">How to check: List the variables the code reads (search for <code>process.env</code>, <code>getenv</code>, <code>os.environ</code>) and confirm each one is set in production with a non-default value. Debug is off (<code>NODE_ENV=production</code>, <code>APP_DEBUG=false</code>, <code>DEBUG=False</code>), and an error page on https://&lt;your-host&gt;/ shows no stack trace.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Secrets storage and rotation</strong> <span class="chip chip-muted">Baseline</span><span class="how">How to check: Production secrets live in the platform&#39;s secret store, not in the repository or the image: run <code>gitleaks detect</code> over the full git history and check <code>docker history &lt;image&gt;</code> for baked-in values. Rotate any value that was ever committed, and check who can read the secret store.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Backups and a tested restore</strong> <span class="chip chip-muted">Baseline</span><span class="how">How to check: Check the time of the last backup and that it is stored off the production host. Restore it into a scratch database, compare row counts of the main tables with production, and note how long the restore took.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Exposed services and ports</strong> <span class="chip chip-muted">Baseline</span><span class="how">How to check: In the hosting provider&#39;s firewall or security-group view, only 80 and 443 are public for &lt;your-host&gt;; the database, cache, queue and admin ports are bound to a private network. Repeat after every infrastructure change.</span></div></li></ul>
+<p class="empty">2 other not-assessed row(s) are code checks rather than deployment checks; they stay under Not assessed.</p>
+
+<h2 id="hotspots">Hotspots</h2>
+<p class="lede">Where the audit started: entry points and configuration ranked by risk signals. A ranking, not a verdict.</p>
+<div class="tablewrap"><table><thead><tr><th>#</th><th>Score</th><th>Where</th><th>Why</th></tr></thead><tbody><tr><td>1</td><td><span class="score" style="width:40px"></span>10</td><td class="mono where">backoffice/views.py:53<br>flask-route POST</td><td>admin area; no login_required (or similar) decorator and no before_request check; record loaded by id without an ownership check</td></tr><tr><td>2</td><td><span class="score" style="width:32px"></span>8</td><td class="mono where">backoffice/views.py:74<br>flask-route GET</td><td>files area; send_file with a path from the request; file path built from the request or the client&#39;s file name</td></tr><tr><td>3</td><td><span class="score" style="width:28px"></span>7</td><td class="mono where">labs/routers/results.py:49<br>fastapi-route GET</td><td>no auth dependency on the route, its router or its include_router; record loaded by id without an ownership check</td></tr><tr><td>4</td><td><span class="score" style="width:28px"></span>7</td><td class="mono where">labs/routers/staff.py:18<br>fastapi-route GET</td><td>admin area; response_model AccountRecord returns password_hash, totp_secret</td></tr><tr><td>5</td><td><span class="score" style="width:24px"></span>6</td><td class="mono where">labs/main.py:10<br>config main.py</td><td>CORS allows any origin with credentials (Starlette then echoes the caller&#39;s origin)</td></tr><tr><td>6</td><td><span class="score" style="width:24px"></span>6</td><td class="mono where">payments/urls.py:8<br>django-route POST</td><td>payments area, webhooks area; no auth check on the route; signature check seen in the handler; handler: payments/views.py:15</td></tr><tr><td>7</td><td><span class="score" style="width:24px"></span>6</td><td class="mono where">records/urls.py:11<br>django-route POST</td><td>files area; unsafe deserialization (pickle, yaml.load without SafeLoader); handler: records/views.py:44</td></tr><tr><td>8</td><td><span class="score" style="width:24px"></span>6</td><td class="mono where">records/urls.py:12<br>django-route ANY</td><td>files area; no login_required, auth mixin or permission class on the view; handler: records/views.py:51</td></tr><tr><td>9</td><td><span class="score" style="width:20px"></span>5</td><td class="mono where">backoffice/views.py:87<br>flask-route POST</td><td>payments area, files area</td></tr><tr><td>10</td><td><span class="score" style="width:20px"></span>5</td><td class="mono where">records/urls.py:9<br>django-route POST</td><td>files area; file path built from the request or the client&#39;s file name; handler: records/views.py:24</td></tr><tr><td>11</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">appointments/api_urls.py:8<br>django-route VIEWSET</td><td>query on Prescription (owned by a user) without a filter on the current user; handler: appointments/api.py:23</td></tr><tr><td>12</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">appointments/urls.py:10<br>django-route ANY</td><td>raw SQL built with an f-string, % or format (Django raw/extra, cursor.execute, SQLAlchemy text); handler: appointments/views.py:26</td></tr><tr><td>13</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">appointments/urls.py:11<br>django-route ANY</td><td>record loaded by id without an ownership check; handler: appointments/views.py:35</td></tr><tr><td>14</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">backoffice/views.py:36<br>flask-route GET,POST</td><td>auth area; sign-in page: public by design</td></tr><tr><td>15</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">backoffice/views.py:46<br>flask-route GET</td><td>admin area</td></tr><tr><td>16</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">backoffice/views.py:61<br>flask-route POST</td><td>render_template_string on a built string (server-side template injection)</td></tr><tr><td>17</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">clinic/urls.py:7<br>django-route ANY</td><td>auth area; sign-in page: public by design</td></tr><tr><td>18</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">clinic/urls.py:8<br>django-route ANY</td><td>auth area; sign-in page: public by design</td></tr><tr><td>19</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">labs/routers/orders.py:28<br>fastapi-route POST</td><td>background task gets a URL from the request (SSRF)</td></tr><tr><td>20</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">labs/routers/results.py:23<br>fastapi-route GET</td><td>raw SQL built with an f-string, % or format (Django raw/extra, cursor.execute, SQLAlchemy text)</td></tr></tbody></table></div>
+
+<h2 id="deps">Dependencies</h2>
+<p class="lede">NOT RUN: install osv-scanner or docker</p>
+<p class="empty">No vulnerable packages reported.</p>
+
+<h2 id="secrets">Secrets</h2>
+<p class="lede">gitleaks: 0 hits, 1 commits of this repo. Values are redacted; anything real that was ever committed must be rotated.</p>
+<p class="empty">No secrets found.</p>
+
+<h2 id="filtered">Filtered out</h2>
+<p class="lede">Candidates the verifier rejected after reading the code. Kept for the record; none of them needs action.</p>
+<div class="tablewrap"><table><thead><tr><th>Finding</th><th>Reason</th></tr></thead><tbody><tr><td>Lab session expiry compares naive and aware datetimes<br><span class="mono">auth-121</span></td><td>defensive_failure</td></tr><tr><td>Payment webhook has no replay protection<br><span class="mono">business-logic-122</span></td><td>best_practice</td></tr></tbody></table></div>
+</main>
+<footer>Generated from <code>.security-audit/</code> by report-html.mjs. Names unfixed weaknesses with file and line: keep it private, never publish or commit it. A public page must redact unfixed findings (see public_safe in remediation.json).</footer>
+</div>
+<script>addEventListener("beforeprint",()=>document.querySelectorAll("details").forEach((d)=>d.open=true));</script>
+</body>
+</html>

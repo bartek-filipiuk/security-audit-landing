@@ -87,7 +87,7 @@ export const TARGETS: Target[] = [
     what: "Ledgerly, nasza aplikacja testowa (Next.js, TypeScript) z 26 zasianymi podatnościami i 16 pułapkami: miejscami, które wyglądają groźnie, a są poprawne.",
     key: "26 podatności i 16 pułapek. Trafienie w pułapkę to fałszywy alarm.",
     total: 26,
-    links: [{ label: "benchmark/app", url: "https://github.com/bartek-filipiuk/security-audit-skill/tree/main/benchmark/app" }],
+    links: [{ label: "benchmark/app", url: "https://github.com/bartek-filipiuk/security-audit-skill/tree/main/benchmark/app" }, { label: "raport HTML z 2 lis (Claude Code)", url: "/raporty/ledgerly.html" }],
     glance: "26/26: Claude Code i Hinoki w OpenCode",
     takeaway: "Wszystkie 26 podatności znalazły Claude Code i Hinoki w OpenCode. Claude Code miał mniej fałszywych alarmów (2 wobec 5), potwierdził testem 21 z 40 znalezisk i skończył ponad dwa razy szybciej. Hinoki zweryfikował wszystkie 59 znalezisk tylko analizą kodu, za mniej niż połowę kosztu. Powtórka w Claude Code z 2 listopada, po zmianach w skillu, dała 25/26.",
     rows: [
@@ -111,7 +111,7 @@ export const TARGETS: Target[] = [
     what: "py-clinic, nasza aplikacja testowa w Pythonie (Django, FastAPI i Flask, 48 plików) z 18 zasianymi podatnościami i 18 pułapkami.",
     key: "18 podatności i 18 pułapek. Trafienie w pułapkę to fałszywy alarm.",
     total: 18,
-    links: [{ label: "benchmark/py-clinic", url: "https://github.com/bartek-filipiuk/security-audit-skill/tree/main/benchmark/py-clinic" }],
+    links: [{ label: "benchmark/py-clinic", url: "https://github.com/bartek-filipiuk/security-audit-skill/tree/main/benchmark/py-clinic" }, { label: "raport HTML z 2 lis (Claude Code)", url: "/raporty/py-clinic.html" }],
     glance: "18/18 w Claude Code, 17/18 w Codex CLI bez strażnika",
     takeaway: "Claude Code znalazł wszystkie 18 podatności z jednym trafieniem w pułapkę, w 6 minut. Bez hooka strażnika Codex znalazł 17 z 18 podatności bez fałszywych alarmów. W obu przebiegach ze strażnikiem znalazł 12. Większość brakujących to znaleziska, które są w raporcie, ale wskazują początek funkcji zamiast linii z błędem (3-4 linie wcześniej), więc ścisły scorer ich nie liczy.",
     rows: [
@@ -134,7 +134,7 @@ export const TARGETS: Target[] = [
     what: "php-tickets, nasza aplikacja testowa w PHP: helpdesk w Laravelu, serwis rozliczeń w Symfony i własny moduł Drupala. 13 zasianych podatności i 14 pułapek.",
     key: "13 podatności i 14 pułapek. Trafienie w pułapkę to fałszywy alarm.",
     total: 13,
-    links: [{ label: "benchmark/php-tickets", url: "https://github.com/bartek-filipiuk/security-audit-skill/tree/main/benchmark/php-tickets" }],
+    links: [{ label: "benchmark/php-tickets", url: "https://github.com/bartek-filipiuk/security-audit-skill/tree/main/benchmark/php-tickets" }, { label: "raport HTML z 2 lis (Claude Code)", url: "/raporty/php-tickets.html" }],
     glance: "13/13 w Claude Code, 1 trafienie w pułapkę",
     takeaway: "Claude Code znalazł wszystkie 13 podatności w 12 minut. Jedno znalezisko trafiło w pułapkę, ale opisuje inny problem niż ten, który pułapka sprawdza.",
     rows: [
@@ -152,7 +152,7 @@ export const TARGETS: Target[] = [
     what: "supabase-notes, nasza aplikacja testowa: Next.js na Supabase, tablice w Firestore. 10 zasianych podatności i 12 pułapek.",
     key: "10 podatności i 12 pułapek. Trafienie w pułapkę to fałszywy alarm.",
     total: 10,
-    links: [{ label: "benchmark/supabase-notes", url: "https://github.com/bartek-filipiuk/security-audit-skill/tree/main/benchmark/supabase-notes" }],
+    links: [{ label: "benchmark/supabase-notes", url: "https://github.com/bartek-filipiuk/security-audit-skill/tree/main/benchmark/supabase-notes" }, { label: "raport HTML z 2 lis (Claude Code)", url: "/raporty/supabase-notes.html" }],
     glance: "10/10 w Claude Code, 9/10 w Codex CLI",
     takeaway: "Claude Code znalazł wszystkie 10 podatności z jednym trafieniem w pułapkę. Codex znalazł 9 bez fałszywych alarmów. Pominął politykę RLS, która pozwala zmienić notatnik każdemu zalogowanemu, bez sprawdzenia właściciela.",
     rows: [
