@@ -1,0 +1,1339 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-MvG1Y1OXXFh4tBOYtX9sG5URhwYMP8MBEzSXtqOVaCk='; img-src data:">
+<meta name="robots" content="noindex">
+<title>Security audit · ledgerly</title>
+<style>
+:root {
+  --paper: #f6f2ea; --paper-2: #efe9dd; --ink: #1d1b18; --ink-2: #5b554b; --rule: #d9d1c1;
+  --crit: #a3171d; --high: #cf3a1c; --med: #b7791f; --low: #4f6489; --safe: #1f7a4d; --fixed: #2f6f7e; --gap: #9a9184;
+  --tint-crit: #f3dcd8; --tint-safe: #dcebe1; --tint-gap: #e8e3da; --code: #ebe4d6;
+  /* Darker steps for severity badges that carry text (>= 4.5:1 with --paper); bars and dots keep the brighter ones. */
+  --high-ink: #b8330f; --med-ink: #94590a;
+  --display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Charter, "Bitstream Charter", Georgia, serif;
+  --text: "Avenir Next", "Segoe UI Variable Text", "Segoe UI", "Helvetica Neue", Ubuntu, Cantarell, sans-serif;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #16140f; --paper-2: #1e1b15; --ink: #ece6d8; --ink-2: #a89f8e;
+    --rule: #353025; --crit: #f0695e; --high: #f28c5b; --med: #e0b45a; --low: #8ea5cf; --safe: #5cc28c; --fixed: #6fb6c6; --gap: #8b8377;
+    --tint-crit: #3a1d19; --tint-safe: #17301f; --tint-gap: #29251e; --code: #24201a;
+    --high-ink: #f28c5b; --med-ink: #e0b45a;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { background: var(--paper); }
+body { margin: 0; color: var(--ink); font: 16px/1.55 var(--text); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+::selection { background: var(--crit); color: var(--paper); }
+:focus-visible { outline: 2px solid var(--crit); outline-offset: 3px; border-radius: 4px; }
+a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+code, pre { font-family: var(--mono); font-size: 0.86em; }
+code { background: var(--code); padding: 0.08em 0.35em; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: 0.9rem 1rem; border-radius: 10px; overflow-x: auto; line-height: 1.45; }
+pre code { background: none; padding: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 48px); display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 56px; }
+header { grid-column: 1 / -1; padding: 56px 0 28px; border-bottom: 1px solid var(--rule); }
+header .meta { color: var(--ink-2); font-size: 0.92rem; margin: 0 0 18px; }
+h1 { font: 600 clamp(2.4rem, 5vw, 3.6rem)/1.05 var(--display); letter-spacing: -0.02em; margin: 0 0 22px; }
+.verdict { font: 500 clamp(1.4rem, 2.6vw, 1.9rem)/1.25 var(--display); margin: 0 0 6px; max-width: 34ch; }
+.secondary { color: var(--ink-2); margin: 0 0 26px; }
+.ledger { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: var(--paper-2); gap: 2px; animation: reveal 900ms cubic-bezier(.2,.7,.1,1) 120ms both; }
+.ledger span { flex-grow: var(--n); min-width: 6px; }
+@keyframes reveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@media (prefers-reduced-motion: reduce) { .ledger { animation: none; } }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 12px 0 0; padding: 0; list-style: none; font-size: 0.86rem; color: var(--ink-2); }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; vertical-align: 0; }
+.c-critical { background: var(--crit); } .c-high { background: var(--high); } .c-medium { background: var(--med); } .c-low { background: var(--low); }
+.c-fixed { background: var(--fixed); } .c-safe { background: var(--safe); } .c-gap { background: var(--gap); }
+.scope { margin: 18px 0 0; padding: 10px 14px; background: var(--tint-gap); border-radius: 10px; font-size: 0.92rem; }
+.profile p { margin: 0.25em 0; max-width: 90ch; }
+nav { position: sticky; top: 0; align-self: start; padding-top: 28px; }
+nav ol { list-style: none; margin: 0; padding: 0; }
+nav a { display: flex; justify-content: space-between; padding: 6px 0; text-decoration: none; color: var(--ink-2); border-bottom: 1px solid transparent; }
+nav a:hover { color: var(--ink); border-bottom-color: var(--rule); }
+nav b { font-weight: 500; color: var(--ink); }
+main { padding: 28px 0 96px; min-width: 0; }
+h2 { font: 600 1.75rem/1.2 var(--display); letter-spacing: -0.015em; margin: 72px 0 6px; scroll-margin-top: 24px; }
+main > h2:first-child { margin-top: 0; }
+h2 + .lede { color: var(--ink-2); margin: 0 0 22px; max-width: 70ch; }
+h3 { font: 600 0.8rem/1 var(--text); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); margin: 34px 0 10px; }
+.first { counter-reset: n; list-style: none; padding: 0; margin: 0 0 8px; }
+.first li { counter-increment: n; display: grid; grid-template-columns: 2.2rem minmax(0, 1fr); padding: 14px 0; border-top: 1px solid var(--rule); }
+.first li::before { content: counter(n); font: 600 1.5rem/1.1 var(--display); color: var(--crit); }
+.first a { font-weight: 600; text-decoration: none; }
+.first a:hover { text-decoration: underline; }
+.first small { display: block; color: var(--ink-2); margin-top: 2px; }
+.row { border-top: 1px solid var(--rule); }
+.row:last-child { border-bottom: 1px solid var(--rule); }
+.row summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; padding: 14px 4px; cursor: pointer; list-style: none; }
+.row summary::-webkit-details-marker { display: none; }
+.row summary:hover .title { text-decoration: underline; text-decoration-color: var(--rule); }
+.row[open] summary { background: var(--paper-2); }
+.sev { font: 600 0.72rem/1 var(--text); letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 7px; border-radius: 5px; color: var(--paper); }
+.sev-critical .sev { background: var(--crit); } .sev-high .sev { background: var(--high-ink); } .sev-medium .sev { background: var(--med-ink); } .sev-low .sev { background: var(--low); }
+.title { font-weight: 600; flex: 1 1 320px; }
+.loc { font: 0.82rem var(--mono); color: var(--ink-2); flex-basis: 100%; padding-left: 0; overflow-wrap: anywhere; }
+.chip { font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.chip-proof { background: var(--crit); color: var(--paper); }
+.chip-static { box-shadow: inset 0 0 0 1px var(--ink-2); color: var(--ink-2); }
+.chip-warn { background: var(--med-ink); color: var(--paper); }
+.chip-muted { box-shadow: inset 0 0 0 1px var(--gap); color: var(--ink-2); }
+.body { padding: 4px 4px 22px; max-width: 78ch; }
+.body h4 { font: 600 0.78rem/1 var(--text); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); margin: 20px 0 6px; }
+.body p, .body li { margin: 0.3em 0; }
+.body .meta { color: var(--ink-2); font-size: 0.85rem; margin-top: 18px; }
+.diff { list-style: none; padding: 0; margin: 0; }
+.diff li { padding: 10px 0; border-top: 1px solid var(--rule); }
+.diff .why { color: var(--ink-2); font-size: 0.9rem; display: block; }
+.good, .gap { list-style: none; padding: 0; margin: 0; }
+.good li, .gap li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 0 12px; padding: 12px 0; border-top: 1px solid var(--rule); }
+.good svg { color: var(--safe); margin-top: 3px; } .gap svg { color: var(--gap); margin-top: 3px; }
+.good .why, .gap .why { color: var(--ink-2); font-size: 0.94rem; display: block; max-width: 72ch; }
+.good code { font-size: 0.8rem; }
+.prod .how { display: block; margin-top: 4px; font-size: 0.94rem; max-width: 72ch; }
+.prod .chip { vertical-align: 1px; }
+details.cat > summary { cursor: pointer; padding: 10px 0; font-weight: 600; list-style: none; display: flex; justify-content: space-between; border-top: 1px solid var(--rule); }
+details.cat > summary::-webkit-details-marker { display: none; }
+details.cat > summary span { color: var(--safe); font-weight: 500; }
+.band-safe { background: var(--tint-safe); border-radius: 14px; padding: 6px 20px 14px; }
+.band-gap { background: var(--tint-gap); border-radius: 14px; padding: 6px 20px 14px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th { text-align: left; font: 600 0.74rem/1 var(--text); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); padding: 10px 8px; border-bottom: 1px solid var(--rule); }
+td { padding: 9px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+td.mono { font: 0.8rem var(--mono); overflow-wrap: anywhere; }
+td.where { width: 46%; }
+.score { display: inline-block; height: 6px; border-radius: 3px; background: var(--high); vertical-align: middle; margin-right: 8px; }
+.tablewrap { overflow-x: auto; }
+.empty { color: var(--ink-2); padding: 14px 0; border-top: 1px solid var(--rule); }
+footer { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding: 24px 0 48px; color: var(--ink-2); font-size: 0.85rem; }
+@media (max-width: 860px) {
+  .wrap { grid-template-columns: 1fr; gap: 0; }
+  nav { position: static; padding-top: 20px; }
+  nav ol { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  nav a { gap: 6px; min-height: 44px; align-items: center; }
+}
+@media print { nav, .ledger { display: none; } .wrap { display: block; } h2 { break-after: avoid; } .row { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<p class="meta">Security audit · 2026-11-02 · commit a03d8d4 · deps: osv-scanner and docker unavailable; fallback ran: pnpm audit -&gt; tools/pnpm-audit.json (summarize from the raw file) · secrets: gitleaks: 2 hits, 2 commits of this repo</p>
+<h1>ledgerly</h1>
+<p class="verdict">40 issues to fix (2 critical, 19 high, 12 medium, 7 low).</p>
+<p class="secondary">30 areas verified safe · 19 checks not assessed</p>
+<div class="ledger" role="img" aria-label="2 critical, 19 high, 12 medium, 7 low, 30 verified safe, 19 not assessed"><span class="c-critical" style="--n:2"></span><span class="c-high" style="--n:19"></span><span class="c-medium" style="--n:12"></span><span class="c-low" style="--n:7"></span><span class="c-safe" style="--n:30"></span><span class="c-gap" style="--n:19"></span></div>
+<ul class="legend"><li><i class="c-critical"></i>2 critical</li><li><i class="c-high"></i>19 high</li><li><i class="c-medium"></i>12 medium</li><li><i class="c-low"></i>7 low</li><li><i class="c-safe"></i>30 verified safe</li><li><i class="c-gap"></i>19 not assessed</li></ul>
+
+<div class="scope profile"><p><strong>Profile: JavaScript/TypeScript (Node) (Next.js, Hono, tRPC, Drizzle, Better-Auth, AI SDK, pg-boss): dedicated profile.</strong></p><p>Covers: entry points by convention: Next.js route handlers, pages, server actions, proxy/middleware matcher, tRPC procedures, Hono/Express routes, hand-rolled node:http/Bun/Deno routers, pg-boss/BullMQ/cron jobs, AI SDK and MCP tools; Drizzle tenant-scope scan (query sites that never reference the owner column); hotspot ranking with Better-Auth, CORS and browser-exposed env configuration checks; JS/TS stack patterns for the auditors; dependency advisories (osv-scanner) and secrets in git history (gitleaks).</p><p>Does not cover: tenant-scope scan for ORMs other than Drizzle (Prisma, TypeORM, Sequelize, Mongoose); entry-point conventions of NestJS, Fastify plugins, Remix/React Router, SvelteKit, Nuxt, Astro and GraphQL resolvers; rule scanners (semgrep, zizmor, hadolint, trivy, bandit, gosec, govulncheck) run only when installed or docker is available; one that did not run is listed in not-assessed.md.</p></div>
+
+</header>
+<nav aria-label="Sections"><ol><li><a href="#fix">To fix <b>40</b></a></li><li><a href="#safe">Verified safe <b>30</b></a></li><li><a href="#gaps">Not assessed <b>19</b></a></li><li><a href="#prod">Production checklist <b>8</b></a></li><li><a href="#hotspots">Hotspots <b>20</b></a></li><li><a href="#deps">Dependencies <b>0</b></a></li><li><a href="#secrets">Secrets <b>2</b></a></li><li><a href="#filtered">Filtered out <b>13</b></a></li></ol></nav>
+<main>
+<h2 id="fix">To fix</h2>
+<p class="lede">Verified findings, most severe first. “Failing test” means a regression test in the project’s own runner fails today; “code reading only” means it was confirmed by tracing the code.</p>
+<h3>Fix first</h3>
+<ol class="first"><li><div><a href="#auth-101">Stripe webhook accepts unsigned events: anyone can activate, overwrite or cancel any organization&#39;s subscription</a><small>critical · code reading only · src/app/api/webhooks/stripe/route.ts:6-41</small></div></li><li><div><a href="#config-301">pull_request_target workflow checks out, installs and builds the PR head with deploy secrets</a><small>critical · code reading only · .github/workflows/preview.yml:3-5,7-9,15-32</small></div></li><li><div><a href="#auth-102">getInvoice server action has no authentication or tenant scope (BOLA on invoices and lines, callable from the client bundle)</a><small>high · code reading only · src/app/(app)/invoices/actions.ts:1,10-15</small></div></li></ol>
+<h3>critical · 2</h3><details class="row sev-critical" id="auth-101">
+<summary><span class="sev">critical</span><span class="title">Stripe webhook accepts unsigned events: anyone can activate, overwrite or cancel any organization&#39;s subscription</span><span class="chip chip-static">Code reading only</span><span class="loc">src/app/api/webhooks/stripe/route.ts:6-41</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Read the raw body with <code>request.text()</code>, verify with <code>stripe.webhooks.constructEvent(body, request.headers.get(&quot;stripe-signature&quot;), STRIPE_WEBHOOK_SECRET)</code> and return 400 on failure before the switch. Validate <code>plan</code> against the known price keys (<code>pro</code>, <code>team</code>) and resolve the org from the Stripe customer you created in <code>startCheckout</code>, not only from metadata. Docs also claim the opposite: <code>README.md:33</code> (&quot;Stripe webhooks are verified before any state changes.&quot;).</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/api/webhooks/stripe/route.ts:6-41</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>export async function POST(request: Request) {
+  const event = (await request.json()) as Stripe.Event;          // :7, no signature check
+  switch (event.type) {
+    case &quot;checkout.session.completed&quot;: {
+      const orgId = checkout.metadata?.orgId;                      // :12 attacker-chosen
+      const plan = checkout.metadata?.plan ?? &quot;pro&quot;;               // :14 any string
+      await db.insert(subscriptions).values({ orgId, ..., plan, status: &quot;active&quot; })
+        .onConflictDoUpdate({ target: subscriptions.orgId,
+          set: { plan, status: &quot;active&quot;, stripeSubscriptionId: String(checkout.subscription), ... } });
+    case &quot;customer.subscription.deleted&quot;:
+      await db.update(subscriptions).set({ status: &quot;canceled&quot; })
+        .where(eq(subscriptions.stripeSubscriptionId, sub.id));   // :33-36</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: unauthenticated POST body of <code>/api/webhooks/stripe</code> (<code>route.ts:7</code>); <code>src/proxy.ts:14-22</code> matcher does not cover <code>/api/*</code>, and the handler reads no <code>stripe-signature</code> header</li>
+<li><strong>Transformations</strong>: <code>request.json()</code> cast to <code>Stripe.Event</code>; <code>metadata.orgId</code>, <code>metadata.plan</code>, <code>customer</code>, <code>subscription</code> used as-is (<code>:11-14</code>); no <code>stripe.webhooks.constructEvent</code> anywhere under <code>src/</code> (grep)</li>
+<li><strong>Sink</strong>: upsert on <code>subscriptions</code> keyed by <code>orgId</code> (<code>:15-28</code>), and status update keyed by <code>stripeSubscriptionId</code> (<code>:33-36</code>)</li>
+<li><strong>Sanitization</strong>: none. Contrast the Resend webhook, which verifies with svix before acting (<code>src/app/api/webhooks/resend/route.ts:10-21</code>)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone on the internet, without an account, can write the billing record of any organization whose id they know: mark it <code>active</code> on any plan string (the plan the app shows on <code>/settings/billing</code>, <code>billing/page.tsx:10-15</code>, and counts in admin stats), and overwrite its real <code>stripeSubscriptionId</code> so later genuine Stripe cancellations no longer match. With a subscription id they can also set any subscription to <code>canceled</code>. Rated CRITICAL as unauthenticated tampering of the payment system of record; note that in this repo no feature is gated on <code>plan</code>/<code>status</code> yet (grep: only the billing page and admin stats read them), so the &quot;free paid plan&quot; is a record, not a feature unlock today. Organization ids are disclosed publicly by the public project page (see exposure-101), which removes the &quot;must know the id&quot; condition for any org with a public project.</p></section>
+<section><h4>Regression test</h4><p>proof: static. <code>.security-audit/tests/auth-101.stripe-webhook-signature.test.ts</code> asserts that an unsigned <code>checkout.session.completed</code> and a badly signed <code>customer.subscription.deleted</code> get a 4xx and cause no insert/update; written but not executed because node_modules is absent and installing is forbidden by the audit rules.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>exposure-101 (public page discloses orgId), concurrency-405 (no idempotency on the same handler)</li>
+</ul></section>
+<p class="meta">auth-101 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-critical" id="config-301">
+<summary><span class="sev">critical</span><span class="title">pull_request_target workflow checks out, installs and builds the PR head with deploy secrets</span><span class="chip chip-static">Code reading only</span><span class="loc">.github/workflows/preview.yml:3-5,7-9,15-32</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Build PR code under the <code>pull_request</code> trigger with no secrets; deploy previews from a separate <code>workflow_run</code> or pull_request_target job that never checks out or executes the head, gated by an environment with required reviewers. Set persist-credentials: false and do not use the shared pnpm cache in privileged jobs. Rotate PREVIEW_DATABASE_URL credentials, PREVIEW_AUTH_SECRET and VERCEL_TOKEN if outside PRs have ever run this workflow.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>.github/workflows/preview.yml:3-5,7-9,15-32</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+permissions:
+  contents: read
+  pull-requests: write
+...
+      - uses: actions/checkout@11bd719... # v4.2.2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+        env:
+          DATABASE_URL: ${{ secrets.PREVIEW_DATABASE_URL }}
+          BETTER_AUTH_SECRET: ${{ secrets.PREVIEW_AUTH_SECRET }}
+      - name: Deploy preview
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: echo &quot;url=$(pnpm dlx vercel@44.7.3 deploy --prebuilt --token &quot;$VERCEL_TOKEN&quot;)&quot; &gt;&gt; &quot;$GITHUB_OUTPUT&quot;</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: any pull request, including from a fork, triggers the workflow in the base repository&#39;s privileged context (preview.yml:3-5); the untrusted head sha is checked out (preview.yml:15-17)</li>
+<li><strong>Transformations</strong>: checkout persists the job&#39;s GITHUB_TOKEN (pull-requests: write, contents: read) in .git/config because persist-credentials is not false (compare ci.yml:16-17, which sets it)</li>
+<li><strong>Sink</strong>: <code>pnpm install</code> runs the PR&#39;s own package.json lifecycle scripts (preview.yml:23); <code>pnpm build</code> runs the PR&#39;s next.config.ts and app code with PREVIEW_DATABASE_URL and PREVIEW_AUTH_SECRET in env (preview.yml:24-27); the PR code can also write files that the later <code>vercel deploy</code> step (VERCEL_TOKEN in env, preview.yml:28-32) executes, e.g. a planted binary on PATH or node_modules/.bin. A pull_request_target run also writes to the base branch&#39;s Actions cache scope (setup-node <code>cache: pnpm</code>, preview.yml:22), so the PR can poison the pnpm store that later main-branch runs restore.</li>
+<li><strong>Sanitization</strong>: none: no <code>if:</code> guard on author association, no environment with required reviewers, no label gate</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone who can open a pull request against the repository can run arbitrary code in a job that holds the preview database URL, the preview auth secret, the Vercel token (typically scoped to the whole Vercel team, which may include production projects) and a pull-requests:write token, and exfiltrate them; they can also poison the dependency cache used by main-branch CI. Prerequisite (1): the repository accepts pull requests from outside collaborators (public or forkable). Kept CRITICAL: remote code execution with secrets, no account privilege needed.</p></section>
+<section><h4>Regression test</h4><p>proof: static: <code>.security-audit/tests/config-301.preview-workflow.test.ts</code> (reads every workflow and asserts no pull_request_target workflow checks out the PR head) was written but not run; node_modules is absent and installing is forbidden by the audit rules.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>config-302 (the curl|sh postinstall runs inside this privileged job on every PR, even benign ones)</li>
+<li>exposure-306 (separate leak of secrets; no combined gain, noted only)</li>
+</ul></section>
+<p class="meta">config-301 · Headers, CORS, build &amp; deploy configuration</p>
+</div></details>
+<h3>high · 19</h3><details class="row sev-high" id="auth-102">
+<summary><span class="sev">high</span><span class="title">getInvoice server action has no authentication or tenant scope (BOLA on invoices and lines, callable from the client bundle)</span><span class="chip chip-static">Code reading only</span><span class="loc">src/app/(app)/invoices/actions.ts:1,10-15</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Call <code>requireOrg()</code> and add <code>eq(invoices.orgId, orgId)</code> to the <code>where</code>, like <code>invoice.byId</code> (<code>src/server/trpc/routers/invoice.ts:26</code>); return only the columns the quick view needs. Docs also claim the opposite: <code>README.md:32</code> (&quot;Tenant isolation: all queries are scoped to the active organization.&quot;).</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/(app)/invoices/actions.ts:1,10-15</code>; client caller <code>src/components/invoice-quick-view.tsx:1,4,13</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>&quot;use server&quot;;
+export async function getInvoice(id: string) {
+  const [invoice] = await db.select().from(invoices).where(eq(invoices.id, id)).limit(1);
+  if (!invoice) return null;
+  const lines = await db.select().from(invoiceLines).where(eq(invoiceLines.invoiceId, invoice.id));
+  return { ...invoice, lines };
+}
+// invoice-quick-view.tsx (&quot;use client&quot;): onMouseEnter={async () =&gt; setPreview(await getInvoice(id))}</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>id</code> argument of an exported <code>&quot;use server&quot;</code> function. It is imported by the client component <code>InvoiceQuickView</code> (<code>invoice-quick-view.tsx:4,13</code>, rendered on <code>/invoices</code>, <code>invoices/page.tsx:35</code>), so its action id ships in the client bundle and it is a public POST endpoint; also reached from <code>/invoices/[id]</code> (<code>[id]/page.tsx:7-8</code>)</li>
+<li><strong>Transformations</strong>: none; no <code>requireOrg()</code> (its sibling <code>markInvoicePaid</code> calls it at <code>:20</code>)</li>
+<li><strong>Sink</strong>: <code>select()</code> of every invoice column (incl. <code>notes</code>, <code>customerId</code>, <code>orgId</code>) and all lines (<code>:11</code>, <code>:13</code>), returned to the caller</li>
+<li><strong>Sanitization</strong>: only <code>(app)/layout.tsx:6</code> and the proxy cookie-presence check (<code>src/proxy.ts:5-6</code>), neither of which compares the invoice&#39;s org, and the layout does not run before a direct action POST</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in member of another organization (via <code>/invoices/&lt;id&gt;</code>) and any caller who replays the action id with an arbitrary cookie value (the proxy checks presence only) can read another tenant&#39;s invoice, notes and line items when they know or learn the invoice id. Ids are not enumerable from this code alone, which keeps this at HIGH rather than CRITICAL.</p></section>
+<section><h4>Regression test</h4><p>proof: static. <code>.security-audit/tests/auth-102.getInvoice-scope.test.ts</code> asserts that an anonymous call rejects before any query and that the invoice query filters by the caller&#39;s orgId; not executed (node_modules absent, install forbidden).</p></section>
+
+<p class="meta">auth-102 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="auth-103">
+<summary><span class="sev">high</span><span class="title">/api/admin/stats has no authentication; leaks platform counts and the 25 latest signups&#39; names and e-mails</span><span class="chip chip-static">Code reading only</span><span class="loc">src/app/api/admin/stats/route.ts:5-25</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Check the session in the handler and require the platform admin role, returning 401/403 otherwise; fix auth-104 at the same time, otherwise any user can grant themselves that role. Docs also claim the opposite: <code>README.md:31</code> (&quot;Every API route requires an authenticated session or an API key.&quot;).</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/api/admin/stats/route.ts:5-25</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>export async function GET() {
+  const [users] = await db.select({ total: count() }).from(user);
+  ...
+  const recentSignups = await db.select({ id: user.id, name: user.name, email: user.email, createdAt: user.createdAt })
+    .from(user).orderBy(desc(user.createdAt)).limit(25);
+  const plans = await db.select({ plan: subscriptions.plan, total: count() }).from(subscriptions).groupBy(subscriptions.plan);</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: unauthenticated <code>GET /api/admin/stats</code> (route handler, framework entry point)</li>
+<li><strong>Transformations</strong>: none; the handler never calls <code>getSession</code>/<code>requireAdmin</code></li>
+<li><strong>Sink</strong>: JSON response with user/org/project counts, plan distribution and 25 latest users with e-mail (<code>:19-25</code>)</li>
+<li><strong>Sanitization</strong>: the admin check exists only on the page (<code>src/app/admin/page.tsx:5</code>); <code>src/proxy.ts:21</code> matches <code>/admin/:path*</code>, not <code>/api/admin</code></li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone, without an account, can fetch platform-wide business metrics and the names and e-mail addresses of the 25 most recent signups, repeatedly, which over time harvests every new user.</p></section>
+<section><h4>Regression test</h4><p>proof: static. <code>.security-audit/tests/auth-103.admin-stats-auth.test.ts</code> asserts 401/403 and no user query for an anonymous caller, and 403 for a non-admin member; not executed (node_modules absent, install forbidden).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-104 (the role a fix would check is self-assignable)</li>
+</ul></section>
+<p class="meta">auth-103 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="auth-104">
+<summary><span class="sev">high</span><span class="title">App-level admin role is a client-writable Better-Auth additionalField (self-service privilege escalation to platform admin)</span><span class="chip chip-static">Code reading only</span><span class="loc">src/lib/auth.ts:27-32</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Set <code>input: false</code> on <code>role</code> (and on <code>emailDigest</code> if it should only change via the settings action), assign admin only server side, or move to Better-Auth&#39;s admin plugin. Re-read the role from the database in <code>requireAdmin</code> and in any admin API handler.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/lib/auth.ts:27-32</code>; consumer <code>src/lib/session.ts:22-25</code>; column <code>src/db/schema.ts:10</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>user: { additionalFields: {
+  role: { type: &quot;string&quot;, defaultValue: &quot;member&quot; },      // no input: false
+  emailDigest: { type: &quot;boolean&quot;, defaultValue: true },
+} },
+...
+export async function requireAdmin() {
+  const session = await requireUser();
+  if (session.user.role !== &quot;admin&quot;) redirect(&quot;/dashboard&quot;);</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: JSON body of Better-Auth <code>POST /api/auth/sign-up/email</code> and <code>POST /api/auth/update-user</code> (mounted at <code>src/app/api/auth/[...all]/route.ts:4</code>)</li>
+<li><strong>Transformations</strong>: Better-Auth copies declared <code>additionalFields</code> from the request body into the user row unless the field sets <code>input: false</code>. <strong>Assumption</strong> (library source not readable, node_modules absent): this is Better-Auth&#39;s documented behaviour, where <code>input</code> defaults to <code>true</code> and the docs&#39; own <code>role</code> example sets <code>input: false</code> precisely to stop users setting it. No <code>databaseHooks.user.create.before</code> or other code strips <code>role</code> (<code>auth.ts:9-40</code> has none)</li>
+<li><strong>Sink</strong>: <code>user.role</code> column, returned in <code>session.user</code> and trusted by <code>requireAdmin</code> (<code>session.ts:24</code>)</li>
+<li><strong>Sanitization</strong>: none configured</li>
+<li><strong>Verdict</strong>: VULNERABLE (under the stated library assumption)</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any visitor can register with <code>role: &quot;admin&quot;</code> (or set it later through update-user on their own account) and pass <code>requireAdmin</code>, reaching <code>/admin</code>. Today the admin page only shows the stats that auth-103 already exposes, but this is the platform&#39;s only admin role: any admin gate added later, including the obvious fix for auth-103, is bypassed by it. E-mail verification (<code>auth.ts:14</code>) is not a barrier, since the attacker verifies their own address.</p></section>
+<section><h4>Regression test</h4><p>proof: static. <code>.security-audit/tests/auth-104.role-not-client-writable.test.ts</code> captures the options passed to <code>betterAuth</code> and asserts <code>user.additionalFields.role.input === false</code>; not executed (node_modules absent, install forbidden), and it checks the configuration, not the library&#39;s runtime handling.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-103</li>
+</ul></section>
+<p class="meta">auth-104 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="auth-105">
+<summary><span class="sev">high</span><span class="title">AI tool voidInvoice voids any tenant&#39;s invoice by id, with no org scope and no approval</span><span class="chip chip-static">Code reading only</span><span class="loc">src/server/ai/billing-tools.ts:7-20</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Add <code>eq(invoices.orgId, ctx.orgId)</code> to the where, set <code>needsApproval: true</code> and handle approval in a flow that actually waits for the user, and build the tool only for owner/admin members.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/server/ai/billing-tools.ts:7-20</code>; entry <code>src/app/api/assistant/billing/route.ts:8-22</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>export function buildBillingTools(ctx: { orgId: string; userId: string }) {
+  return {
+    voidInvoice: tool({
+      description: &quot;Void an invoice of the current organization so it can no longer be paid.&quot;,
+      inputSchema: z.object({ invoiceId: z.string() ... }),
+      execute: async ({ invoiceId }) =&gt; {
+        const [row] = await db.update(invoices).set({ status: &quot;void&quot; })
+          .where(eq(invoices.id, invoiceId)).returning(...)</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>body.instruction</code> of <code>POST /api/assistant/billing</code> (<code>route.ts:13,20</code>), which the model turns into the <code>invoiceId</code> tool argument; any session with an active org passes <code>route.ts:9-11</code></li>
+<li><strong>Transformations</strong>: <code>ctx.orgId</code> is passed in (<code>route.ts:21</code>) but unused by this tool; no <code>needsApproval</code>, no role check</li>
+<li><strong>Sink</strong>: <code>UPDATE invoices SET status=&#39;void&#39; WHERE id = $invoiceId</code> (<code>billing-tools.ts:13-17</code>), executed inside <code>generateText</code> without any approval step</li>
+<li><strong>Sanitization</strong>: none. The sibling <code>markInvoicePaid</code> scopes by <code>eq(invoices.orgId, ctx.orgId)</code> (<code>:30</code>); the tool description is not a control</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>A signed-in member of any organization can void another organization&#39;s invoice by giving the billing assistant its id, so the victim&#39;s customer can no longer pay it (cross-tenant integrity loss). Within the own org, any member (not only owner/admin) can void invoices with no confirmation.</p></section>
+<section><h4>Regression test</h4><p>proof: static. <code>.security-audit/tests/auth-105.voidInvoice-scope.test.ts</code> asserts <code>needsApproval</code> is set and that the update filter contains <code>invoices.orgId = ctx.orgId</code> when the model passes a foreign id; not executed (node_modules absent, install forbidden). No model provider is called: the tool&#39;s <code>execute</code> is invoked directly.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-111 (cross-site POST can drive this route), rate-limit-101</li>
+</ul></section>
+<p class="meta">auth-105 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="auth-106">
+<summary><span class="sev">high</span><span class="title">AI tool searchInvoices takes the tenant id from the model; any org&#39;s invoices and customer e-mails are readable</span><span class="chip chip-static">Code reading only</span><span class="loc">src/server/ai/tools.ts:7-36</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Remove <code>orgId</code> from the input schema and use <code>ctx.orgId</code>. Escape <code>%</code>/<code>_</code> in <code>customerName</code> before building the <code>ilike</code> pattern (wildcard only, no injection).</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/server/ai/tools.ts:7-36</code>; entry <code>src/app/api/chat/route.ts:6-21</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>inputSchema: z.object({ orgId: z.string().describe(&quot;Organization id to search in&quot;), ... }),
+execute: async ({ orgId, status, customerName }) =&gt; db.select({ ..., customerEmail: customers.email })
+  .from(invoices).innerJoin(customers, ...)
+  .where(and(eq(invoices.orgId, orgId), ...))      // ctx.orgId never used in this tool</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>messages</code> of <code>POST /api/chat</code> (<code>chat/route.ts:11</code>), steering the model&#39;s <code>orgId</code> tool argument (<code>tools.ts:12</code>)</li>
+<li><strong>Transformations</strong>: none; the system prompt &quot;Only answer questions about this organization&quot; (<code>chat/route.ts:15</code>) is the only restriction, and the prompt itself prints the caller&#39;s org id, showing the model the expected format</li>
+<li><strong>Sink</strong>: select of invoice number, amount, status, customer name and customer e-mail (<code>tools.ts:17-35</code>), streamed back to the caller</li>
+<li><strong>Sanitization</strong>: none. The sibling <code>summarizeProject</code> uses <code>ctx.orgId</code> (<code>tools.ts:46</code>)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>A signed-in member of any organization can ask the assistant to search another organization&#39;s id and receive up to 20 of its invoices with customer names and e-mail addresses per call. Organization ids are public for any org with a public project (exposure-101).</p></section>
+<section><h4>Regression test</h4><p>proof: static. <code>.security-audit/tests/auth-106.searchInvoices-scope.test.ts</code> calls the tool&#39;s <code>execute</code> with a foreign <code>orgId</code> and asserts the query uses <code>ctx.orgId</code> only; not executed (node_modules absent, install forbidden). No model is called.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>exposure-101 (org id disclosure), chain-901</li>
+</ul></section>
+<p class="meta">auth-106 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="auth-107">
+<summary><span class="sev">high</span><span class="title">GET /api/export reads the tenant from the <code>?org=</code> query parameter (cross-tenant customer PII export)</span><span class="chip chip-static">Code reading only</span><span class="loc">src/app/api/export/route.ts:6-23</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Use only <code>session.session.activeOrganizationId</code> (or check membership of the requested org in <code>member</code>), and require owner/admin for a full PII export. Docs also claim the opposite: <code>README.md:32</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/api/export/route.ts:6-23</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>const session = await getSession();
+if (!session) return new Response(&quot;Unauthorized&quot;, { status: 401 });
+const orgId = searchParams.get(&quot;org&quot;) ?? session.session.activeOrganizationId;
+... .select({ name, email, phone, taxId, createdAt }).from(customers).where(eq(customers.orgId, orgId));</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>org</code> query parameter (<code>route.ts:10-11</code>)</li>
+<li><strong>Transformations</strong>: preferred over the session&#39;s active organization; no <code>member</code> lookup</li>
+<li><strong>Sink</strong>: CSV of name, e-mail, phone and tax id of every customer of that org (<code>:14-35</code>)</li>
+<li><strong>Sanitization</strong>: session existence only (<code>:7-8</code>); a session without any organization passes</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in user, including a fresh account with no organization, can download the full customer list (e-mail, phone, tax id) of any organization whose id they know; ids of orgs with a public project are disclosed publicly (exposure-101). Separately, any member of an org can export all of its customer PII with no role requirement.</p></section>
+<section><h4>Regression test</h4><p>proof: static. <code>.security-audit/tests/auth-107.export-org-param.test.ts</code> asserts that <code>?org=&lt;foreign&gt;</code> never reaches the customers filter or the filename; not executed (node_modules absent, install forbidden).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>exposure-101 (org id disclosure), auth-111, chain-901</li>
+</ul></section>
+<p class="meta">auth-107 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="auth-108">
+<summary><span class="sev">high</span><span class="title">tRPC project.update updates by id only (cross-tenant write and read of internal notes; any member can publish a project)</span><span class="chip chip-static">Code reading only</span><span class="loc">src/server/trpc/routers/project.ts:12-27</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p><code>.where(and(eq(projects.id, id), eq(projects.orgId, ctx.orgId)))</code>, return an explicit column list, and restrict <code>isPublic</code> changes to owner/admin. Docs also claim the opposite: <code>README.md:32</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/server/trpc/routers/project.ts:12-27</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>update: orgProcedure.input(z.object({ id, name?, description?, internalNotes?, isPublic? }))
+  .mutation(async ({ ctx, input }) =&gt; {
+    const { id, ...patch } = input;
+    const [updated] = await ctx.db.update(projects).set(patch).where(eq(projects.id, id)).returning();
+    return updated;</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>id</code> and patch fields from the tRPC request (<code>project.ts:13-21</code>), <code>POST /api/trpc/project.update</code></li>
+<li><strong>Transformations</strong>: <code>orgProcedure</code> sets <code>ctx.orgId</code> from the session (<code>init.ts:22-26</code>) but the update never uses it</li>
+<li><strong>Sink</strong>: <code>UPDATE projects ... WHERE id = $id</code> (<code>project.ts:24</code>); <code>.returning()</code> with no column list returns the full row, including <code>internalNotes</code>, <code>budgetCents</code>, <code>clientContactEmail</code></li>
+<li><strong>Sanitization</strong>: none (contrast <code>list</code> at <code>:9</code> and <code>deleteProject</code> at <code>projects/actions.ts:42</code>)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>A member of any organization can rewrite another organization&#39;s project, flip <code>isPublic</code> to expose it on <code>/p/[slug]</code> (which then serves the full row publicly, exposure-101), and read its internal notes, budget and client contact e-mail from the response, by project id. Project ids of public projects are themselves public via <code>/p/[slug]</code>. Within the own org, any member can publish a project (design choice, no role check).</p></section>
+<section><h4>Regression test</h4><p>proof: static. <code>.security-audit/tests/auth-108.project-update-scope.test.ts</code> asserts the update filter contains <code>projects.orgId = ctx.orgId</code>; not executed (node_modules absent, install forbidden). The existing <code>project.test.ts</code> mocks the DB chain and cannot see the filter.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>exposure-101, chain-902</li>
+</ul></section>
+<p class="meta">auth-108 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="auth-109">
+<summary><span class="sev">high</span><span class="title">Weekly overdue digest e-mails every opted-in user on the platform, not the organization&#39;s members</span><span class="chip chip-static">Code reading only</span><span class="loc">src/server/jobs/digest.ts:28-43</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Join <code>member</code> on <code>member.organizationId = orgId</code> (optionally owner/admin only) in the recipients query, and escape the interpolated values. Docs also claim the opposite: <code>README.md:32</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/server/jobs/digest.ts:28-43</code>; schedule <code>src/server/jobs/worker.ts:13-20</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>const recipients = await db.select({ email: user.email, name: user.name })
+  .from(user).where(eq(user.emailDigest, true));           // no join to member
+for (const r of recipients) {
+  await sendEmail({ to: r.email, subject: `${org.name}: ${overdue.length} overdue invoices`,
+    html: `&lt;p&gt;Hi ${r.name},&lt;/p&gt;&lt;table&gt;${rows}&lt;/table&gt;` });  // number, customer, amount, due date
+}</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: pg-boss job <code>overdue-digest</code> with <code>orgId</code> from the Monday 08:00 fan-out over all organizations (<code>worker.ts:13-18</code>)</li>
+<li><strong>Transformations</strong>: invoices are correctly filtered by <code>orgId</code> (<code>digest.ts:25</code>), but the recipients query has no join to <code>member</code>; <code>emailDigest</code> defaults to true (<code>schema.ts:11</code>, <code>auth.ts:30</code>)</li>
+<li><strong>Sink</strong>: Resend e-mail per recipient with invoice numbers, customer names, amounts and due dates (<code>digest.ts:33-42</code>)</li>
+<li><strong>Sanitization</strong>: none</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Every Monday, for each organization with overdue invoices, every user of every organization with the digest enabled (the default) receives that organization&#39;s overdue invoice numbers, customer names and amounts. An outsider only needs to sign up to receive all tenants&#39; overdue receivables weekly; volume is N orgs x M users e-mails. Prerequisite (1): the <code>pnpm worker</code> process must be deployed (the README run instructions start it; the Dockerfile CMD does not), which keeps the rating.</p></section>
+<section><h4>Regression test</h4><p>proof: static. <code>.security-audit/tests/auth-109.digest-recipients.test.ts</code> mocks the DB and e-mail client and asserts the recipients query joins <code>member</code> on the job&#39;s org; not executed (node_modules absent, install forbidden). No e-mail is sent.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>injection-212 (same e-mail HTML is built from unescaped fields)</li>
+</ul></section>
+<p class="meta">auth-109 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="auth-110">
+<summary><span class="sev">high</span><span class="title">Public API reflects any Origin with credentials while sessions use SameSite=None: any website can read a visitor&#39;s invoices and projects</span><span class="chip chip-static">Code reading only</span><span class="loc">src/server/api/index.ts:13-36</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Replace the reflector with an explicit allowlist of embed origins (per-org setting), serve the widget with a Bearer API key or a short-lived scoped token instead of the full session cookie, and set the session cookie to SameSite=Lax. Docs also claim the opposite: <code>README.md:25-27</code> presents cross-site cookie sharing as intended.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/server/api/index.ts:13-36</code>, <code>src/lib/auth.ts:34-37</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>api.use(&quot;*&quot;, cors({ origin: (origin) =&gt; origin, credentials: true, allowMethods: [&quot;GET&quot;, &quot;POST&quot;, &quot;OPTIONS&quot;] }));
+...
+const session = await auth.api.getSession({ headers: c.req.raw.headers });   // cookie fallback, :31
+advanced: { crossSubDomainCookies: { enabled: true, domain: &quot;.ledgerly.app&quot; },
+            defaultCookieAttributes: { sameSite: &quot;none&quot;, secure: true } }</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: cross-origin <code>fetch(&quot;https://&lt;app&gt;/api/public/invoices&quot;, { credentials: &quot;include&quot; })</code> from any page the signed-in user visits</li>
+<li><strong>Transformations</strong>: the browser attaches the session cookie because of SameSite=None (<code>auth.ts:36</code>); without a Bearer header the middleware authenticates the cookie and sets <code>orgId</code> (<code>index.ts:31-35</code>); Hono&#39;s <code>cors</code> echoes the request Origin with <code>Access-Control-Allow-Credentials: true</code> (<code>index.ts:15-18</code>)</li>
+<li><strong>Sink</strong>: <code>GET /api/public/invoices</code> (100 latest: number, amount, currency, status, due date) and <code>/api/public/projects</code> (id, name, slug) of the victim&#39;s active org, readable by the attacker page (<code>index.ts:38-59</code>)</li>
+<li><strong>Sanitization</strong>: none (no origin allowlist)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any website a signed-in Ledgerly user visits can silently read their organization&#39;s last 100 invoices and its project list. Browsers that block third-party cookies by default (Safari, Firefox with strict tracking protection) do not send the cookie, so the reach is the share of users on browsers that still send SameSite=None cookies cross-site. README documents cross-site cookie use for the widget (<code>README.md:25-27</code>); that design does not require reflecting every origin.</p></section>
+<section><h4>Regression test</h4><p>proof: static. <code>.security-audit/tests/auth-110.cors-allowlist.test.ts</code> sends a preflight with a foreign Origin through <code>api.request</code> and asserts it is not echoed together with <code>Allow-Credentials: true</code>; not executed (node_modules absent, install forbidden). No host is contacted.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-111 (same SameSite=None root), config-308</li>
+</ul></section>
+<p class="meta">auth-110 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="chain-901">
+<summary><span class="sev">high</span><span class="title">Public project page leaks the organization id, which unlocks cross-tenant customer PII export and invoice search for any self-registered user</span><span class="chip chip-static">Code reading only</span><span class="loc">src/app/p/[slug]/page.tsx:7-12</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Fixing either link breaks the chain, but fix all three: pass a DTO with only name, description and document filenames to <code>PublicProjectView</code> (exposure-101); ignore <code>?org=</code> and use the session org with a membership and role check in <code>/api/export</code> (auth-107); drop <code>orgId</code> from the <code>searchInvoices</code> input schema and use <code>ctx.orgId</code> (auth-106).</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/p/[slug]/page.tsx:7-12</code>; <code>src/components/public-project-view.tsx:1,7,10</code>; <code>src/app/api/export/route.ts:11,14-23</code>; <code>src/server/ai/tools.ts:12,16,29</code>; <code>src/app/api/chat/route.ts:7-9,17</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>// p/[slug]/page.tsx: full row (incl. orgId) passed to a &quot;use client&quot; component
+const project = await db.query.projects.findFirst({ where: ... eq(p.isPublic, true), with: { documents: true } });
+return &lt;PublicProjectView project={project} /&gt;;
+// api/export/route.ts: tenant taken from the query string
+const orgId = searchParams.get(&quot;org&quot;) ?? session.session.activeOrganizationId;
+... .from(customers).where(eq(customers.orgId, orgId));      // name, email, phone, taxId
+// server/ai/tools.ts: tenant chosen by the model
+inputSchema: z.object({ orgId: z.string().describe(&quot;Organization id to search in&quot;), ... }),
+... .where(and(eq(invoices.orgId, orgId), ...))               // ctx.orgId unused</code></pre></section>
+<section><h4>Data flow</h4><p>Steps:</p>
+<ol>
+<li>Anonymous: <code>GET /p/&lt;slug&gt;</code> of any public project (no proxy match, no session check). The whole <code>projects</code> row, including <code>orgId</code>, and the <code>documents</code> rows are props of a client component, so React serializes them into the page&#39;s RSC payload (<code>page.tsx:7-12</code>, <code>public-project-view.tsx:7</code>). Organization ids are otherwise not exposed; the code sets no id generator, so they come from Better-Auth&#39;s default (library source not readable here; assumed random, not enumerable).</li>
+<li>The attacker signs up (public sign-up, verifies their own address, <code>auth.ts:12-15</code>) and creates an organization (<code>allowUserToCreateOrganization: true</code>, <code>auth.ts:39</code>).</li>
+<li><code>GET /api/export?org=&lt;victim orgId&gt;</code>: only a session is required (<code>export/route.ts:7-8</code>); the query parameter wins over the session org (<code>:11</code>) and the CSV returns every customer&#39;s name, e-mail, phone and tax id of the victim org (<code>:14-23</code>) (auth-107).</li>
+<li><code>POST /api/chat</code> with &quot;search invoices in organization &lt;victim orgId&gt;&quot;: the <code>searchInvoices</code> tool filters by the model-supplied <code>orgId</code> (<code>tools.ts:12,29</code>) and returns up to 20 invoices per call with customer names and e-mails (auth-106). Depends on the model following the instruction, which the tool description invites.</li>
+</ol>
+<ul>
+<li><strong>Source</strong>: slug in the URL (step 1), then the leaked orgId as <code>?org=</code> / tool argument</li>
+<li><strong>Sink</strong>: CSV response (<code>export/route.ts:30</code>), tool result streamed to the attacker (<code>chat/route.ts:21</code>)</li>
+<li><strong>Sanitization</strong>: none; no membership check between session and orgId at either sink</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone who can sign up can download the full customer list (e-mail, phone, tax id) and read invoices of every organization that has at least one public project, with no knowledge beyond the public page URL. auth-107 and auth-106 alone need an organization id that is not otherwise disclosed, and exposure-101 alone leaks only the public project&#39;s own data; together they give mass cross-tenant PII harvesting. Rated HIGH (self-registered account required, no victim interaction), not CRITICAL, because a session is needed.</p></section>
+<section><h4>Regression test</h4><p>proof: static: tests are not runnable here (no node_modules, install forbidden by the audit rules); the combined path was traced by code reading.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>exposure-101 (org id disclosure on the public page)</li>
+<li>auth-107 (<code>?org=</code> export)</li>
+<li>auth-106 (model-chosen orgId in searchInvoices)</li>
+</ul></section>
+<p class="meta">chain-901 · Chains</p>
+</div></details>
+<details class="row sev-high" id="chain-902">
+<summary><span class="sev">high</span><span class="title">Public project page leaks document S3 keys and project ids, which lets any self-registered user read and replace another organization&#39;s shared files and rewrite its public page</span><span class="chip chip-static">Code reading only</span><span class="loc">src/app/p/[slug]/page.tsx:7-12</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Pass only public fields to <code>PublicProjectView</code> (exposure-101). Generate keys server side as <code>&lt;orgId&gt;/&lt;projectId&gt;/&lt;uuid&gt;</code> and reject client keys (upload-401); check that <code>projectId</code> belongs to the caller&#39;s org before presigning (auth-403); add <code>eq(projects.orgId, ctx.orgId)</code> to the <code>project.update</code> filter (auth-108). Any one of the first two fixes breaks the file part of the chain.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/p/[slug]/page.tsx:7-12</code>; <code>src/app/api/uploads/route.ts:21-37</code>; <code>src/app/api/documents/[id]/download/route.ts:15-26</code>; <code>src/app/(app)/projects/actions.ts:28-36</code>; <code>src/server/trpc/routers/project.ts:22-26</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>// uploads/route.ts: client-chosen key, no org prefix, projectId not checked
+new PutObjectCommand({ Bucket: BUCKET, Key: input.key, ContentType: input.contentType })
+await db.insert(documents).values({ id: crypto.randomUUID(), orgId, projectId: input.projectId, s3Key: input.key, ... });
+// documents/[id]/download/route.ts: row scoped to the caller&#39;s org, but the key inside it is not
+.where(and(eq(documents.id, id), eq(documents.orgId, orgId)))
+new GetObjectCommand({ Bucket: BUCKET, Key: doc.s3Key, ... })
+// project.ts: update by id only
+ctx.db.update(projects).set(patch).where(eq(projects.id, id)).returning();</code></pre></section>
+<section><h4>Data flow</h4><p>Steps:</p>
+<ol>
+<li>Anonymous: <code>GET /p/&lt;slug&gt;</code> returns the full project row (<code>id</code>) and every <code>documents</code> row (<code>s3Key</code>, <code>id</code>) in the RSC payload (<code>page.tsx:7-12</code>, exposure-101). The page shows only file names; there is no anonymous download route, so the file contents are not public.</li>
+<li>Replace: the attacker (any self-registered user with an own org) calls <code>POST /api/uploads</code> with <code>key</code> = the victim&#39;s <code>s3Key</code>; the server presigns a PUT for that exact key (<code>uploads/route.ts:23-27</code>) and the attacker overwrites the object. The victim org&#39;s own members later download the attacker&#39;s file through their legitimate document row (<code>download/route.ts:26</code>) (upload-401).</li>
+<li>Read: the attacker creates a public project in their own org (<code>createProject</code>, any member, <code>isPublic</code> from input, <code>actions.ts:28-36</code>), registers a document row with <code>projectId</code> = that project and <code>key</code> = the victim&#39;s <code>s3Key</code> (no PUT needed, <code>uploads/route.ts:29-37</code>), learns the new row id from their own <code>/p/&lt;slug&gt;</code> (step 1 again), and calls <code>GET /api/documents/&lt;id&gt;/download</code>: the row passes the org filter (<code>:18</code>) and the presigned GET is for the victim&#39;s key (<code>:26</code>) (upload-401).</li>
+<li>Page tampering: with the leaked project id, <code>project.update</code> rewrites the victim project&#39;s name and description (rendered on its public page) or sets <code>isPublic</code> to false (<code>project.ts:24</code>) (auth-108); <code>POST /api/uploads</code> with the victim&#39;s <code>projectId</code> adds rows whose attacker-chosen file names appear in the victim&#39;s &quot;Shared files&quot; list (<code>uploads/route.ts:32</code>) (auth-403).</li>
+</ol>
+<ul>
+<li><strong>Source</strong>: slug in the URL, then the leaked <code>s3Key</code> / project id in the upload and tRPC bodies</li>
+<li><strong>Sink</strong>: presigned PUT and GET for the victim&#39;s object; <code>UPDATE projects ... WHERE id = ?</code></li>
+<li><strong>Sanitization</strong>: none; no org prefix on keys, no ownership check on projectId or project id</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone who can sign up can download the files shared on any organization&#39;s public project, silently replace them with their own content (forged contracts, malware) that the victim organization&#39;s members then download as their own, and deface or unpublish that public page. upload-401 and auth-108 alone need an object key or project id that is not otherwise disclosed, and exposure-101 alone discloses metadata but not file contents; together they make every public project&#39;s files and page readable and writable by any outsider.</p></section>
+<section><h4>Regression test</h4><p>proof: static: tests are not runnable here (no node_modules, install forbidden by the audit rules); the combined path was traced by code reading.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>exposure-101 (s3Key, document id and project id disclosure)</li>
+<li>upload-401 (client-chosen key on presigned PUT; read via own document row)</li>
+<li>auth-108 (project.update by id only)</li>
+<li>auth-403 (projectId not checked on upload)</li>
+</ul></section>
+<p class="meta">chain-902 · Chains</p>
+</div></details>
+<details class="row sev-high" id="config-302">
+<summary><span class="sev">high</span><span class="title">package.json postinstall pipes an unpinned remote script into sh (every install, CI job and image build)</span><span class="chip chip-static">Code reading only</span><span class="loc">package.json:14</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Remove the postinstall. If the tool is needed, download a pinned release in an explicit build step and verify a checksum or signature before running it; consider <code>pnpm install --ignore-scripts</code> in CI and Docker with an allowlist for packages that need scripts.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>package.json:14</code>; <code>Dockerfile:3-5</code>; <code>.github/workflows/ci.yml:23</code>; <code>.github/workflows/preview.yml:23</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>&quot;postinstall&quot;: &quot;curl -fsSL https://releases.pdfkiln.example/install.sh | sh&quot;
+# Dockerfile (deps stage, runs as root)
+RUN apk add --no-cache curl &amp;&amp; corepack enable
+RUN pnpm install --frozen-lockfile</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: whatever https://releases.pdfkiln.example/install.sh serves at install time</li>
+<li><strong>Transformations</strong>: none: no version pin, checksum or signature; the lockfile does not cover lifecycle-script downloads</li>
+<li><strong>Sink</strong>: <code>sh</code> runs the script on every <code>pnpm install</code>: developer machines, CI (ci.yml:23, which runs on push to main), the preview job (preview.yml:23) and the Docker deps stage as root (Dockerfile:5), whose node_modules is copied into the final image (Dockerfile:10,24)</li>
+<li><strong>Sanitization</strong>: none. With <code>-f</code> a failed download leaves <code>sh</code> with empty input and the pipe exits 0, so an outage is silent and a later compromise is equally silent.</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Whoever controls that host, its domain (including after a lapse) or the network path can run code on every developer machine, in CI and during image builds, and can plant code in node_modules that ships in the production image. The attacker here is a third party, not a user of the app; rated HIGH because one compromise reaches every build and the production artifact.</p></section>
+<section><h4>Regression test</h4><p>proof: static: <code>.security-audit/tests/config-302.postinstall.test.ts</code> (reads package.json and asserts no lifecycle script pipes curl or wget output into a shell) was written but not run; node_modules is absent and installing is forbidden by the audit rules.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>config-301 (runs inside the privileged preview job)</li>
+</ul></section>
+<p class="meta">config-302 · Headers, CORS, build &amp; deploy configuration</p>
+</div></details>
+<details class="row sev-high" id="exposure-305">
+<summary><span class="sev">high</span><span class="title">Anthropic API key shipped to the browser via NEXT_PUBLIC_ with anthropic-dangerous-direct-browser-access</span><span class="chip chip-static">Code reading only</span><span class="loc">src/lib/ai-client.ts:3-6</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Delete src/lib/ai-client.ts and the NEXT_PUBLIC key; move &quot;Suggest reminder&quot; to an authenticated server action or route using the server-only ANTHROPIC_API_KEY with a per-user quota. Rotate any key that was ever built into a bundle.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/lib/ai-client.ts:3-6</code>; <code>src/components/assistant-panel.tsx:1,6,13-19</code>; <code>.env.example:5</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>export const browserAnthropic = createAnthropic({
+  apiKey: process.env.NEXT_PUBLIC_ANTHROPIC_API_KEY,
+  headers: { &quot;anthropic-dangerous-direct-browser-access&quot;: &quot;true&quot; },
+});
+// assistant-panel.tsx (&quot;use client&quot;)
+const { text } = await generateText({ model: browserAnthropic(&quot;claude-haiku-4-5&quot;), prompt: ... });</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: NEXT_PUBLIC_ANTHROPIC_API_KEY (documented in .env.example:5), which Next.js inlines into client JavaScript at build time</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: the client bundle of /assistant (assistant/page.tsx:1-6 renders the &quot;use client&quot; AssistantPanel), which calls api.anthropic.com from the browser with that key (assistant-panel.tsx:14-17)</li>
+<li><strong>Sanitization</strong>: none. NEXT_PUBLIC_ values are public by design. The page itself requires a session (requireOrg, assistant/page.tsx:5), but anyone can sign up and create an organization (src/lib/auth.ts:39), and static chunks under /_next/static are served without auth.</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any user who loads the assistant page (any free sign-up) can copy the Anthropic API key from the JavaScript and use it outside the app: unlimited model spend on the owner&#39;s account and access to whatever else that key&#39;s workspace exposes, with no tenant scoping, rate limit or token cap. Assumes the variable is set in the deployed build, which the feature needs to work.</p></section>
+<section><h4>Regression test</h4><p>proof: static: <code>.security-audit/tests/exposure-305.browser-key.test.ts</code> (asserts no source file reads NEXT_PUBLIC_ANTHROPIC_API_KEY or sends anthropic-dangerous-direct-browser-access) was written but not run; node_modules is absent and installing is forbidden by the audit rules.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>none (rate-limit-101/103/409 are server-side LLM spend controls; distinct class, noted for COMBINE)</li>
+</ul></section>
+<p class="meta">exposure-305 · Data exposure &amp; secrets</p>
+</div></details>
+<details class="row sev-high" id="exposure-306">
+<summary><span class="sev">high</span><span class="title">Stripe access token and a second API key committed in .env (git history, commit a1b7c73): rotation required</span><span class="chip chip-static">Code reading only</span><span class="loc">(prepass.md:150-157</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Treat both values as leaked: roll the Stripe key in the Stripe dashboard and rotate the second credential at its issuer; then optionally purge history (git filter-repo) and force-push. Keep .env ignored (done, .gitignore:3) and add a gitleaks pre-commit or CI step.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>.env</code> at commit a1b7c73; pre-pass Secret Scan (prepass.md:150-157)</li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>gitleaks rows (values redacted by the pre-pass, not read here):
+  stripe-access-token  .env:4  a1b7c73  2026-05-04  history only
+  generic-api-key      .env:3  a1b7c73  2026-05-04  history only
+git show --stat a03d8d4: &quot;.env | 4 ----&quot;  (removed from the tree, still in a1b7c73)</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: commit a1b7c73 &quot;feat: ledgerly mvp&quot; tracked a 4-line .env; a03d8d4 &quot;chore: stop tracking .env&quot; deleted it from the tree and added it to .gitignore</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: git history: every clone, fork and CI checkout of the repository contains the values</li>
+<li><strong>Sanitization</strong>: none: deleting the file does not remove it from history. The gitleaks stripe-access-token rule matches the <code>sk_</code>/<code>rk_</code> + <code>test|live|prod</code> key format, so line 4 has the shape of a real Stripe secret or restricted key. Whether either value is live, and whether the Stripe key is test or live mode, was NOT checked (values deliberately not read, no provider contacted).</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone with read access to the repository or any clone (the preview workflow accepts fork pull requests, config-301, which suggests a forkable repository) can recover a Stripe key and a second credential. If the Stripe key is live, it allows Stripe API actions on the merchant account (customers, subscriptions, refunds, payouts data); the effect of the generic key depends on what it is. Rated HIGH on the assumption that the values may be live.</p></section>
+<section><h4>Regression test</h4><p>proof: static: the secret lives in git history, which no unit test reaches; liveness can only be checked at the provider.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">exposure-306 · Data exposure &amp; secrets</p>
+</div></details>
+<details class="row sev-high" id="injection-202">
+<summary><span class="sev">high</span><span class="title">SSRF in integration.testWebhook: any signed-in user can make the server fetch an arbitrary URL and read the response</span><span class="chip chip-static">Code reading only</span><span class="loc">src/server/trpc/routers/integration.ts:18-28</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Allow only https; resolve the host and reject loopback, private, link-local, CGNAT and metadata ranges; use <code>redirect: &quot;manual&quot;</code> (or re-validate every hop); pin the resolved IP for the connection; return only the status code, not the body. Apply the same validation in <code>save</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/server/trpc/routers/integration.ts:18-28</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>testWebhook: orgProcedure.input(z.object({ url: z.string().url() })).mutation(async ({ input }) =&gt; {
+  const res = await fetch(input.url, {
+    method: &quot;POST&quot;,
+    headers: { &quot;content-type&quot;: &quot;application/json&quot; },
+    body: JSON.stringify({ type: &quot;ledgerly.test&quot;, sentAt: new Date().toISOString() }),
+    redirect: &quot;follow&quot;,
+    signal: AbortSignal.timeout(5000),
+  });
+  const text = await res.text();
+  return { status: res.status, ok: res.ok, body: text.slice(0, 2000) };
+}),</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: tRPC mutation input <code>url</code> (integration.ts:18), POST /api/trpc/integration.testWebhook (src/app/api/trpc/[trpc]/route.ts:4-11, root.ts:9). Reachable by any signed-in user with an active organization (orgProcedure, init.ts:22-26); any user can create their own organization (<code>allowUserToCreateOrganization: true</code>, src/lib/auth.ts:39), so the bar is a verified sign-up (auth.ts:14).</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: server-side fetch (integration.ts:19-25). <code>redirect: &quot;follow&quot;</code> means an attacker-hosted 301/302/303 turns the POST into a GET to any second URL; status and the first 2000 characters of the body go back to the caller (integration.ts:27).</li>
+<li><strong>Sanitization</strong>: z.string().url() checks syntax only; no scheme restriction, no loopback/private/link-local/metadata block, no host allowlist, redirects followed. Same unvalidated URL is stored by <code>save</code> (integration.ts:12-14), but nothing in the repo fetches stored webhookUrl values (grep), so no second-order sink today.</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any user who signs up and creates an organization can make the application server send requests to loopback, private-network and cloud-metadata addresses (GET via a redirect from a host they control) and read the status and up to 2000 characters of each response, and can map internal hosts and ports by status and timing. Whether a metadata service is reachable depends on the hosting (Vercel preview, Docker image), which was not checked.</p></section>
+<section><h4>Regression test</h4><p>proof: static: <code>.security-audit/tests/injection-202.ssrf.test.ts</code> (asserts testWebhook rejects loopback, link-local and private URLs and never calls fetch) was written but not run; node_modules is absent and installing is forbidden by the audit rules.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">injection-202 · Injection &amp; SSRF</p>
+</div></details>
+<details class="row sev-high" id="injection-203">
+<summary><span class="sev">high</span><span class="title">payment-method-frame postMessage receiver has no origin check and navigates to a message-supplied URL (javascript: URL runs in the app origin)</span><span class="chip chip-static">Code reading only</span><span class="loc">src/components/payment-method-frame.tsx:13-22</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Check <code>event.origin === &quot;https://billing-widget.example.com&quot;</code> and <code>event.source === iframe.contentWindow</code>; validate data with a schema (bounded integer height; url parsed with <code>new URL</code>, protocol https and host equal to the provider&#39;s confirmation host) before navigating. Follow src/components/signature-frame.tsx:22-25.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/components/payment-method-frame.tsx:13-22</code>; rendered at <code>src/app/(app)/settings/billing/page.tsx:22</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>function onMessage(event: MessageEvent&lt;WidgetMessage&gt;) {
+  const msg = event.data;
+  if (msg?.type === &quot;resize&quot;) setHeight(msg.height);
+  // After 3-D Secure the widget asks the page to continue on the provider&#39;s confirmation URL.
+  if (msg?.type === &quot;redirect&quot;) window.location.assign(msg.url);
+}
+window.addEventListener(&quot;message&quot;, onMessage);
+...
+{sub &amp;&amp; &lt;PaymentMethodFrame customerRef={sub.stripeCustomerId} /&gt;}</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>event.data</code> of any message posted to the /settings/billing window. Any page holding a reference to that window can post: an attacker page that <code>window.open</code>s it (no COOP header is set, config-308) or frames it (no frame-ancestors, config-308; session cookies are SameSite=None, src/lib/auth.ts:36, so the framed page is signed in).</li>
+<li><strong>Transformations</strong>: none: no event.origin or event.source check, no schema</li>
+<li><strong>Sink</strong>: <code>window.location.assign(msg.url)</code> (payment-method-frame.tsx:18); <code>setHeight(msg.height)</code> (line 16)</li>
+<li><strong>Sanitization</strong>: none. A <code>javascript:</code> URL passed to location.assign executes in the current document, i.e. the app origin; no CSP exists to block it (config-308). The sibling receiver src/components/signature-frame.tsx:22-25 does check origin, source and schema, which shows the intended pattern.</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>A website visited by a signed-in user whose organization has a subscription row can open or frame Settings &gt; Billing and post a <code>redirect</code> message with a <code>javascript:</code> URL, running script in the Ledgerly origin as that user (read invoices and customers, invite members, change settings), or send them to a phishing URL. The subscription precondition is not a real barrier: anyone can create a subscription row for any organization through the unsigned Stripe webhook (auth-101).</p></section>
+<section><h4>Regression test</h4><p>proof: static: <code>.security-audit/tests/injection-203.postmessage.test.ts</code> (asserts a message from a foreign origin, or with a javascript: URL, does not call location.assign) was written but not run; node_modules is absent and installing is forbidden by the audit rules.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>config-308 (no frame-ancestors/COOP/CSP: delivery path and no script block)</li>
+<li>auth-101 (unsigned Stripe webhook removes the subscription precondition)</li>
+</ul></section>
+<p class="meta">injection-203 · Injection &amp; SSRF</p>
+</div></details>
+<details class="row sev-high" id="rate-limit-101">
+<summary><span class="sev">high</span><span class="title">/api/assistant/billing takes model, maxTokens and maxSteps from the request: unbounded LLM spend</span><span class="chip chip-static">Code reading only</span><span class="loc">src/app/api/assistant/billing/route.ts:6-22</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Parse the body with zod; fix the model server side (or allowlist), clamp <code>maxSteps</code> (&lt;= 5) and <code>maxOutputTokens</code>, cap <code>instruction</code> length, and write plus check an atomic per-org usage counter in <code>usage_events</code> before each call.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/api/assistant/billing/route.ts:6-22</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>type Body = { instruction: string; model?: string; maxTokens?: number; maxSteps?: number };
+...
+const body: Body = await request.json();               // :13, type only, no runtime validation
+const { text, steps } = await generateText({
+  model: anthropic(body.model ?? &quot;claude-haiku-4-5&quot;),  // :16 any model id
+  maxOutputTokens: body.maxTokens,                     // :17 caller-chosen or provider default
+  stopWhen: stepCountIs(body.maxSteps ?? 10),          // :18 caller-chosen step count
+  prompt: body.instruction,                            // :20 unbounded length
+  tools: buildBillingTools({ orgId, userId: session.user.id }),
+});</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: JSON body of <code>POST /api/assistant/billing</code> (<code>route.ts:13</code>), any signed-in user with an active organization (<code>route.ts:9-11</code>); sign-up is self-service and <code>allowUserToCreateOrganization: true</code> (<code>src/lib/auth.ts:39</code>)</li>
+<li><strong>Transformations</strong>: none. <code>Body</code> is a TypeScript type only; no zod schema, no model allowlist, no clamp, no length cap on <code>instruction</code></li>
+<li><strong>Sink</strong>: <code>generateText</code> to Anthropic billed to Ledgerly (<code>route.ts:15-22</code>)</li>
+<li><strong>Sanitization</strong>: none. No per-user or per-org budget: <code>usage_events</code> is only read (<code>src/server/queries/dashboard.ts:25-28</code>) and never written anywhere in <code>src/</code>, so no usage counter exists to enforce one. Deployment is <code>next start</code> in a container (<code>Dockerfile:28</code>), so there is no serverless max duration that would cut a long multi-step run short</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in user (anyone can sign up and create an organization) can call <code>POST /api/assistant/billing</code> with the most expensive Anthropic model, no output cap, a very large step count and a huge instruction, in parallel and in a loop, and each call runs on Ledgerly&#39;s Anthropic account. The cost per request is chosen by the attacker, not the server.</p></section>
+<section><h4>Regression test</h4><p><code>proof: static</code> — test written at <code>.security-audit/tests/rate-limit-101.test.ts</code> (mocks <code>ai</code>, <code>@ai-sdk/anthropic</code>, session; asserts model allowlist and clamped maxOutputTokens/maxSteps), but not executed: node_modules absent and install forbidden by audit rules.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-105, auth-111 (cross-shard, see chain-notes-C.md)</li>
+</ul></section>
+<p class="meta">rate-limit-101 · Rate limiting &amp; abuse</p>
+</div></details>
+<details class="row sev-high" id="rate-limit-102">
+<summary><span class="sev">high</span><span class="title">POST /api/phone/send-code is unauthenticated and unthrottled: anyone can trigger paid SMS to any number (SMS pumping)</span><span class="chip chip-static">Code reading only</span><span class="loc">src/app/api/phone/send-code/route.ts:7-22</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Require a session or CAPTCHA; cap sends per number (e.g. 3/hour) and per IP with an atomic counter (INSERT ... ON CONFLICT or Redis INCR) checked before <code>sendSms</code>; add a cooldown, a country allowlist and a spend alarm; delete or invalidate older <code>phone:</code> rows when a new code is issued. Docs also claim the opposite: <code>README.md:31</code> (&quot;Every API route requires an authenticated session or an API key.&quot;).</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/api/phone/send-code/route.ts:7-22</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>const sendCodeInput = z.object({ phone: z.string().regex(/^\+[1-9]\d{6,14}$/) });
+export async function POST(request: Request) {
+  const { phone } = sendCodeInput.parse(await request.json());
+  const code = String(randomInt(100000, 1000000));
+  await db.insert(verification).values({ id: crypto.randomUUID(), identifier: `phone:${phone}`, ... });
+  await sendSms({ to: phone, body: `Your Ledgerly verification code is ${code}` });
+  return Response.json({ ok: true });
+}</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: unauthenticated JSON body <code>phone</code> (<code>route.ts:11</code>); only an E.164 format regex (<code>:7</code>), any country and premium-rate prefixes pass</li>
+<li><strong>Transformations</strong>: none. No session check, no per-phone/IP/day limit, no cooldown, no CAPTCHA, no country allowlist</li>
+<li><strong>Sink</strong>: <code>sendSms</code> (<code>route.ts:21</code>) to the gateway that &quot;bills every 160-character segment to Ledgerly&#39;s account&quot; (<code>src/lib/sms.ts:5-14</code>); plus one <code>verification</code> row per call (<code>route.ts:14-19</code>), never pruned, earlier codes for the same number are not invalidated</li>
+<li><strong>Sanitization</strong>: none. Better-Auth <code>rateLimit</code> (<code>src/lib/auth.ts:33</code>) only runs inside the Better-Auth handler at <code>/api/auth/*</code>, not this route. <code>src/proxy.ts</code> matcher (<code>:15-22</code>) does not cover <code>/api/*</code>. The per-org SMS cap (<code>sms-actions.ts:10,23-36</code>, non-concurrency-402) applies only to <code>sendSmsReminder</code></li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone on the internet can POST to <code>/api/phone/send-code</code> in a loop with arbitrary numbers, including premium-rate ones, and Ledgerly pays for every SMS (SMS pumping / toll fraud); the same call lets anyone flood a chosen phone with texts from &quot;Ledgerly&quot; and grows the <code>verification</code> table without bound. Not CRITICAL: financial and harassment impact, no data loss or code execution.</p></section>
+<section><h4>Regression test</h4><p><code>proof: static</code> — test written at <code>.security-audit/tests/rate-limit-102.test.ts</code> (mocks <code>@/lib/sms</code> and <code>@/db</code>; asserts the 4th send to one number within the window is refused before <code>sendSms</code> is called), but not executed: node_modules absent and install forbidden by audit rules.</p></section>
+
+<p class="meta">rate-limit-102 · Rate limiting &amp; abuse</p>
+</div></details>
+<details class="row sev-high" id="upload-401">
+<summary><span class="sev">high</span><span class="title">Presigned upload key is client-chosen with no org prefix: overwrite and read other tenants&#39; objects</span><span class="chip chip-static">Code reading only</span><span class="loc">src/app/api/uploads/route.ts:13,23-37</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Generate the key on the server (<code>${orgId}/${projectId}/${uuid}</code>) and ignore any client key; in the download route also check that <code>doc.s3Key</code> starts with the caller&#39;s org prefix. Docs also claim the opposite: <code>README.md:34</code> (&quot;presigned URLs scoped to your organization&quot;).</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/api/uploads/route.ts:13,23-37</code>; read path <code>src/app/api/documents/[id]/download/route.ts:15-31</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>key: z.string().min(1),                                                            // :13
+const url = await getSignedUrl(s3, new PutObjectCommand({ Bucket: BUCKET, Key: input.key, ContentType: input.contentType }), { expiresIn: 900 });
+await db.insert(documents).values({ id, orgId, projectId: input.projectId, s3Key: input.key, ... });
+// download: .where(and(eq(documents.id, id), eq(documents.orgId, orgId)))  then GetObjectCommand({ Key: doc.s3Key })</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: request body <code>key</code> (<code>uploads/route.ts:13</code>, parsed <code>:21</code>); any session with an active org (<code>:17-19</code>), and anyone can create an org (<code>auth.ts:39</code>)</li>
+<li><strong>Transformations</strong>: none; no <code>orgId/</code> prefix forced, no check that the key is unused or belongs to the caller</li>
+<li><strong>Sink</strong>: (1) presigned PUT for that exact key in the shared bucket (<code>:23-27</code>); (2) <code>documents.s3Key = key</code> in the caller&#39;s own org (<code>:33</code>), which the download route turns into a presigned GET after checking only that the *row* belongs to the caller (<code>download/route.ts:18,22-30</code>)</li>
+<li><strong>Sanitization</strong>: none</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>A signed-in member of any organization can overwrite any object in the documents bucket whose key they know, and can read it by registering their own document row with the victim&#39;s key and downloading it. Keys of documents attached to public projects are sent to anonymous visitors by <code>/p/[slug]</code> (the whole <code>documents</code> rows reach the client component, exposure-101), and objects of deleted orgs stay in the bucket (exposure-415), so known keys are not hypothetical.</p></section>
+<section><h4>Regression test</h4><p>proof: static. <code>.security-audit/tests/upload-401.upload-key-server-side.test.ts</code> mocks the presigner and asserts a client-supplied foreign key is never presigned and the presigned key starts with the caller&#39;s org prefix; not executed (node_modules absent, install forbidden). No storage is contacted.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>exposure-101 (key disclosure), exposure-415, auth-403, upload-402, chain-902</li>
+</ul></section>
+<p class="meta">upload-401 · File upload &amp; storage</p>
+</div></details>
+<h3>medium · 12</h3><details class="row sev-medium" id="auth-111">
+<summary><span class="sev">medium</span><span class="title">SameSite=None session cookie and no Origin check on cookie-authenticated route handlers (CSRF on invite, billing agent, uploads)</span><span class="loc">src/lib/auth.ts:36</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Set the session cookie to SameSite=Lax; add an Origin / <code>Sec-Fetch-Site</code> allowlist check for every cookie-authenticated mutating route handler; require <code>content-type: application/json</code> on JSON routes; use Better-Auth&#39;s <code>organization.inviteMember</code> API instead of inserting invitations by hand.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/lib/auth.ts:36</code>; handlers <code>src/app/api/team/invite/route.ts:9-43</code>, <code>src/app/api/assistant/billing/route.ts:8-22</code>, <code>src/app/api/uploads/route.ts:16-21</code>, <code>src/app/api/chat/route.ts:6-11</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>defaultCookieAttributes: { sameSite: &quot;none&quot;, secure: true }        // auth.ts:36
+const form = await request.formData();                            // team/invite:21, plain HTML form works
+const body: Body = await request.json();                          // assistant/billing:13, parses a text/plain body too</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: auto-submitted cross-site form on an attacker page (<code>application/x-www-form-urlencoded</code> for invite, <code>text/plain</code> with a JSON-shaped body for the JSON routes: both are CORS &quot;simple&quot; requests, no preflight); the browser attaches the session cookie because of SameSite=None</li>
+<li><strong>Transformations</strong>: these route handlers check the session only; no Origin, <code>Sec-Fetch-Site</code> or token check. <code>trustedOrigins</code> (<code>auth.ts:38</code>) protects Better-Auth&#39;s own endpoints and Next&#39;s Origin check covers server actions, not route handlers</li>
+<li><strong>Sink</strong>: invitation insert with role <code>admin</code> allowed by <code>ROLES</code> (<code>invite/route.ts:7,24-35</code>) plus the accept-link e-mail to the attacker&#39;s address (<code>:37-41</code>); billing-agent tool calls such as voidInvoice (<code>assistant/billing/route.ts:15-22</code>); <code>documents</code> row insert (<code>uploads/route.ts:29-37</code>)</li>
+<li><strong>Sanitization</strong>: none</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>An owner/admin of an organization who visits a malicious page while signed in can be made to invite the attacker&#39;s address as an org admin, and any member can be made to run billing-agent instructions (void invoices, spend LLM budget) or create document rows. Turning the invitation into membership depends on Better-Auth&#39;s accept-invitation endpoint accepting a row this app inserted directly; there is no accept page in the repo (recon A9) and the library source is not readable, so that last step is not verified, which with the victim-interaction requirement keeps this at MEDIUM.</p></section>
+<section><h4>Regression test</h4><p>MEDIUM: no regression test required.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-110 (same SameSite=None root), auth-105, rate-limit-101</li>
+</ul></section>
+<p class="meta">auth-111 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-medium" id="auth-113">
+<summary><span class="sev">medium</span><span class="title">getUsageThisMonth caches per-org usage under a key that does not contain the organization (cross-tenant cache bleed)</span><span class="loc">src/server/queries/dashboard.ts:20-33</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Pass <code>orgId</code> (and <code>since</code>) as arguments of the cached function, or add them to the key parts: <code>unstable_cache(fn, [&quot;usage-month&quot;, orgId, since.toISOString()], { revalidate: 600, tags: [</code>usage:${orgId}<code>] })</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/server/queries/dashboard.ts:20-33</code>; consumer <code>src/app/(app)/dashboard/page.tsx:6-7,20-25</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>export async function getUsageThisMonth(orgId: string) {
+  const since = startOfMonth(new Date());
+  const load = unstable_cache(
+    async () =&gt; db.select({ kind, units: sum(units) }).from(usageEvents)
+      .where(and(eq(usageEvents.orgId, orgId), gte(usageEvents.createdAt, since))).groupBy(usageEvents.kind),
+    [&quot;usage-month&quot;],
+    { revalidate: 600 },
+  );
+  return load();
+}</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>orgId</code> from the caller&#39;s session (<code>dashboard/page.tsx:6</code>), captured only in the closure of the cached function</li>
+<li><strong>Transformations</strong>: the cached function takes no arguments and its source text is the same for every org, so the cache key is <code>[&quot;usage-month&quot;]</code> + no arguments for every organization. <strong>Assumption</strong> (library source not readable, node_modules absent): Next.js documents that <code>unstable_cache</code> keys on <code>keyParts</code>, the function&#39;s arguments and its stringified source, and that <code>keyParts</code> are needed exactly when the function uses outside variables without taking them as parameters; closure values are not part of the key</li>
+<li><strong>Sink</strong>: the cached rows rendered under &quot;Usage this month&quot; on <code>/dashboard</code> (<code>page.tsx:18-25</code>) for up to 600 s</li>
+<li><strong>Sanitization</strong>: none. Contrast <code>getOrgStats</code> (<code>dashboard.ts:7-18</code>), where <code>orgId</code> is an argument and therefore part of the key (non-concurrency-403, non-auth-106)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>A member of one organization sees whichever organization last populated the entry: that org&#39;s usage kinds and monthly unit totals, for up to 10 minutes, and every org sees wrong usage figures for itself. The data is aggregate business metrics, not PII, and the attacker cannot choose the victim, so this is MEDIUM (limited impact) rather than HIGH.</p></section>
+<section><h4>Regression test</h4><p>MEDIUM: no regression test required.</p></section>
+
+<p class="meta">auth-113 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-medium" id="auth-403">
+<summary><span class="sev">medium</span><span class="title">Upload accepts any projectId without checking it belongs to the caller&#39;s organization (cross-tenant document attach)</span><span class="loc">src/app/api/uploads/route.ts:10,29-37</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Look the project up with <code>and(eq(projects.id, projectId), eq(projects.orgId, orgId))</code> before presigning and return 404 otherwise; filter <code>documents</code> by the project&#39;s own <code>orgId</code> on the public page; create the row only after the upload is confirmed.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/api/uploads/route.ts:10,29-37</code>; public render <code>src/app/p/[slug]/page.tsx:7-10</code>, <code>src/components/public-project-view.tsx:30-31</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>projectId: z.string().min(1),          // :10, never looked up
+await db.insert(documents).values({ id, orgId, projectId: input.projectId, s3Key: input.key, filename: input.filename, ... });</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: request body <code>projectId</code> and <code>filename</code> (<code>route.ts:10-11,21</code>)</li>
+<li><strong>Transformations</strong>: none that constrain the value; the FK only requires that the project exists (<code>schema.ts:158</code>)</li>
+<li><strong>Sink</strong>: <code>documents</code> insert (<code>route.ts:29-37</code>); <code>/p/[slug]</code> loads <code>with: { documents: true }</code> by project, regardless of the document&#39;s <code>orgId</code>, and lists each <code>filename</code></li>
+<li><strong>Sanitization</strong>: none</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>A signed-in member of any organization can attach document entries to another organization&#39;s project by id. On a public project the attacker&#39;s filename (up to 200 chars, rendered as text) appears on the victim&#39;s anonymous <code>/p/[slug]</code> page, which gives a content-spoofing/phishing vector inside another tenant&#39;s page; public project ids are exposed by that same page (exposure-101). Rows are also created before any upload happens.</p></section>
+<section><h4>Regression test</h4><p>MEDIUM: no regression test required.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>upload-401, exposure-101, chain-902</li>
+</ul></section>
+<p class="meta">auth-403 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-medium" id="config-307">
+<summary><span class="sev">medium</span><span class="title">Dockerfile bakes DATABASE_URL, BETTER_AUTH_SECRET and STRIPE_SECRET_KEY into the final image via ARG and ENV</span><span class="loc"></span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Remove the three ARG/ENV lines and inject secrets at run time through the platform environment or a secrets manager. Rotate any secret already built into a pushed image.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>Dockerfile:14-22</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>FROM node:22.11-alpine3.20 AS runner
+ARG DATABASE_URL
+ARG BETTER_AUTH_SECRET
+ARG STRIPE_SECRET_KEY
+ENV DATABASE_URL=$DATABASE_URL \
+    BETTER_AUTH_SECRET=$BETTER_AUTH_SECRET \
+    STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>--build-arg</code> values supplied by whoever builds the image</li>
+<li><strong>Transformations</strong>: ENV in the final (runner) stage stores the values in the image config; the ARG values are also recorded in the image history</li>
+<li><strong>Sink</strong>: anyone who can pull the image or read the registry (or a build cache) runs <code>docker inspect</code> / <code>docker history</code> and reads the values; the same values are the live production credentials the app reads at <code>src/db/index.ts:5</code> and <code>src/lib/stripe.ts:3</code></li>
+<li><strong>Sanitization</strong>: none: no <code>RUN --mount=type=secret</code>, no run-time injection; .dockerignore excludes .env (so this is the only path)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone with pull access to the image (registry users, CI caches, a leaked image) can read the production database URL, the Stripe secret key and BETTER_AUTH_SECRET, the last of which lets them forge session cookies for any user. Prerequisite (1): the image is built with these build args, which the Dockerfile requires for them to have any value.</p></section>
+<section><h4>Regression test</h4><p>n/a (MEDIUM).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">config-307 · Headers, CORS, build &amp; deploy configuration</p>
+</div></details>
+<details class="row sev-medium" id="config-308">
+<summary><span class="sev">medium</span><span class="title">No framing protection (frame-ancestors/X-Frame-Options), COOP or CSP while session cookies are SameSite=None</span><span class="loc">next.config.ts:3-13</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Add headers() in next.config.ts: <code>Content-Security-Policy: frame-ancestors &#39;self&#39;</code> (plus a script-src policy), <code>X-Frame-Options: DENY</code>, <code>Cross-Origin-Opener-Policy: same-origin</code>, <code>X-Content-Type-Options: nosniff</code>, <code>Strict-Transport-Security</code>, <code>Referrer-Policy</code>. Use SameSite=Lax cookies unless a cross-site embed truly needs None.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>next.config.ts:3-13</code>; <code>src/proxy.ts:4-12</code>; <code>src/lib/auth.ts:36</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>const config: NextConfig = {
+  images: { remotePatterns: [...] },
+  experimental: { serverActions: { bodySizeLimit: &quot;2mb&quot; } },
+};  // no headers()
+// auth.ts
+defaultCookieAttributes: { sameSite: &quot;none&quot;, secure: true },</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: n/a (response headers)</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: every page response, including one-click state-changing forms (Upgrade buttons, src/app/(app)/settings/billing/page.tsx:16-21) and the billing page&#39;s postMessage receiver (injection-203)</li>
+<li><strong>Sanitization</strong>: none: no headers() in next.config.ts, proxy.ts sets no headers, grep of src and config for Content-Security-Policy, X-Frame-Options, frame-ancestors, Cross-Origin-Opener-Policy and Strict-Transport-Security finds nothing. Because the session cookie is SameSite=None, a cross-site iframe of the app is signed in. The hosting platform may add headers; not visible in the repo and not checked.</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any website can frame signed-in Ledgerly pages and trick users into clicking (clickjacking on billing and invoice actions), and can hold a window reference to app pages, which is the delivery path for injection-203. Without CSP, any script injection (injection-201, injection-203) runs unrestricted. Missing HSTS and nosniff are hardening only.</p></section>
+<section><h4>Regression test</h4><p>n/a (MEDIUM).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>injection-203 (delivery path via frame or opener; no CSP to block the javascript: URL)</li>
+<li>auth-111 (same SameSite=None root cause; noted for COMBINE)</li>
+</ul></section>
+<p class="meta">config-308 · Headers, CORS, build &amp; deploy configuration</p>
+</div></details>
+<details class="row sev-medium" id="exposure-101">
+<summary><span class="sev">medium</span><span class="title">Public project page sends the full project row (internal notes, budget, client contact e-mail, org id, document S3 keys) to anonymous visitors</span><span class="loc">src/app/p/[slug]/page.tsx:7-12</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Select only name, description and document filename (a DTO) before passing data to the client component; never pass full ORM rows to &quot;use client&quot; components.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/p/[slug]/page.tsx:7-12</code>; <code>src/components/public-project-view.tsx:1,19-21</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>const project = await db.query.projects.findFirst({
+  where: (p, { and, eq }) =&gt; and(eq(p.slug, slug), eq(p.isPublic, true)),
+  with: { documents: true },
+});
+return &lt;PublicProjectView project={project} /&gt;;   // &quot;use client&quot; component</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: anonymous GET /p/&lt;slug&gt;; /p is not in the proxy matcher (src/proxy.ts:14-22) and the page has no session check</li>
+<li><strong>Transformations</strong>: the whole row (internalNotes, budgetCents, clientContactEmail, orgId, createdBy; src/db/schema.ts:95-107) plus every document row (s3Key, orgId, uploadedBy; schema.ts:153-164) is passed as a prop to a client component, so React serializes all of it into the RSC payload in the HTML</li>
+<li><strong>Sink</strong>: HTML/RSC response; the component renders only name, description and filenames (public-project-view.tsx:12-21), but all props are sent</li>
+<li><strong>Sanitization</strong>: none: no column selection</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone can read the internal notes, budget, client contact e-mail, organization id and document storage keys of every public project from the page source, although the UI shows only name, description and file names. Limited to projects marked public.</p></section>
+<section><h4>Regression test</h4><p>n/a (MEDIUM).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-108 (any member, of any org, can flip isPublic on a project by id: turns this into exposure of arbitrary projects)</li>
+<li>upload-401 (leaked s3Key values feed the client-chosen-key upload/read issue; auth-112 merged into it), auth-107, auth-106, auth-108, auth-403 (leaked org and project ids), chain-901, chain-902</li>
+</ul></section>
+<p class="meta">exposure-101 · Data exposure &amp; secrets</p>
+</div></details>
+<details class="row sev-medium" id="exposure-415">
+<summary><span class="sev">medium</span><span class="title">Deleting an organization leaves its uploaded objects in the bucket, contrary to the &quot;including uploaded documents&quot; promise</span><span class="loc">src/app/(app)/settings/organization/actions.ts:9-22</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Before the DB delete, collect the org&#39;s <code>documents.s3Key</code> values (or delete by a server-generated <code>${orgId}/</code> prefix once upload-401 is fixed) and delete the objects, or enqueue a retried job that does. Docs also claim the opposite: <code>src/app/(app)/settings/organization/actions.ts:9,20</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/(app)/settings/organization/actions.ts:9-22</code>; <code>src/db/schema.ts:153-163</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>// Settings → Danger zone: &quot;Permanently delete this organization and all of its data, including uploaded documents.&quot;
+...
+// Every org-owned table references organization with onDelete: &quot;cascade&quot;, documents included.
+await db.delete(organization).where(eq(organization.id, orgId));</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: owner calls <code>deleteOrganization</code> after confirming the slug (<code>actions.ts:10-18</code>)</li>
+<li><strong>Transformations</strong>: the DB cascade removes <code>documents</code> rows (<code>schema.ts:155-158</code>); nothing lists or deletes objects: no <code>DeleteObjectCommand</code>/<code>DeleteObjectsCommand</code> anywhere under <code>src/</code> (grep), no job enqueued</li>
+<li><strong>Sink</strong>: objects stay in the R2 bucket under their <code>s3Key</code>, while the rows that recorded the keys are gone</li>
+<li><strong>Sanitization</strong>: none in the repo; a bucket lifecycle rule outside the repo was not checkable</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>After an owner &quot;permanently&quot; deletes an organization, its uploaded customer documents stay in storage indefinitely and can no longer be found from the database, so erasure commitments are not met. Anyone who knows such a key can still read or overwrite the object through the upload/download flaw (upload-401).</p></section>
+<section><h4>Regression test</h4><p>MEDIUM: no regression test required.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>upload-401</li>
+</ul></section>
+<p class="meta">exposure-415 · Data exposure &amp; secrets</p>
+</div></details>
+<details class="row sev-medium" id="injection-201">
+<summary><span class="sev">medium</span><span class="title">LLM-generated HTML from invoice notes, line descriptions and customer name rendered with dangerouslySetInnerHTML</span><span class="loc">src/app/(app)/invoices/[id]/summary/page.tsx:23-37</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Do not render model output as HTML. Return plain text or structured JSON and render it with React elements, or pass it through a sanitizer with an allowlist of p, ul, li, strong and no attributes.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/(app)/invoices/[id]/summary/page.tsx:23-37</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>const { text: summaryHtml } = await generateText({
+  model: anthropic(&quot;claude-haiku-4-5&quot;),
+  system: &quot;Summarise the invoice ... Answer with an HTML fragment using &lt;p&gt;, &lt;ul&gt; and &lt;strong&gt;.&quot;,
+  prompt: [
+    `Invoice ${invoice.number} for ${invoice.customer}.`,
+    `Notes: ${invoice.notes ?? &quot;none&quot;}`,
+    ...lines.map((l) =&gt; `- ${l.quantity} x ${l.description}`),
+  ].join(&quot;\n&quot;),
+});
+...
+&lt;div dangerouslySetInnerHTML={{ __html: summaryHtml }} /&gt;</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: invoices.number, invoices.notes, customers.name (page.tsx:15) and invoice_lines.description (page.tsx:21), stored text. No code in this repository writes invoices, invoice lines or customers (grep for insert/update of these tables finds only status updates and the erasure path), so who authors that text was not verified.</li>
+<li><strong>Transformations</strong>: concatenated into the prompt (page.tsx:27-31); the model&#39;s text is returned unchanged (page.tsx:23)</li>
+<li><strong>Sink</strong>: dangerouslySetInnerHTML (page.tsx:37), server-rendered in the signed-in app origin; on first load the HTML parser runs inline <code>&lt;script&gt;</code>, on client navigation event-handler attributes (e.g. <code>&lt;img onerror&gt;</code>) still run</li>
+<li><strong>Sanitization</strong>: none; the system prompt asking for p/ul/strong is not a control. The sibling action escapes model output (summary/actions.ts:12-13,34), this page does not.</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Whoever can author invoice text that reaches this prompt can instruct the model to emit script-bearing HTML that runs in the session of every org user who opens /invoices/&lt;id&gt;/summary (owners and admins included). Rated MEDIUM, not HIGH: the write path for that text is not in this repository (assumed to be org members or imported data), and the attack also depends on the model following the injected instruction.</p></section>
+<section><h4>Regression test</h4><p>n/a (MEDIUM). A test would stub <code>generateText</code> to return <code>&lt;img src=x onerror=alert(1)&gt;</code> and assert the rendered output contains no <code>onerror</code> attribute.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-104 (an XSS in an owner&#39;s session can perform any owner action; noted for COMBINE)</li>
+</ul></section>
+<p class="meta">injection-201 · Injection &amp; SSRF</p>
+</div></details>
+<details class="row sev-medium" id="injection-212">
+<summary><span class="sev">medium</span><span class="title">Systematic (2 locations): e-mail HTML built from unescaped user-controlled fields; anyone can inject HTML into a Ledgerly verification e-mail sent to any address</span><span class="loc">src/lib/auth.ts:17-25</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>HTML-escape every interpolated field in e-mail templates (move escapeHtml to src/lib and use it in auth.ts and digest.ts), or use a mail templating library that escapes by default. Consider rejecting <code>&lt;</code>/<code>&gt;</code> in display names at sign-up.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/lib/auth.ts:17-25</code> (verification e-mail); <code>src/server/jobs/digest.ts:33-42</code> (overdue digest)</li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>// src/lib/auth.ts
+sendVerificationEmail: async ({ user, url }) =&gt; {
+  await sendEmail({ to: user.email, subject: &quot;Verify your Ledgerly account&quot;,
+    html: `&lt;p&gt;Hi ${user.name},&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;${url}&quot;&gt;Verify your email&lt;/a&gt;&lt;/p&gt;` });
+},
+// src/server/jobs/digest.ts
+.map((i) =&gt; `&lt;tr&gt;&lt;td&gt;${i.number}&lt;/td&gt;&lt;td&gt;${i.customer}&lt;/td&gt;...`)
+html: `&lt;p&gt;Hi ${r.name},&lt;/p&gt;&lt;table&gt;${rows}&lt;/table&gt;`,</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: (1) <code>name</code> and <code>email</code> of the public Better-Auth sign-up (POST /api/auth/sign-up/email, src/app/api/auth/[...all]/route.ts), both chosen by an anonymous caller; <code>sendOnSignUp: true</code> (auth.ts:18). (2) invoices.number and customers.name in the digest (digest.ts:18-21); no write path for these in the repo, so their authors were not verified. user.name in the digest goes only into that user&#39;s own mail (no cross-user effect).</li>
+<li><strong>Transformations</strong>: template-string interpolation into HTML</li>
+<li><strong>Sink</strong>: sendEmail html (src/lib/email.ts:5-11), sent from <code>notifications@ledgerly.app</code></li>
+<li><strong>Sanitization</strong>: none at either site; the code base has an escapeHtml helper (src/app/(app)/invoices/[id]/summary/actions.ts:12-13) that these sites do not use</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone, without an account, can sign up with a victim&#39;s e-mail address and a name containing HTML (links, buttons, fake text), so Ledgerly&#39;s own sender delivers attacker-written content to that victim, which helps phishing because the mail is genuinely from the product. In the digest, customer and invoice text is injected the same way, and the cross-organization recipient list (auth-109) carries it to users outside the organization. Mail clients block script, so the effect is content and link injection, not code execution.</p></section>
+<section><h4>Regression test</h4><p>n/a (MEDIUM).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-109 (digest goes to every opted-in user on the platform; exposure-412 merged into it)</li>
+<li>rate-limit-411 (invite has no throttle; same mail-abuse family, invite HTML itself has no user fields)</li>
+</ul></section>
+<p class="meta">injection-212 · Injection &amp; SSRF</p>
+</div></details>
+<details class="row sev-medium" id="rate-limit-103">
+<summary><span class="sev">medium</span><span class="title">Member-reachable LLM calls have no per-user or per-org budget (systematic: 3 locations: /api/chat, invoice summary page, sendAiReminder)</span><span class="loc">src/app/api/chat/route.ts:11-19</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Cap chat message count and total characters, cache the summary per invoice (regenerate on change), and add a per-org daily LLM budget backed by <code>usage_events</code> that is checked before each call (shared helper for all three sites and rate-limit-101).</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/api/chat/route.ts:11-19</code>, <code>src/app/(app)/invoices/[id]/summary/page.tsx:23-32</code>, <code>src/app/(app)/invoices/[id]/summary/actions.ts:25-29</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>// chat/route.ts:11-19
+const { messages }: { messages: UIMessage[] } = await request.json();   // no count/size cap
+streamText({ model: anthropic(&quot;claude-sonnet-4-5&quot;), messages: convertToModelMessages(messages), ..., stopWhen: stepCountIs(5) });
+// summary/page.tsx:23-25  (runs on every GET render of /invoices/[id]/summary)
+generateText({ model: anthropic(&quot;claude-haiku-4-5&quot;), maxOutputTokens: 400, ... })
+// summary/actions.ts:25-27  (sendAiReminder)
+generateText({ model: anthropic(&quot;claude-haiku-4-5&quot;), maxOutputTokens: 300, ... })</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: authenticated member requests: chat <code>messages</code> body (<code>chat/route.ts:11</code>), GET of the summary page (<code>page.tsx:10-12</code>), <code>sendAiReminder(invoiceId)</code> server action (<code>actions.ts:15</code>)</li>
+<li><strong>Transformations</strong>: model fixed server side at all three, step cap 5 in chat, output caps 400/300 on the other two (good). No cap on chat message count or total characters (route handlers have no body limit here; <code>serverActions.bodySizeLimit</code> in <code>next.config.ts:11</code> does not apply to route handlers). No caching of the page summary</li>
+<li><strong>Sink</strong>: Anthropic API billed to Ledgerly (<code>chat/route.ts:13</code>, <code>page.tsx:23</code>, <code>actions.ts:25</code>)</li>
+<li><strong>Sanitization</strong>: none beyond the fixed models and caps; no rate limit, no per-org budget (<code>usage_events</code> never written, see rate-limit-101)</li>
+<li><strong>Verdict</strong>: VULNERABLE (bounded per request, unbounded in volume)</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in user (self-service sign-up and org creation) can loop <code>/api/chat</code> with near-context-window message histories on claude-sonnet-4-5 (input cost per step chosen by the caller, up to 5 steps), or reload the invoice summary page and fire <code>sendAiReminder</code> repeatedly, and every call is billed to Ledgerly&#39;s Anthropic account with no quota. Per-request cost is server-bounded, which separates this from rate-limit-101; the volume is not.</p></section>
+<section><h4>Regression test</h4><p>Not required (MEDIUM).</p></section>
+
+<p class="meta">rate-limit-103 · Rate limiting &amp; abuse</p>
+</div></details>
+<details class="row sev-medium" id="rate-limit-411">
+<summary><span class="sev">medium</span><span class="title">Team invite has no dedupe or rate limit: any user can send unlimited Ledgerly invitation e-mails to arbitrary addresses</span><span class="loc">src/app/api/team/invite/route.ts:14-41</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Unique partial index on (organization_id, lower(email)) where status = &#39;pending&#39; with upsert/resend cooldown, a per-org daily invite cap, and a per-user rate limit on the route.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/api/team/invite/route.ts:14-41</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>if (!me || (me.role !== &quot;owner&quot; &amp;&amp; me.role !== &quot;admin&quot;)) return new Response(&quot;Forbidden&quot;, { status: 403 });
+const email = String(form.get(&quot;email&quot;) ?? &quot;&quot;).trim().toLowerCase();
+if (!email.includes(&quot;@&quot;) || !ROLES.has(role)) return new Response(&quot;Invalid invitation&quot;, { status: 400 });
+await db.insert(invitation).values({ id, organizationId: orgId, email, role, status: &quot;pending&quot;, ... });
+await sendEmail({ to: email, subject: &quot;You have been invited to Ledgerly&quot;, html: ... });</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: form field <code>email</code> (<code>route.ts:22</code>), only <code>includes(&quot;@&quot;)</code> validation (<code>:24</code>)</li>
+<li><strong>Transformations</strong>: role gate owner/admin (<code>:14-19</code>). That gate is not a meaningful barrier for abuse: sign-up is self-service and <code>organization({ allowUserToCreateOrganization: true })</code> (<code>src/lib/auth.ts:39</code>), so any user can create an org; I assume (Better-Auth default <code>creatorRole: &quot;owner&quot;</code>, library code not available in this checkout) the creator becomes its owner</li>
+<li><strong>Sink</strong>: <code>invitation</code> insert (<code>:27-35</code>) and <code>sendEmail</code> to the caller-chosen address via Resend (<code>:37-41</code>, <code>src/lib/email.ts:6-11</code>)</li>
+<li><strong>Sanitization</strong>: none. No unique (org, email, pending) index (<code>src/db/schema.ts:78-90</code>), no cooldown, no per-org daily cap; Better-Auth <code>rateLimit</code> (<code>auth.ts:33</code>) covers only <code>/api/auth/*</code></li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any user who signs up and creates an organization can POST <code>/api/team/invite</code> in a loop and make Ledgerly send unlimited invitation e-mails to any third-party address (mail bombing from Ledgerly&#39;s domain, Resend cost, and spam complaints that can get the sending domain suspended, which would also stop verification e-mails for all users). Content is fixed, so phishing value is low.</p></section>
+<section><h4>Regression test</h4><p>Not required (MEDIUM).</p></section>
+
+<p class="meta">rate-limit-411 · Rate limiting &amp; abuse</p>
+</div></details>
+<details class="row sev-medium" id="upload-402">
+<summary><span class="sev">medium</span><span class="title">Presigned PUT has no size limit, no content-type allowlist and no content validation</span><span class="loc">src/app/api/uploads/route.ts:9-14,23-27</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Allowlist content types, sign with <code>ContentLength</code> (or use a presigned POST with <code>content-length-range</code>), cap per-org storage and presign rate, and verify size/magic bytes after upload before the document becomes usable.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/api/uploads/route.ts:9-14,23-27</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>contentType: z.string().min(1),
+...
+new PutObjectCommand({ Bucket: BUCKET, Key: input.key, ContentType: input.contentType }), { expiresIn: 900 }</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: request body <code>contentType</code> and <code>key</code> (<code>route.ts:12-13</code>)</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: presigned PUT (<code>:23-27</code>) with no <code>ContentLength</code>, so the URL accepts a body up to the provider&#39;s single-PUT maximum, with an attacker-chosen Content-Type; no rate limit on presign requests</li>
+<li><strong>Sanitization</strong>: none on upload. Downloads are forced to <code>attachment</code> (<code>download/route.ts:27</code>), which limits in-browser rendering through that route only</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in member (anyone can sign up and create an org) can store objects of unbounded size and number in Ledgerly&#39;s bucket, driving storage cost, and can store <code>text/html</code> or <code>image/svg+xml</code> objects. Whether the bucket is also served publicly (a <code>*.r2.dev</code> host is allowed in <code>next.config.ts</code> image patterns) was not checked; if it is, those objects render inline from that host.</p></section>
+<section><h4>Regression test</h4><p>MEDIUM: no regression test required.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>upload-401</li>
+</ul></section>
+<p class="meta">upload-402 · File upload &amp; storage</p>
+</div></details>
+<h3>low · 7</h3><details class="row sev-low" id="business-logic-101">
+<summary><span class="sev">low</span><span class="title">Invoice status transitions are unchecked: void invoices can be marked paid, paid invoices voided, paidAt re-stamped (also under concurrent calls)</span><span class="loc">src/app/(app)/invoices/actions.ts:19-27</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Make each transition conditional and atomic: <code>.where(and(eq(invoices.id, id), eq(invoices.orgId, orgId), eq(invoices.status, &quot;open&quot;)))</code> with <code>.returning()</code>, and report an error when no row was updated; same in both AI tools.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/(app)/invoices/actions.ts:19-27</code>, <code>src/server/ai/billing-tools.ts:12-18</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>// invoices/actions.ts:22-25  (markInvoicePaid server action, any member)
+await db.update(invoices).set({ status: &quot;paid&quot;, paidAt: new Date() })
+  .where(and(eq(invoices.id, id), eq(invoices.orgId, orgId)));
+// billing-tools.ts:13-17  (voidInvoice tool, executed without approval via /api/assistant/billing)
+await db.update(invoices).set({ status: &quot;void&quot; }).where(eq(invoices.id, invoiceId)).returning(...);</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: invoice id from the <code>markInvoicePaid</code> server action argument (<code>invoices/actions.ts:21</code>) or from the model in <code>/api/assistant/billing</code> (<code>billing-tools.ts:12</code>)</li>
+<li><strong>Transformations</strong>: zod <code>min(1)</code> only; no current-status condition in either WHERE clause, no transaction, no version column; return value / row count not checked in the action</li>
+<li><strong>Sink</strong>: <code>invoices.status</code> / <code>paidAt</code> overwritten (<code>invoices/actions.ts:22-25</code>, <code>billing-tools.ts:13-17</code>). The AI tool <code>markInvoicePaid</code> (<code>billing-tools.ts:27-31</code>) has the same pattern but has <code>needsApproval: true</code> and the billing route never supplies an approval; I assume (AI SDK 6 semantics, library code not available) it is never executed there</li>
+<li><strong>Sanitization</strong>: none</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>A signed-in member can mark a voided (or draft) invoice as paid, void an already paid one, or re-stamp <code>paidAt</code> on repeat or double-submit; concurrent markInvoicePaid and voidInvoice calls end in last-write-wins. Members are already allowed to change invoice status, so this is a bookkeeping-integrity flaw within their own org: LOW. The cross-tenant case (voidInvoice has no org filter) is auth-105 in another shard.</p></section>
+<section><h4>Regression test</h4><p>Not required (LOW).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-105 (cross-shard, see chain-notes-C.md)</li>
+</ul></section>
+<p class="meta">business-logic-101 · Business logic</p>
+</div></details>
+<details class="row sev-low" id="concurrency-405">
+<summary><span class="sev">low</span><span class="title">Stripe webhook has no idempotency or ordering guard: a redelivered checkout.session.completed re-activates a canceled subscription and overwrites stripeSubscriptionId</span><span class="loc">src/app/api/webhooks/stripe/route.ts:7-38</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Verify the signature first (auth-101); store <code>event.id</code> in a table with a unique constraint and skip duplicates; ignore events older than <code>subscriptions.updatedAt</code> or re-fetch the subscription from Stripe; check <code>payment_status</code>; handle <code>customer.subscription.updated</code> and <code>checkout.session.async_payment_failed</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/api/webhooks/stripe/route.ts:7-38</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>const event = (await request.json()) as Stripe.Event;          // :7  event.id never stored
+case &quot;checkout.session.completed&quot;: ...
+  .onConflictDoUpdate({ target: subscriptions.orgId,
+    set: { plan, status: &quot;active&quot;, stripeSubscriptionId: String(checkout.subscription), updatedAt: new Date() } });  // :25-28
+case &quot;customer.subscription.deleted&quot;: ...
+  .set({ status: &quot;canceled&quot;, updatedAt: new Date() }).where(eq(subscriptions.stripeSubscriptionId, sub.id));        // :33-36</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: webhook event body (<code>route.ts:7</code>)</li>
+<li><strong>Transformations</strong>: none. No processed-event table, no comparison of <code>event.created</code> with <code>subscriptions.updatedAt</code>, no <code>payment_status</code> check, no handling of <code>customer.subscription.updated</code> or <code>checkout.session.async_payment_failed</code></li>
+<li><strong>Sink</strong>: unconditional upsert to <code>status: &quot;active&quot;</code> keyed by orgId (<code>route.ts:15-28</code>); cancellation matched only by <code>stripeSubscriptionId</code> (<code>:33-36</code>)</li>
+<li><strong>Sanitization</strong>: none</li>
+<li><strong>Verdict</strong>: VULNERABLE (under specific delivery conditions)</li>
+</ul></section>
+<section><h4>Impact</h4><p>When Stripe redelivers a <code>checkout.session.completed</code> after the subscription was canceled (Stripe retries failed deliveries for days and does not guarantee order), the org is set back to <code>active</code> on its paid plan without paying, and a stale <code>stripeSubscriptionId</code> makes later cancellation events miss the row. This needs a failed or out-of-order delivery that the user does not control, so LOW. Not counted here: forging events, which is the missing signature check (auth-101); once that is fixed, this finding is what remains.</p></section>
+<section><h4>Regression test</h4><p>Not required (LOW).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-101 (forged events: missing signature check on the same handler; auth-404 merged into it)</li>
+</ul></section>
+<p class="meta">concurrency-405 · Concurrency &amp; races</p>
+</div></details>
+<details class="row sev-low" id="concurrency-410">
+<summary><span class="sev">low</span><span class="title">startCheckout does not check for an existing subscription and any member can start it: a second completed checkout overwrites the org&#39;s subscription record and orphans the first</span><span class="loc">src/app/(app)/settings/billing/actions.ts:10-22</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Restrict to owner/admin, refuse checkout when the org already has an active subscription (send to the Stripe customer portal to change plan), keep one Stripe customer per org, and pass an <code>idempotencyKey</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/(app)/settings/billing/actions.ts:10-22</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>export async function startCheckout(plan: z.infer&lt;typeof planInput&gt;) {
+  const { session, orgId } = await requireOrg();          // any member, no role check
+  const selected = planInput.parse(plan);
+  const checkout = await stripe.checkout.sessions.create({ mode: &quot;subscription&quot;, customer_email: session.user.email,
+    line_items: [{ price: PRICES[selected], quantity: 1 }], metadata: { orgId, plan: selected }, ... });  // no idempotencyKey, no subscriptions lookup
+  redirect(checkout.url!);
+}</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: server action argument <code>plan</code> (zod enum, <code>actions.ts:8,12</code>); <code>orgId</code> from the session (<code>:11</code>)</li>
+<li><strong>Transformations</strong>: none checks <code>subscriptions</code> for an existing active row; no owner/admin check; a new Stripe customer per checkout (<code>customer_email</code>)</li>
+<li><strong>Sink</strong>: <code>stripe.checkout.sessions.create</code> (<code>actions.ts:13-20</code>), then on completion the webhook upsert keyed by orgId overwrites <code>plan</code> and <code>stripeSubscriptionId</code> (<code>src/app/api/webhooks/stripe/route.ts:25-28</code>)</li>
+<li><strong>Sanitization</strong>: none</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any member of an organization (not only owner/admin) can complete a second checkout, which replaces the org&#39;s recorded plan and <code>stripeSubscriptionId</code>; the first subscription keeps billing whoever paid for it with no record in Ledgerly, and its cancellation event no longer matches. A member can thereby change the org&#39;s plan (e.g. team to pro), at the cost of paying for the new one. Correction to the raw claim: a double click only creates two Checkout sessions; a duplicate subscription needs two checkouts actually completed and paid, so LOW.</p></section>
+<section><h4>Regression test</h4><p>Not required (LOW).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>concurrency-405</li>
+</ul></section>
+<p class="meta">concurrency-410 · Concurrency &amp; races</p>
+</div></details>
+<details class="row sev-low" id="injection-207">
+<summary><span class="sev">low</span><span class="title">CSV export does not neutralize spreadsheet formulas in customer fields</span><span class="loc">src/app/api/export/route.ts:26-28,38-40</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Prefix cells that begin with <code>=</code>, <code>+</code>, <code>-</code>, <code>@</code>, tab or CR with a single quote and quote cells containing CR.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/api/export/route.ts:26-28,38-40</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>const body = rows.map((r) =&gt;
+  [r.name, r.email, r.phone ?? &quot;&quot;, r.taxId ?? &quot;&quot;, r.createdAt.toISOString()].map(csvCell).join(&quot;,&quot;),
+);
+function csvCell(value: string) {
+  return /[&quot;,\n]/.test(value) ? `&quot;${value.replace(/&quot;/g, &#39;&quot;&quot;&#39;)}&quot;` : value;
+}</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: customers.name, email, phone, taxId (export/route.ts:15-19). No code in this repository creates or edits customers (only the erasure path, customers/actions.ts:22), so who writes these values was not verified.</li>
+<li><strong>Transformations</strong>: csvCell quotes only on <code>&quot;</code>, <code>,</code> and <code>\n</code></li>
+<li><strong>Sink</strong>: text/csv attachment (route.ts:30-35), opened in a spreadsheet by the exporting user</li>
+<li><strong>Sanitization</strong>: no prefix for cells starting with <code>=</code>, <code>+</code>, <code>-</code>, <code>@</code>, tab or CR; CR missing from the quoting regex</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Whoever can set a customer&#39;s name or contact fields can plant a formula that a spreadsheet evaluates when a user opens the export, which can exfiltrate neighbouring cells through a hyperlink or external-reference formula. Modern spreadsheet apps warn before external content, and the customer write path is not in this repository, so LOW.</p></section>
+<section><h4>Regression test</h4><p>n/a (LOW).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>none (auth-107 lets an attacker export another org&#39;s customers, but a formula then fires in the attacker&#39;s own spreadsheet; no combined gain)</li>
+</ul></section>
+<p class="meta">injection-207 · Injection &amp; SSRF</p>
+</div></details>
+<details class="row sev-low" id="injection-213">
+<summary><span class="sev">low</span><span class="title">Post-login redirect check accepts /\host and /&lt;tab&gt;/host, which URL parsing turns into //host</span><span class="loc">src/components/login-form.tsx:18-19</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Resolve with <code>new URL(next, location.origin)</code>, require <code>url.origin === location.origin</code>, and push <code>url.pathname + url.search + url.hash</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/components/login-form.tsx:18-19</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>const next = params.get(&quot;next&quot;);
+router.push(next &amp;&amp; next.startsWith(&quot;/&quot;) &amp;&amp; !next.startsWith(&quot;//&quot;) ? next : &quot;/dashboard&quot;);</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>next</code> query parameter of /login (set legitimately by src/proxy.ts:8; a crafted link can set any value)</li>
+<li><strong>Transformations</strong>: only checks a leading <code>/</code> and rejects a leading <code>//</code></li>
+<li><strong>Sink</strong>: router.push(next) after a successful sign-in (login-form.tsx:19)</li>
+<li><strong>Sanitization</strong>: no origin comparison. WHATWG URL parsing treats <code>\</code> like <code>/</code> for http(s) and strips tab/newline, so <code>/\evil.example</code> and <code>/%09/evil.example</code> (decoded to a tab by searchParams) resolve to <code>https://evil.example/</code>; the app router performs a full navigation for a cross-origin URL. Not run in a browser in this audit; inferred from URL parsing rules.</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>A link to /login with a crafted <code>next</code> sends the user to another site right after they sign in, which makes a fake &quot;session expired, sign in again&quot; page convincing. No token is leaked by the redirect itself.</p></section>
+<section><h4>Regression test</h4><p>n/a (LOW).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">injection-213 · Injection &amp; SSRF</p>
+</div></details>
+<details class="row sev-low" id="logging-309">
+<summary><span class="sev">low</span><span class="title">No security event logging or monitoring: failed API keys, forged webhooks and privilege changes leave no trace</span><span class="loc">src/server/jobs/worker.ts:23-26</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Add structured logging (without secrets or request bodies) for failed sign-ins, invalid API keys, webhook verification failures, role/membership changes and data exports, and ship it to an alerting backend.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/server/jobs/worker.ts:23-26</code>; <code>src/server/api/index.ts:25-26,33</code>; <code>src/app/api/webhooks/resend/route.ts:19-21</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>// the only logging statement under src/
+main().catch((err) =&gt; { console.error(err); process.exit(1); });
+// index.ts
+if (!key) return c.json({ error: &quot;invalid_api_key&quot; }, 401);
+// resend route
+} catch { return new Response(&quot;Invalid signature&quot;, { status: 400 }); }</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: security events: invalid API keys (src/server/api/index.ts:26), unauthorized public-API calls (index.ts:33), webhook signature failures (resend/route.ts:19-21), admin/role and organization changes</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: none: the events return an error response and are not recorded</li>
+<li><strong>Sanitization</strong>: n/a. grep for console., logger, pino, winston and Sentry under src and package.json finds only worker.ts:24.</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>An attacker guessing API keys, replaying forged webhooks (the Stripe webhook is not even verified, auth-101) or abusing privilege bugs leaves no application-level record, so abuse is neither alerted on nor reconstructable afterwards. Better-Auth may keep its own session rows; nothing else records these events. No sensitive data is logged.</p></section>
+<section><h4>Regression test</h4><p>n/a (LOW).</p></section>
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">logging-309 · Logging &amp; monitoring</p>
+</div></details>
+<details class="row sev-low" id="rate-limit-408">
+<summary><span class="sev">low</span><span class="title">sendAiReminder has no cooldown or dedupe: any member can e-mail an invoice&#39;s customer without limit</span><span class="loc">src/app/(app)/invoices/[id]/summary/actions.ts:15-36</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Mirror <code>sendSmsReminder</code>: insert a per-invoice/day row under a unique index (and a per-org daily cap) before sending, and refuse reminders for invoices that are not <code>open</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/(app)/invoices/[id]/summary/actions.ts:15-36</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>export async function sendAiReminder(invoiceId: string) {
+  const { orgId } = await requireOrg();
+  const [invoice] = await db.select({ ..., to: customers.email }) ... .where(and(eq(invoices.id, invoiceId), eq(invoices.orgId, orgId)))
+  const { text } = await generateText({ model: anthropic(&quot;claude-haiku-4-5&quot;), maxOutputTokens: 300, ... });
+  await sendEmail({ to: invoice.to, subject: `Payment reminder: invoice ${invoice.number}`, html: ... });
+  return { ok: true };
+}</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: server action argument <code>invoiceId</code> (<code>actions.ts:15</code>), any member of the org (<code>requireOrg</code>, no role check)</li>
+<li><strong>Transformations</strong>: tenant-scoped lookup (<code>:21</code>); recipient is the org&#39;s own customer e-mail, not caller-chosen. No per-invoice/day record, no per-org cap, no invoice status check (paid or void invoices also get &quot;payment reminders&quot;)</li>
+<li><strong>Sink</strong>: <code>sendEmail</code> to <code>customers.email</code> via Resend from <code>notifications@ledgerly.app</code> (<code>actions.ts:31-35</code>, <code>src/lib/email.ts:6-11</code>)</li>
+<li><strong>Sanitization</strong>: none. Contrast <code>sendSmsReminder</code>, which has an advisory-locked per-org daily cap and a unique (invoice, day) index (<code>sms-actions.ts:23-36</code>, non-concurrency-402)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>A signed-in member of an organization can call <code>sendAiReminder</code> in a loop and send unlimited &quot;payment reminder&quot; e-mails to that organization&#39;s customers from Ledgerly&#39;s sending domain (harassment of the org&#39;s customers, sender-reputation damage). Recipients are limited to the org&#39;s existing customers and no customer-create path exists in the repo, so an outsider cannot aim it at arbitrary addresses: LOW. The LLM spend part of this action is covered by rate-limit-103.</p></section>
+<section><h4>Regression test</h4><p>Not required (LOW).</p></section>
+
+<p class="meta">rate-limit-408 · Rate limiting &amp; abuse</p>
+</div></details>
+
+
+
+
+<h2 id="safe">Verified safe</h2>
+<p class="lede">Areas the audit examined and found protected, each with the control that protects it.</p>
+<div class="band-safe"><details class="cat" open><summary>Authentication &amp; authorization <span>9</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>API key verification (src/server/api/keys.ts) and the two apiKeys Data Scope Scan rows (select :10, update :17)<span class="why">Lookup by the unique key prefix is the authentication step itself, so a global query is by design. Keys are compared as sha256 hash with timingSafeEqual and a length check; raw key never stored; README claim 5 holds. The orgId used by the API afterwards comes from the DB row. Limitations (not findings): no scopes/expir · <code>src/server/api/keys.ts:6-19</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>markInvoicePaid server action and AI tool: tenant scope, authentication (hotspot #14, entry points 9 and 44)<span class="why">Server action calls requireOrg() first and updates with orgId from the session in the same statement; the AI tool scopes with ctx.orgId from the session and sets needsApproval. Role is any member, consistent with the app&#39;s design. Whether the AI SDK enforces needsApproval at runtime was not verified (library absent); t · <code>src/app/(app)/invoices/actions.ts:20-25</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>POST /api/team/invite authorization and role handling (hotspot #12)<span class="why">Handler requires a session with an active org, loads the caller&#39;s member row for that org and allows only owner/admin; invited role limited to member/admin (no owner); org id comes from the session. CSRF side is filed in auth-111; the missing accept-invitation page is outside the repo. · <code>src/app/api/team/invite/route.ts:11-24</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>sendSmsReminder and sendAiReminder: tenant scope and SMS cost control (entry points 5 and 6)<span class="why">Both call requireOrg() and select the invoice with orgId from the session in the where clause; recipient is the org&#39;s own customer. SMS has a per-org daily cap of 50 under an advisory lock plus a unique (invoice, day) index, so it is bounded. (AI reminder has no limit: LLM spend is rate-limit-103, unlimited customer e- · <code>src/app/(app)/invoices/[id]/sms-actions.ts:13-37</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>eraseCustomer and deleteOrganization server actions (entry points 2 and 19)<span class="why">Both run requireOrg(), then verify the caller&#39;s member role in that org in the DB (owner/admin for erase, owner plus slug confirmation for org deletion), and every statement filters by the session orgId. Customer erasure also clears sms_messages.to and invoices.notes in the same transaction. (R2 objects on org deletion · <code>src/app/(app)/customers/actions.ts:12-40</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>tRPC procedures other than project.update, dashboard getOrgStats cache, org-scoped pages (entry points 3, 10, 16, 20, 52, 53, 55, 56, 57)<span class="why">orgProcedure derives ctx.orgId from the validated session (UNAUTHORIZED/FORBIDDEN otherwise) and list/byId/integration.list/save filter or insert with ctx.orgId. getOrgStats takes orgId as a function argument, which Next&#39;s unstable_cache includes in the cache key (library behaviour, not verified in source); the pages c · <code>src/server/trpc/init.ts:17-26</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Summary page invoiceLines PARENT-ONLY candidate (summary/page.tsx:21 in prepass; :86 in file) and projects/documents/billing org-scoped handlers<span class="why">The parent invoice is selected first with the session orgId and notFound() is called when absent; invoiceLines is read by invoice.id only afterwards. Document download, getProject, createProject, deleteProject, billing page and startCheckout all take orgId from requireOrg()/session and put it in the query (or Stripe me · <code>src/app/(app)/invoices/[id]/summary/page.tsx:76-86</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Login brute force / auth endpoint rate limiting; password policy<span class="why">Better-Auth rate limiting is enabled globally for /api/auth/* (20 requests per 60 s), email verification is required and the password minimum is 10; password hashing and session ID generation are done by the library (not read, node_modules absent). Counter storage backend (memory by default) is unverified for multi-ins · <code>src/lib/auth.ts:12-16,33</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Shard A EXPAND sibling checks: other places that could take the tenant from the request (as in auth-107), other unsigned webhooks (as in auth-101), other unstable_cache keys (as in auth-113), and other project/invoice reads and writes next to auth-102/auth-108.<span class="why">Only <code>src/app/api/export/route.ts:11</code> reads an org id from the request (grep <code>searchParams.get</code>, all of src). The only other webhook, Resend, verifies the svix signature before acting and returns 400 on failure. The only other <code>unstable_cache</code> use, <code>getOrgStats</code>, takes <code>orgId</code> as an argument. <code>getProject</code> and `deletePr · <code>src/app/api/webhooks/resend/route.ts:9-21</code></span></div></li></ul></details><details class="cat" open><summary>Injection &amp; SSRF <span>6</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>sendAiReminder: model output into e-mail HTML and recipient control<span class="why">The model text is HTML-escaped before it goes into the e-mail, and the recipient is the customer e-mail of an invoice selected with an org-scoped query, not a model or request value. Prompt injection through invoice notes can only change the wording of the message. · <code>src/app/(app)/invoices/[id]/summary/actions.ts:21,34</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>signature-frame postMessage receiver and sender<span class="why">Receiver checks the exact origin and the iframe&#39;s contentWindow, validates the shape with zod (bounded height, reference max 64), and the handler only refreshes the server page; the sender names the exact target origin. · <code>src/components/signature-frame.tsx:22-24,38</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>SQL injection in Drizzle queries and sql`` fragments<span class="why">All queries use the Drizzle builder; the only sql`` template binds orgId as a parameter, and ilike patterns are bound values (wildcards only). · <code>src/app/(app)/invoices/[id]/sms-actions.ts:24</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Model output sinks in the chat assistant (client)<span class="why">Streamed assistant text and the browser-generated suggestion are rendered as React text children (escaped), not as HTML; tool arguments of the server tools are checked by zod inputSchema. · <code>src/components/assistant-panel.tsx:26,42</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Other server-side fetch sinks (SSRF sibling check for injection-202): exchange-rate service and SMS gateway<span class="why">Both use a fixed host. getRates only interpolates a currency checked against a four-value allowlist; the SMS client posts to the URL from server env, never from the request. · <code>src/server/services/rates.ts:5-6</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Host-header injection in e-mail links (open-redirect sibling check for injection-213): verification, invitation and post-invite redirect URLs<span class="why">Every absolute URL is built from the server-side APP_URL, never from the request&#39;s Host header: Better-Auth&#39;s baseURL is APP_URL and the invite route builds both the e-mail link and its redirect from APP_URL. · <code>src/lib/auth.ts:10</code></span></div></li></ul></details><details class="cat"><summary>Data exposure &amp; secrets <span>5</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>eraseCustomer: completeness of anonymization inside the database<span class="why">In one transaction it anonymizes the customer row (name, email, phone, tax id), overwrites sms_messages.to for all of the customer&#39;s invoices and nulls invoices.notes, scoped to the org and gated on owner/admin. Remaining copies (third-party mail logs, free text in line descriptions, backups) are listed as not assessed · <code>src/app/(app)/customers/actions.ts:13-40</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Hono public API response fields<span class="why">Both list endpoints select an explicit set of columns scoped by the org id from the key or session, so no internal columns are returned. · <code>src/server/api/index.ts:39-49,55-58</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>PostHog analytics capturing PII<span class="why">initAnalytics has no caller in src (no layout, provider or component imports it), so posthog is never initialized and captures nothing; nothing calls identify or capture. Dead code that matters only if wired up. · <code>src/lib/analytics.ts:5-10</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Document download: signed URL scope and expiry<span class="why">The document lookup is scoped by the session&#39;s org and the presigned GET expires after 60 seconds. · <code>src/app/api/documents/[id]/download/route.ts:18,29</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Other hardcoded credentials in the tracked tree (sibling check for exposure-306): src, configs, compose file, workflows, README<span class="why">No Stripe key prefixes, API key literals or password/secret string literals in tracked files; every credential is read from process.env or GitHub secrets, and the compose file requires POSTGRES_PASSWORD from the environment. · <code>drizzle.config.ts:7</code></span></div></li></ul></details><details class="cat"><summary>Headers, CORS, build &amp; deploy configuration <span>3</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>GitHub Actions CI workflow (ci.yml)<span class="why">Trigger is pull_request (no secrets to forks), permissions contents: read, actions pinned to full SHAs, persist-credentials false, lockfile enforced, PR title and head_ref passed through env and used as quoted shell variables. · <code>.github/workflows/ci.yml:3-12,15-18,23,28-31</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Lockfile integrity and enforcement<span class="why">pnpm-lock.yaml lockfileVersion 9: every resolution line carries an integrity hash, no tarball/git/http sources; all dependencies in package.json are exact versions; CI and Dockerfile install with --frozen-lockfile and the Dockerfile copies the lockfile before installing. · <code>pnpm-lock.yaml:1</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Container user, build context and published ports<span class="why">Final stage runs as USER node; .dockerignore excludes .env, .env.local and .git before COPY . .; compose publishes Postgres on 127.0.0.1 only and takes the password from the environment; no privileged, docker.sock or host network. · <code>docker-compose.yml:8-9</code></span></div></li></ul></details><details class="cat"><summary>Cryptography <span>3</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Resend webhook signature verification<span class="why">svix Webhook.verify runs on the raw text body before any state change and failure returns 400; a missing secret makes the Webhook constructor throw, so the route fails closed. svix verify also enforces a timestamp tolerance. · <code>src/app/api/webhooks/resend/route.ts:9-21</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>API key hashing and comparison<span class="why">Keys are looked up by prefix, hashed with SHA-256 (high-entropy random keys, so a fast hash is acceptable) and compared with timingSafeEqual after a length check; lookup failure returns null. · <code>src/server/api/keys.ts:7-17</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Randomness for ids and phone verification code<span class="why">Security values use CSPRNG: randomInt for the 6-digit code, crypto.randomUUID for ids; no Math.random in src; the code is stored hashed with a 10 minute expiry. (Verification-attempt limits and SMS abuse belong to other auditors.) · <code>src/app/api/phone/send-code/route.ts:12-18</code></span></div></li></ul></details><details class="cat"><summary>Concurrency &amp; races <span>2</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>sendSmsReminder daily/org SMS limit: read-then-write counter race<span class="why">The count and insert run in one transaction under pg_advisory_xact_lock keyed by orgId, so concurrent calls serialize; a unique index on (invoice_id, sent_on) with onConflictDoNothing prevents duplicate sends per invoice/day. Org filter comes from the session. · <code>src/app/(app)/invoices/[id]/sms-actions.ts:23-36</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>getOrgStats unstable_cache tenant key<span class="why">orgId is a parameter of the cached function, so Next includes it in the cache key; entries do not cross tenants (contrast getUsageThisMonth, auth-414). · <code>src/server/queries/dashboard.ts:7-18</code></span></div></li></ul></details><details class="cat"><summary>Rate limiting &amp; abuse <span>1</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>EXPAND of rate-limit-102/411: other anonymous paths that send e-mail or SMS at Ledgerly&#39;s cost. Sign-up verification e-mail (<code>sendVerificationEmail</code>) is the only other anonymous paid send; grep of <code>sendEmail|sendSms|anthropic(</code> in <code>src/</code> found no paid call in <code>/api/public</code>, <code>/api/webhooks/resend</code> or <code>/api/uploads</code>.<span class="why">The verification e-mail is sent from inside the Better-Auth handler at <code>/api/auth/*</code>, which has Better-Auth rate limiting enabled (20 requests per 60 s window). I assume, from Better-Auth&#39;s documented behaviour (library code not in this checkout), that the limit applies per client IP to sign-up and resend-verification  · <code>src/lib/auth.ts:17-26</code></span></div></li></ul></details><details class="cat"><summary>File upload &amp; storage <span>1</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Document download: ownership check of the document id (hotspot #17)<span class="why">The row is selected by id AND the session&#39;s active organization, so a foreign document id returns 404 before any presign; the GET URL lives 60 s and forces attachment disposition with an encoded filename. (The object key itself is attacker-influenced via upload-401, which is the separate finding.) · <code>src/app/api/documents/[id]/download/route.ts:15-30</code></span></div></li></ul></details></div>
+
+<h2 id="gaps">Not assessed</h2>
+<p class="lede">Nobody checked these. They are unknown, not safe.</p>
+<div class="band-gap"><ul class="gap"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>which org endpoints enforce which role, additionalFields input default, cookie HttpOnly · src/lib/auth.ts (Better-Auth org plugin endpoints (A5-A7))</strong><span class="why">library source not readable (node_modules absent, install forbidden) · auth</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>cross-site POST to tRPC mutations · src/app/api/trpc/[trpc]/route.ts (tRPC CSRF content-type handling)</strong><span class="why">depends on tRPC library content-type rules, not readable · auth</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>API key creation race</strong><span class="why">no API key creation code exists in the repo (grep apiKeys: only verifyApiKey reads/updates) · concurrency</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>WebSocket security</strong><span class="why">no WebSocket/Socket.IO code found in recon entry points · concurrency</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>bucket-side policy (CORS, public access, object-lock, size limits)</strong><span class="why">R2 bucket configuration is not in the repo · concurrency</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>null byte / multer limits</strong><span class="why">no server-side file parsing; uploads go directly to S3 via presigned PUT, so multer/busboy limits do not apply · upload</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>known-vulnerable dependency versions</strong><span class="why">osv-scanner and docker unavailable and the pnpm audit fallback crashed (prepass: no rows); dependencies were not checked against advisories, not clean · dependency</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>workflow static analysis · .github/workflows</strong><span class="why">zizmor did not run (not installed, docker unavailable); workflows reviewed by hand only · config</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>Dockerfile lint and image scan · Dockerfile</strong><span class="why">hadolint and trivy did not run (not installed, docker unavailable); Dockerfile reviewed by hand, image not scanned · config</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>dependency lifecycle scripts</strong><span class="why">pnpm lifecycle policy: package.json has no onlyBuiltDependencies/dangerouslyAllowAllBuilds and no .npmrc or pnpm-workspace.yaml exist; the installed pnpm version is not pinned (no packageManager field) so whether dependency scripts are blocked was not determined · config</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>platform-added headers and HTTPS enforcement</strong><span class="why">hosting platform (Vercel/Coolify/CDN) response headers and HSTS are not in the repo · config</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>browser storage</strong><span class="why">browser storage: grep shows no localStorage/sessionStorage/IndexedDB writes in src, but that is absence of hits, not positive evidence; posthog default storage is moot because initAnalytics is never called · exposure</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>erasure completeness beyond the database</strong><span class="why">erasure of third-party copies (Resend mail logs of past reminders), backup retention and free text in invoice_lines.description cannot be judged from the repo; no retention policy stated · exposure</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>semgrep rule scan (p/javascript, p/nextjs, p/react, p/typescript)</strong><span class="why">NOT RUN: semgrep not installed and docker unavailable; to enable: `pipx install semgrep` or `brew install semgrep`, or a running docker (pulls semgrep/semgrep:1.179.0, pinned by digest) (prepass) · code</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>GitHub Actions workflow audit (zizmor, offline)</strong><span class="why">NOT RUN: zizmor not installed and docker unavailable; to enable: `pipx install zizmor`, `brew install zizmor` or `cargo install --locked zizmor`, or a running docker (pulls ghcr.io/zizmorcore/zizmor:1.30.1, pinned by digest) (prepass) · ci/cd</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>Dockerfile lint (hadolint)</strong><span class="why">NOT RUN: hadolint not installed and docker unavailable; to enable: `brew install hadolint` or the binary from its GitHub releases, or a running docker (pulls hadolint/hadolint:v2.15.1, pinned by digest) (prepass) · infra</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>Dockerfile and IaC misconfiguration scan (trivy config)</strong><span class="why">NOT RUN: trivy not installed and docker unavailable; to enable: `brew install trivy` or the binary from its GitHub releases, or a running docker (pulls aquasec/trivy:0.75.0, pinned by digest) (prepass) · infra</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>Dependency advisories (osv-scanner; pnpm audit fallback)</strong><span class="why">NOT RUN: osv-scanner and docker unavailable; pnpm audit fallback crashed (corepack cannot provide pnpm 12.5.1). To enable: install osv-scanner (`go install github.com/google/osv-scanner/cmd/osv-scanner@latest`) or start docker, then re-run the pre-pass · dependencies</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>Project test suite (vitest)</strong><span class="why">NOT RUN: node_modules absent; `pnpm install` would execute the postinstall `curl ... \ · sh`, so dependencies were deliberately not installed · tests</span></div></li></ul></div>
+
+<h2 id="prod">Production checklist</h2>
+<p class="lede">Deployment and runtime checks the code audit cannot settle. Items marked &quot;from this audit&quot; come from rows under Not Assessed; the baseline items apply to any production deploy. Each says how to verify it on your own host; none of them changes anything.</p>
+
+<ul class="gap prod"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Security headers</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: concurrency · bucket-side policy (CORS, public access, object-lock, size limits) (R2 bucket configuration is not in the repo)</span><span class="why">Not assessed: config · platform-added headers and HTTPS enforcement (hosting platform (Vercel/Coolify/CDN) response headers and HSTS are not in the repo)</span><span class="how">How to check: <code>curl -sI https://&lt;your-host&gt;/</code> and look for <code>Content-Security-Policy</code>, <code>Strict-Transport-Security</code>, <code>X-Content-Type-Options: nosniff</code>, <code>frame-ancestors</code> (or <code>X-Frame-Options</code>) and <code>Referrer-Policy</code>. Repeat on an API route and on an error page; a CDN or proxy can add or strip them.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>TLS and HTTPS redirect</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: config · platform-added headers and HTTPS enforcement (hosting platform (Vercel/Coolify/CDN) response headers and HSTS are not in the repo)</span><span class="how">How to check: <code>curl -sI http://&lt;your-host&gt;/</code> should answer with a redirect to <code>https://</code>. <code>openssl s_client -connect &lt;your-host&gt;:443 -servername &lt;your-host&gt; &lt;/dev/null | openssl x509 -noout -dates</code> shows the certificate expiry; confirm renewal is automated.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Request size, upload and rate limits</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: concurrency · bucket-side policy (CORS, public access, object-lock, size limits) (R2 bucket configuration is not in the repo)</span><span class="why">Not assessed: upload · null byte / multer limits (no server-side file parsing; uploads go directly to S3 via presigned PUT, so multer/busboy limits do not apply)</span><span class="how">How to check: Write down the limits the deployment actually applies: reverse-proxy body size (e.g. <code>client_max_body_size</code>), the framework&#39;s body parser limit, the upload maximum, the login throttle. On staging, with your own test account, confirm an oversized upload is refused (413) and repeated failed logins get throttled.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Secrets storage and rotation</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: concurrency · API key creation race (no API key creation code exists in the repo (grep apiKeys: only verifyApiKey reads/updates))</span><span class="how">How to check: Production secrets live in the platform&#39;s secret store, not in the repository or the image: run <code>gitleaks detect</code> over the full git history and check <code>docker history &lt;image&gt;</code> for baked-in values. Rotate any value that was ever committed, and check who can read the secret store.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Backups and a tested restore</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: exposure · erasure completeness beyond the database (erasure of third-party copies (Resend mail logs of past reminders), backup retention and free text in invoice_lines.description cannot be judged from the repo; no retention policy stated)</span><span class="how">How to check: Check the time of the last backup and that it is stored off the production host. Restore it into a scratch database, compare row counts of the main tables with production, and note how long the restore took.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Logging, monitoring and alerts</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: exposure · erasure completeness beyond the database (erasure of third-party copies (Resend mail logs of past reminders), backup retention and free text in invoice_lines.description cannot be judged from the repo; no retention policy stated)</span><span class="how">How to check: On staging, cause a harmless error (a 404, a failed login with your own test account) and confirm it reaches the log store with a timestamp and request id, and without passwords, tokens or session ids. Confirm someone is alerted on a burst of 5xx responses or failed logins.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Dependency and runtime updates</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: dependency · known-vulnerable dependency versions (osv-scanner and docker unavailable and the pnpm audit fallback crashed (prepass: no rows); dependencies were not checked against advisories, not clean)</span><span class="why">Not assessed: config · Dockerfile lint and image scan · Dockerfile (hadolint and trivy did not run (not installed, docker unavailable); Dockerfile reviewed by hand, image not scanned)</span><span class="why">Not assessed: config · dependency lifecycle scripts (pnpm lifecycle policy: package.json has no onlyBuiltDependencies/dangerouslyAllowAllBuilds and no .npmrc or pnpm-workspace.yaml exist; the installed pnpm version is not pinned (no packageManager field) so whether dependency scripts are blocked was not determined)</span><span class="why">and 3 more under Not assessed</span><span class="how">How to check: Run the ecosystem&#39;s audit on the lockfile that is deployed (<code>npm audit --omit=dev</code>, <code>composer audit</code>, <code>pip-audit</code>). Check that the runtime and base image versions in production are still supported, and that update pull requests (Dependabot, Renovate) have an owner.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Session cookie flags</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: auth · which org endpoints enforce which role, additionalFields input default, cookie HttpOnly · src/lib/auth.ts (Better-Auth org plugin endpoints (A5-A7)) (library source not readable (node_modules absent, install forbidden))</span><span class="how">How to check: Sign in on https://&lt;your-host&gt;/ with your own account and read the <code>Set-Cookie</code> header (browser devtools or <code>curl -sI</code>): the session cookie has <code>Secure</code>, <code>HttpOnly</code> and <code>SameSite=Lax</code> or <code>Strict</code>.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Environment variables and debug flags</strong> <span class="chip chip-muted">Baseline</span><span class="how">How to check: List the variables the code reads (search for <code>process.env</code>, <code>getenv</code>, <code>os.environ</code>) and confirm each one is set in production with a non-default value. Debug is off (<code>NODE_ENV=production</code>, <code>APP_DEBUG=false</code>, <code>DEBUG=False</code>), and an error page on https://&lt;your-host&gt;/ shows no stack trace.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Exposed services and ports</strong> <span class="chip chip-muted">Baseline</span><span class="how">How to check: In the hosting provider&#39;s firewall or security-group view, only 80 and 443 are public for &lt;your-host&gt;; the database, cache, queue and admin ports are bound to a private network. Repeat after every infrastructure change.</span></div></li></ul>
+<p class="empty">7 other not-assessed row(s) are code checks rather than deployment checks; they stay under Not assessed.</p>
+
+<h2 id="hotspots">Hotspots</h2>
+<p class="lede">Where the audit started: entry points and configuration ranked by risk signals. A ranking, not a verdict.</p>
+<div class="tablewrap"><table><thead><tr><th>#</th><th>Score</th><th>Where</th><th>Why</th></tr></thead><tbody><tr><td>1</td><td><span class="score" style="width:52px"></span>13</td><td class="mono where">src/app/api/webhooks/stripe/route.ts:6<br>webhook POST</td><td>payments area, webhooks area; webhook: public by design; no signature verification seen; unscoped query on subscriptions</td></tr><tr><td>2</td><td><span class="score" style="width:40px"></span>10</td><td class="mono where">src/app/(app)/invoices/actions.ts:10<br>server-action getInvoice</td><td>payments area; server-action: callable directly as a POST; no auth check in the handler; unscoped query on invoices, invoiceLines</td></tr><tr><td>3</td><td><span class="score" style="width:40px"></span>10</td><td class="mono where">src/app/api/admin/stats/route.ts:5<br>route-handler GET</td><td>admin area; no auth check in the handler; unscoped query on projects, subscriptions</td></tr><tr><td>4</td><td><span class="score" style="width:40px"></span>10</td><td class="mono where">src/lib/auth.ts:1<br>config auth.ts</td><td>auth configuration (betterAuth); additionalFields.role is writable at sign-up (no input: false); SameSite=None session cookies</td></tr><tr><td>5</td><td><span class="score" style="width:36px"></span>9</td><td class="mono where">src/server/ai/billing-tools.ts:9<br>ai-tool voidInvoice</td><td>payments area, ai area; ai-tool: arguments chosen by the model; unscoped query on invoices</td></tr><tr><td>6</td><td><span class="score" style="width:36px"></span>9</td><td class="mono where">src/server/ai/tools.ts:9<br>ai-tool searchInvoices</td><td>payments area, ai area; ai-tool: arguments chosen by the model; tool schema lets the model choose the tenant/user</td></tr><tr><td>7</td><td><span class="score" style="width:32px"></span>8</td><td class="mono where">src/app/(app)/invoices/[id]/summary/page.tsx:1<br>page page</td><td>payments area; unscoped query on invoiceLines; raw HTML rendering; LLM output may reach raw HTML</td></tr><tr><td>8</td><td><span class="score" style="width:28px"></span>7</td><td class="mono where">src/app/api/assistant/billing/route.ts:8<br>route-handler POST</td><td>payments area, ai area; LLM model or token budget taken from the request (cost)</td></tr><tr><td>9</td><td><span class="score" style="width:28px"></span>7</td><td class="mono where">src/server/trpc/routers/integration.ts:18<br>trpc integrationRouter.testWebhook</td><td>webhooks area; outbound request to a non-constant URL (SSRF)</td></tr><tr><td>10</td><td><span class="score" style="width:24px"></span>6</td><td class="mono where">src/app/(app)/invoices/[id]/summary/actions.ts:15<br>server-action sendAiReminder</td><td>payments area; server-action: callable directly as a POST; sends email (who are the recipients?)</td></tr><tr><td>11</td><td><span class="score" style="width:24px"></span>6</td><td class="mono where">src/app/api/export/route.ts:6<br>route-handler GET</td><td>files area; tenant/user id taken from the request</td></tr><tr><td>12</td><td><span class="score" style="width:24px"></span>6</td><td class="mono where">src/app/api/team/invite/route.ts:9<br>route-handler POST</td><td>auth area; sends email (who are the recipients?)</td></tr><tr><td>13</td><td><span class="score" style="width:24px"></span>6</td><td class="mono where">src/app/p/[slug]/page.tsx:1<br>page page</td><td>page without a guard reads the database (what reaches the client?); unscoped query on projects</td></tr><tr><td>14</td><td><span class="score" style="width:24px"></span>6</td><td class="mono where">src/server/ai/billing-tools.ts:22<br>ai-tool markInvoicePaid</td><td>payments area, ai area; ai-tool: arguments chosen by the model</td></tr><tr><td>15</td><td><span class="score" style="width:24px"></span>6</td><td class="mono where">src/server/api/index.ts:1<br>config index.ts</td><td>CORS reflects any origin with credentials</td></tr><tr><td>16</td><td><span class="score" style="width:24px"></span>6</td><td class="mono where">src/server/trpc/routers/project.ts:12<br>trpc projectRouter.update</td><td>unscoped query on projects; request object written to the database as-is</td></tr><tr><td>17</td><td><span class="score" style="width:20px"></span>5</td><td class="mono where">src/app/api/documents/[id]/download/route.ts:9<br>route-handler GET</td><td>files area; presigned storage URL</td></tr><tr><td>18</td><td><span class="score" style="width:20px"></span>5</td><td class="mono where">src/app/api/uploads/route.ts:16<br>route-handler POST</td><td>files area; presigned storage URL</td></tr><tr><td>19</td><td><span class="score" style="width:20px"></span>5</td><td class="mono where">src/app/api/webhooks/resend/route.ts:8<br>webhook POST</td><td>webhooks area; webhook: public by design</td></tr><tr><td>20</td><td><span class="score" style="width:20px"></span>5</td><td class="mono where">src/lib/ai-client.ts:1<br>code ai-client.ts</td><td>NEXT_PUBLIC_ANTHROPIC_API_KEY looks like a secret and is shipped to the browser</td></tr></tbody></table></div>
+
+<h2 id="deps">Dependencies</h2>
+<p class="lede">osv-scanner and docker unavailable; fallback ran: pnpm audit -&gt; tools/pnpm-audit.json (summarize from the raw file)</p>
+<p class="empty">No vulnerable packages reported.</p>
+
+<h2 id="secrets">Secrets</h2>
+<p class="lede">gitleaks: 2 hits, 2 commits of this repo. Values are redacted; anything real that was ever committed must be rotated.</p>
+<div class="tablewrap"><table><thead><tr><th>Rule</th><th>Where</th><th>Commit</th><th>Still in tree</th></tr></thead><tbody><tr><td>stripe-access-token</td><td class="mono">.env:4</td><td class="mono">a1b7c73 2026-05-04</td><td>no (history only)</td></tr><tr><td>generic-api-key</td><td class="mono">.env:3</td><td class="mono">a1b7c73 2026-05-04</td><td>no (history only)</td></tr></tbody></table></div>
+
+<h2 id="filtered">Filtered out</h2>
+<p class="lede">Candidates the verifier rejected after reading the code. Kept for the record; none of them needs action.</p>
+<div class="tablewrap"><table><thead><tr><th>Finding</th><th>Reason</th></tr></thead><tbody><tr><td>Upload endpoint trusts a client-chosen S3 key and projectId (overwrite or claim other tenants&#39; objects)<br><span class="mono">auth-112</span></td><td>duplicate_of_upload-401</td></tr><tr><td>Stripe webhook accepts unsigned events: anyone can activate a paid plan for any organization<br><span class="mono">auth-304</span></td><td>duplicate_of_auth-101</td></tr><tr><td>Stripe webhook does not verify the signature: anyone can forge subscription events<br><span class="mono">auth-404</span></td><td>duplicate_of_auth-101</td></tr><tr><td>unstable_cache key for getUsageThisMonth omits orgId: first organization&#39;s usage is served to all organizations for 10 minutes<br><span class="mono">auth-414</span></td><td>duplicate_of_auth-113</td></tr><tr><td>Invoice paid/void transitions are unconditional: void and paid can overwrite each other and paidAt is rewritten on double-submit<br><span class="mono">concurrency-406</span></td><td>duplicate_of_business-logic-101</td></tr><tr><td>Digest jobs are not idempotent: retries and fanout re-runs resend e-mails to earlier recipients<br><span class="mono">concurrency-413</span></td><td>best_practice</td></tr><tr><td>Hono public API reflects any Origin with credentials while session cookies are SameSite=None<br><span class="mono">config-303</span></td><td>duplicate_of_auth-110</td></tr><tr><td>No dependency update mechanism; base image pinned by tag only<br><span class="mono">config-310</span></td><td>best_practice</td></tr><tr><td>README Security section claims (authenticated routes, tenant isolation, verified Stripe webhooks, scoped uploads) do not hold<br><span class="mono">docs-vs-reality-101</span></td><td>duplicate_of_auth-101</td></tr><tr><td>&quot;Delete organization and all of its data, including uploaded documents&quot; leaves the R2 objects behind<br><span class="mono">docs-vs-reality-102</span></td><td>duplicate_of_exposure-415</td></tr><tr><td>Overdue digest sends each organization&#39;s invoice table to every user in the system with emailDigest enabled<br><span class="mono">exposure-412</span></td><td>duplicate_of_auth-109</td></tr><tr><td>Unauthenticated send-code endpoint sends paid SMS with no rate limit or per-number/IP cap<br><span class="mono">rate-limit-407</span></td><td>duplicate_of_rate-limit-102</td></tr><tr><td>Billing assistant takes model, maxTokens and maxSteps from the request and records no usage<br><span class="mono">rate-limit-409</span></td><td>duplicate_of_rate-limit-101</td></tr></tbody></table></div>
+</main>
+<footer>Generated from <code>.security-audit/</code> by report-html.mjs. Names unfixed weaknesses with file and line: keep it private, never publish or commit it. A public page must redact unfixed findings (see public_safe in remediation.json).</footer>
+</div>
+<script>addEventListener("beforeprint",()=>document.querySelectorAll("details").forEach((d)=>d.open=true));</script>
+</body>
+</html>

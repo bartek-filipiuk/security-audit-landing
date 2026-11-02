@@ -21,7 +21,7 @@ export type Run = {
   advisories: Advisory[];
   total: number;
   decoyFp: number;
-  unmatched: number;
+  unmatched?: number; // undefined: not published for this run
   costUsd: number;
   minutes: number;
   note?: string;
@@ -55,6 +55,18 @@ const GOSHS = { module: "goshs", moduleUrl: "https://github.com/goshs-labs/goshs
 const FASTJWT = { module: "fast-jwt", moduleUrl: "https://www.npmjs.com/package/fast-jwt", ecosystem: "npm" };
 
 export const RUNS: Run[] = [
+  {
+    ...FASTJWT, date: "2026-11-02", version: "6.3.1", role: "control", label: "R32", skillSha: "28d5068",
+    advisories: [],
+    total: 0, decoyFp: 0, costUsd: 2.09, minutes: 6.4,
+    note: "Kontrola po R32. Żadne z trzech naprawionych advisory nie wróciło.",
+  },
+  {
+    ...FASTJWT, date: "2026-11-02", version: "6.2.4", role: "target", label: "R32", skillSha: "28d5068",
+    advisories: adv(FASTJWT_KEYS, ["GHSA-5hjw-83fp-phq9", "GHSA-g3jj-5cmm-3hxx", "GHSA-8wpc-h4q6-8fxv"]),
+    total: 3, decoyFp: 0, costUsd: 2.18, minutes: 6.4,
+    note: "Po R32 (sprawdzenia kluczy, algorytmów i tokenów): wszystkie trzy advisory znalezione, każde z dowodem testem. 26 października było 1 z 3.",
+  },
   {
     ...FASTJWT, date: "2026-10-26", version: "6.3.1", role: "control", label: "R31", skillSha: "eefbb83",
     advisories: [],

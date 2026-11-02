@@ -4,7 +4,7 @@ import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import { TARGETS, type Row, type Target } from "../benchmarks";
 const title = "Benchmarki modeli · Security Audit";
-const description = "Ten sam skill security-audit, różne modele i agenci: Claude Code, DeepSeek, Gemma, Hinoki, Kimi i Grok w OpenCode oraz gpt-6-astra w Codex CLI. Wyniki na prawdziwych advisory i na Ledgerly, z czasem i kosztem.";
+const description = "Ten sam skill security-audit, różne modele i agenci: Claude Code, DeepSeek, Gemma, Hinoki, Kimi i Grok w OpenCode oraz gpt-6-astra w Codex CLI. Wyniki na prawdziwych advisory, na Ledgerly i na aplikacjach testowych profili PHP, Python i Supabase, z czasem i kosztem.";
 const pl = (n: number, d = 2) => n.toLocaleString("pl-PL", { minimumFractionDigits: 0, maximumFractionDigits: d });
 const usd = (n: number) => `${n.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
 // Each bar column is scaled to its own maximum within one target: two measures, two scales, never one axis.
@@ -33,7 +33,7 @@ const result = (r: Row, t: Target) =>
             </li>
           ))}
         </ol>
-        <p class="fine dates">Przebiegi z&nbsp;27 i&nbsp;28 października 2026, po jednym na model i&nbsp;cel. Szczegóły metody i&nbsp;zastrzeżenia są <a href="#metoda">na dole strony</a>. Wszystkie liczby każdego przebiegu: <a href="/benchmarks/modele">wyniki per model</a>.</p>
+        <p class="fine dates">Przebiegi z&nbsp;27 października do 2&nbsp;listopada 2026, po jednym na model i&nbsp;cel. Szczegóły metody i&nbsp;zastrzeżenia są <a href="#metoda">na dole strony</a>. Wszystkie liczby każdego przebiegu: <a href="/benchmarks/modele">wyniki per model</a>.</p>
       </div>
     </section>
 
@@ -103,8 +103,8 @@ const result = (r: Row, t: Target) =>
         <div>
           <h2 class="h2 small">Jak mierzymy</h2>
           <ul class="method">
-            <li><b>Ten sam skill.</b> Commit <a href="https://github.com/bartek-filipiuk/security-audit-skill/commit/46910ca" rel="noopener" class="mono">46910ca</a>. Trzy pierwsze przebiegi T1 szły na wcześniejszych commitach, które różnią się tylko strażnikiem ścieżek w&nbsp;OpenCode.</li>
-            <li><b>Agent.</b> W&nbsp;OpenCode 2.1.4 jeden model gra wszystkie role: głównego audytora i&nbsp;subagentów. Claude Code dobiera modele sam: na T1 był to sam Opus 5.5, na T3 Opus 5.5 z&nbsp;subagentami Sonnet 5.5.</li>
+            <li><b>Ten sam skill.</b> Commit <a href="https://github.com/bartek-filipiuk/security-audit-skill/commit/46910ca" rel="noopener" class="mono">46910ca</a>. Trzy pierwsze przebiegi T1 szły na wcześniejszych commitach, które różnią się tylko strażnikiem ścieżek w&nbsp;OpenCode. Przebiegi z&nbsp;2&nbsp;listopada szły na commicie <a href="https://github.com/bartek-filipiuk/security-audit-skill/commit/28d5068" rel="noopener" class="mono">28d5068</a>.</li>
+            <li><b>Agent.</b> W&nbsp;OpenCode 2.1.4 jeden model gra wszystkie role: głównego audytora i&nbsp;subagentów. Claude Code dobiera modele sam: na T1 był to sam Opus 5.5, na T3–T6 Opus 5.5 z&nbsp;subagentami Sonnet 5.5.</li>
             <li><b>Izolacja.</b> Każdy przebieg w&nbsp;świeżym katalogu, w&nbsp;nowej sesji, bez wspólnej pamięci. Strażnik odmawia czytania poza katalogiem przebiegu. Logi sprawdziliśmy: żaden model nie widział klucza ani innych przebiegów.</li>
             <li><b>Ścisły scorer.</b> Znalezisko musi wskazać plik i&nbsp;linie z&nbsp;poprawki, z&nbsp;tolerancją ±2 linii. Klucze ustaliliśmy przed przebiegami i&nbsp;nie poszerzamy ich pod odpowiedzi modeli.</li>
             <li><b>Koszt.</b> Dla OpenCode to ceny z&nbsp;cennika dostawcy zapisane przy przebiegu. Dla Claude Code to zużyte tokeny przeliczone po cenach API, nie koszt abonamentu. OpenCode nie zna ceny Hinoki, więc jego koszt (z&nbsp;„~”) wyliczyliśmy z&nbsp;zapisanych tokenów i&nbsp;cennika, który zwraca API Hinoki: 0,80 USD za milion tokenów wejścia, 0,08 z&nbsp;cache, 1,20 wyjścia.</li>

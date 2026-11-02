@@ -1,0 +1,586 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-MvG1Y1OXXFh4tBOYtX9sG5URhwYMP8MBEzSXtqOVaCk='; img-src data:">
+<meta name="robots" content="noindex">
+<title>Security audit · supabase-notes</title>
+<style>
+:root {
+  --paper: #f6f2ea; --paper-2: #efe9dd; --ink: #1d1b18; --ink-2: #5b554b; --rule: #d9d1c1;
+  --crit: #a3171d; --high: #cf3a1c; --med: #b7791f; --low: #4f6489; --safe: #1f7a4d; --fixed: #2f6f7e; --gap: #9a9184;
+  --tint-crit: #f3dcd8; --tint-safe: #dcebe1; --tint-gap: #e8e3da; --code: #ebe4d6;
+  /* Darker steps for severity badges that carry text (>= 4.5:1 with --paper); bars and dots keep the brighter ones. */
+  --high-ink: #b8330f; --med-ink: #94590a;
+  --display: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Charter, "Bitstream Charter", Georgia, serif;
+  --text: "Avenir Next", "Segoe UI Variable Text", "Segoe UI", "Helvetica Neue", Ubuntu, Cantarell, sans-serif;
+  --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #16140f; --paper-2: #1e1b15; --ink: #ece6d8; --ink-2: #a89f8e;
+    --rule: #353025; --crit: #f0695e; --high: #f28c5b; --med: #e0b45a; --low: #8ea5cf; --safe: #5cc28c; --fixed: #6fb6c6; --gap: #8b8377;
+    --tint-crit: #3a1d19; --tint-safe: #17301f; --tint-gap: #29251e; --code: #24201a;
+    --high-ink: #f28c5b; --med-ink: #e0b45a;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+html { background: var(--paper); }
+body { margin: 0; color: var(--ink); font: 16px/1.55 var(--text); font-variant-numeric: tabular-nums; -webkit-font-smoothing: antialiased; }
+::selection { background: var(--crit); color: var(--paper); }
+:focus-visible { outline: 2px solid var(--crit); outline-offset: 3px; border-radius: 4px; }
+a { color: inherit; text-underline-offset: 3px; text-decoration-thickness: 1px; }
+code, pre { font-family: var(--mono); font-size: 0.86em; }
+code { background: var(--code); padding: 0.08em 0.35em; border-radius: 4px; overflow-wrap: anywhere; }
+pre { background: var(--code); padding: 0.9rem 1rem; border-radius: 10px; overflow-x: auto; line-height: 1.45; }
+pre code { background: none; padding: 0; }
+.wrap { max-width: 1180px; margin: 0 auto; padding: 0 clamp(16px, 4vw, 48px); display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 56px; }
+header { grid-column: 1 / -1; padding: 56px 0 28px; border-bottom: 1px solid var(--rule); }
+header .meta { color: var(--ink-2); font-size: 0.92rem; margin: 0 0 18px; }
+h1 { font: 600 clamp(2.4rem, 5vw, 3.6rem)/1.05 var(--display); letter-spacing: -0.02em; margin: 0 0 22px; }
+.verdict { font: 500 clamp(1.4rem, 2.6vw, 1.9rem)/1.25 var(--display); margin: 0 0 6px; max-width: 34ch; }
+.secondary { color: var(--ink-2); margin: 0 0 26px; }
+.ledger { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: var(--paper-2); gap: 2px; animation: reveal 900ms cubic-bezier(.2,.7,.1,1) 120ms both; }
+.ledger span { flex-grow: var(--n); min-width: 6px; }
+@keyframes reveal { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@media (prefers-reduced-motion: reduce) { .ledger { animation: none; } }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 12px 0 0; padding: 0; list-style: none; font-size: 0.86rem; color: var(--ink-2); }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 7px; vertical-align: 0; }
+.c-critical { background: var(--crit); } .c-high { background: var(--high); } .c-medium { background: var(--med); } .c-low { background: var(--low); }
+.c-fixed { background: var(--fixed); } .c-safe { background: var(--safe); } .c-gap { background: var(--gap); }
+.scope { margin: 18px 0 0; padding: 10px 14px; background: var(--tint-gap); border-radius: 10px; font-size: 0.92rem; }
+.profile p { margin: 0.25em 0; max-width: 90ch; }
+nav { position: sticky; top: 0; align-self: start; padding-top: 28px; }
+nav ol { list-style: none; margin: 0; padding: 0; }
+nav a { display: flex; justify-content: space-between; padding: 6px 0; text-decoration: none; color: var(--ink-2); border-bottom: 1px solid transparent; }
+nav a:hover { color: var(--ink); border-bottom-color: var(--rule); }
+nav b { font-weight: 500; color: var(--ink); }
+main { padding: 28px 0 96px; min-width: 0; }
+h2 { font: 600 1.75rem/1.2 var(--display); letter-spacing: -0.015em; margin: 72px 0 6px; scroll-margin-top: 24px; }
+main > h2:first-child { margin-top: 0; }
+h2 + .lede { color: var(--ink-2); margin: 0 0 22px; max-width: 70ch; }
+h3 { font: 600 0.8rem/1 var(--text); letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-2); margin: 34px 0 10px; }
+.first { counter-reset: n; list-style: none; padding: 0; margin: 0 0 8px; }
+.first li { counter-increment: n; display: grid; grid-template-columns: 2.2rem minmax(0, 1fr); padding: 14px 0; border-top: 1px solid var(--rule); }
+.first li::before { content: counter(n); font: 600 1.5rem/1.1 var(--display); color: var(--crit); }
+.first a { font-weight: 600; text-decoration: none; }
+.first a:hover { text-decoration: underline; }
+.first small { display: block; color: var(--ink-2); margin-top: 2px; }
+.row { border-top: 1px solid var(--rule); }
+.row:last-child { border-bottom: 1px solid var(--rule); }
+.row summary { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; padding: 14px 4px; cursor: pointer; list-style: none; }
+.row summary::-webkit-details-marker { display: none; }
+.row summary:hover .title { text-decoration: underline; text-decoration-color: var(--rule); }
+.row[open] summary { background: var(--paper-2); }
+.sev { font: 600 0.72rem/1 var(--text); letter-spacing: 0.06em; text-transform: uppercase; padding: 4px 7px; border-radius: 5px; color: var(--paper); }
+.sev-critical .sev { background: var(--crit); } .sev-high .sev { background: var(--high-ink); } .sev-medium .sev { background: var(--med-ink); } .sev-low .sev { background: var(--low); }
+.title { font-weight: 600; flex: 1 1 320px; }
+.loc { font: 0.82rem var(--mono); color: var(--ink-2); flex-basis: 100%; padding-left: 0; overflow-wrap: anywhere; }
+.chip { font-size: 0.75rem; padding: 2px 8px; border-radius: 999px; white-space: nowrap; }
+.chip-proof { background: var(--crit); color: var(--paper); }
+.chip-static { box-shadow: inset 0 0 0 1px var(--ink-2); color: var(--ink-2); }
+.chip-warn { background: var(--med-ink); color: var(--paper); }
+.chip-muted { box-shadow: inset 0 0 0 1px var(--gap); color: var(--ink-2); }
+.body { padding: 4px 4px 22px; max-width: 78ch; }
+.body h4 { font: 600 0.78rem/1 var(--text); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); margin: 20px 0 6px; }
+.body p, .body li { margin: 0.3em 0; }
+.body .meta { color: var(--ink-2); font-size: 0.85rem; margin-top: 18px; }
+.diff { list-style: none; padding: 0; margin: 0; }
+.diff li { padding: 10px 0; border-top: 1px solid var(--rule); }
+.diff .why { color: var(--ink-2); font-size: 0.9rem; display: block; }
+.good, .gap { list-style: none; padding: 0; margin: 0; }
+.good li, .gap li { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 0 12px; padding: 12px 0; border-top: 1px solid var(--rule); }
+.good svg { color: var(--safe); margin-top: 3px; } .gap svg { color: var(--gap); margin-top: 3px; }
+.good .why, .gap .why { color: var(--ink-2); font-size: 0.94rem; display: block; max-width: 72ch; }
+.good code { font-size: 0.8rem; }
+.prod .how { display: block; margin-top: 4px; font-size: 0.94rem; max-width: 72ch; }
+.prod .chip { vertical-align: 1px; }
+details.cat > summary { cursor: pointer; padding: 10px 0; font-weight: 600; list-style: none; display: flex; justify-content: space-between; border-top: 1px solid var(--rule); }
+details.cat > summary::-webkit-details-marker { display: none; }
+details.cat > summary span { color: var(--safe); font-weight: 500; }
+.band-safe { background: var(--tint-safe); border-radius: 14px; padding: 6px 20px 14px; }
+.band-gap { background: var(--tint-gap); border-radius: 14px; padding: 6px 20px 14px; }
+table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+th { text-align: left; font: 600 0.74rem/1 var(--text); letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-2); padding: 10px 8px; border-bottom: 1px solid var(--rule); }
+td { padding: 9px 8px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+td.mono { font: 0.8rem var(--mono); overflow-wrap: anywhere; }
+td.where { width: 46%; }
+.score { display: inline-block; height: 6px; border-radius: 3px; background: var(--high); vertical-align: middle; margin-right: 8px; }
+.tablewrap { overflow-x: auto; }
+.empty { color: var(--ink-2); padding: 14px 0; border-top: 1px solid var(--rule); }
+footer { grid-column: 1 / -1; border-top: 1px solid var(--rule); padding: 24px 0 48px; color: var(--ink-2); font-size: 0.85rem; }
+@media (max-width: 860px) {
+  .wrap { grid-template-columns: 1fr; gap: 0; }
+  nav { position: static; padding-top: 20px; }
+  nav ol { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  nav a { gap: 6px; min-height: 44px; align-items: center; }
+}
+@media print { nav, .ledger { display: none; } .wrap { display: block; } h2 { break-after: avoid; } .row { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+<p class="meta">Security audit · 2026-11-02 · commit a98e3df · deps: no lockfile found · secrets: gitleaks: 0 hits, 1 commits of this repo</p>
+<h1>supabase-notes</h1>
+<p class="verdict">13 issues to fix (2 critical, 6 high, 2 medium, 3 low).</p>
+<p class="secondary">16 areas verified safe · 7 checks not assessed</p>
+<div class="ledger" role="img" aria-label="2 critical, 6 high, 2 medium, 3 low, 16 verified safe, 7 not assessed"><span class="c-critical" style="--n:2"></span><span class="c-high" style="--n:6"></span><span class="c-medium" style="--n:2"></span><span class="c-low" style="--n:3"></span><span class="c-safe" style="--n:16"></span><span class="c-gap" style="--n:7"></span></div>
+<ul class="legend"><li><i class="c-critical"></i>2 critical</li><li><i class="c-high"></i>6 high</li><li><i class="c-medium"></i>2 medium</li><li><i class="c-low"></i>3 low</li><li><i class="c-safe"></i>16 verified safe</li><li><i class="c-gap"></i>7 not assessed</li></ul>
+
+<div class="scope profile"><p><strong>Profile: JavaScript/TypeScript (Node) (Next.js, Supabase, Firebase Admin): dedicated profile.</strong></p><p>Covers: entry points by convention: Next.js route handlers, pages, server actions, proxy/middleware matcher, tRPC procedures, Hono/Express routes, hand-rolled node:http/Bun/Deno routers, pg-boss/BullMQ/cron jobs, AI SDK and MCP tools; Drizzle tenant-scope scan (query sites that never reference the owner column); hotspot ranking with Better-Auth, CORS and browser-exposed env configuration checks; JS/TS stack patterns for the auditors; dependency advisories (osv-scanner) and secrets in git history (gitleaks).</p><p>Does not cover: detected without a pre-pass convention: Supabase, Firebase Admin (auditors find these entry points and queries by hand); tenant-scope scan for ORMs other than Drizzle (Prisma, TypeORM, Sequelize, Mongoose); entry-point conventions of NestJS, Fastify plugins, Remix/React Router, SvelteKit, Nuxt, Astro and GraphQL resolvers; rule scanners (semgrep, zizmor, hadolint, trivy, bandit, gosec, govulncheck) run only when installed or docker is available; one that did not run is listed in not-assessed.md.</p></div>
+
+</header>
+<nav aria-label="Sections"><ol><li><a href="#fix">To fix <b>13</b></a></li><li><a href="#safe">Verified safe <b>16</b></a></li><li><a href="#gaps">Not assessed <b>7</b></a></li><li><a href="#prod">Production checklist <b>4</b></a></li><li><a href="#hotspots">Hotspots <b>20</b></a></li><li><a href="#deps">Dependencies <b>0</b></a></li><li><a href="#secrets">Secrets <b>0</b></a></li><li><a href="#filtered">Filtered out <b>9</b></a></li></ol></nav>
+<main>
+<h2 id="fix">To fix</h2>
+<p class="lede">Verified findings, most severe first. “Failing test” means a regression test in the project’s own runner fails today; “code reading only” means it was confirmed by tracing the code.</p>
+<h3>Fix first</h3>
+<ol class="first"><li><div><a href="#auth-102">export-notes Edge Function exports any user&#39;s notes to anonymous callers (verify_jwt = false, userId from the body, service-role client)</a><small>critical · code reading only · supabase/functions/export-notes/index.ts:9</small></div></li><li><div><a href="#exposure-101">Supabase service-role key is shipped to every browser (NEXT_PUBLIC_ variable in a module imported by a client component)</a><small>critical · code reading only · src/lib/supabase/admin.ts:3</small></div></li><li><div><a href="#auth-103">RLS policy &quot;notes: readable&quot; is using (true): every signed-in user reads every user&#39;s notes</a><small>high · code reading only · supabase/migrations/20260501090000_init.sql:103</small></div></li></ol>
+<h3>critical · 2</h3><details class="row sev-critical" id="auth-102">
+<summary><span class="sev">critical</span><span class="title">export-notes Edge Function exports any user&#39;s notes to anonymous callers (verify_jwt = false, userId from the body, service-role client)</span><span class="chip chip-static">Code reading only</span><span class="loc">supabase/functions/export-notes/index.ts:9</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Set <code>verify_jwt = true</code> for export-notes, build a user-scoped client from the request&#39;s <code>Authorization</code> header (or call <code>admin.auth.getUser(jwt)</code>) and export the notes of that verified user only; drop <code>userId</code> from the body. Keep the service-role client out of the function unless strictly needed.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>supabase/functions/export-notes/index.ts:9</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>Deno.serve(async (req) =&gt; {
+  if (req.method !== &quot;POST&quot;) return new Response(&quot;Method not allowed&quot;, { status: 405 });
+  const { userId, format } = await req.json();
+
+  const { data: notes, error } = await admin
+    .from(&quot;notes&quot;)
+    .select(&quot;id, title, body, created_at, notebooks(title)&quot;)
+    .eq(&quot;owner_id&quot;, userId)</code></pre>
+<ul>
+<li><strong>File</strong>: <code>supabase/config.toml:20</code></li>
+</ul>
+<pre><code>[functions.export-notes]
+verify_jwt = false</code></pre>
+<ul>
+<li><code>admin</code> is the service-role client (<code>export-notes/index.ts:3</code>).</li>
+</ul></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: JSON body <code>userId</code> of an unauthenticated POST to <code>/functions/v1/export-notes</code> (<code>export-notes/index.ts:9</code>)</li>
+<li><strong>Transformations</strong>: none; the gateway does not check a JWT (<code>config.toml:21</code>) and the function never reads the <code>Authorization</code> header</li>
+<li><strong>Sink</strong>: service-role query on <code>notes</code> filtered only by the caller-chosen <code>owner_id</code> (<code>export-notes/index.ts:11-15</code>), returned in the response (<code>:19-22</code>)</li>
+<li><strong>Sanitization</strong>: none</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone on the internet can download the full title and body of every note (and notebook titles) of any user whose id they know. User ids are not secret here: <code>note_shares.shared_with</code> is readable with the public anon key (auth-104), and any signed-up user sees every note&#39;s <code>owner_id</code> (auth-103), so the whole notes table can be exported without an account. Contradicts README &quot;Edge Functions require a signed-in user&quot;.</p></section>
+<section><h4>Regression test</h4><p>proof: static. No test written: the project has no test runner or installed dependencies, and the Supabase/Firebase emulators need docker, which is unavailable on this host.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-104 (anonymous source of user ids), auth-103 (signed-in source of owner ids)</li>
+</ul></section>
+<p class="meta">auth-102 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-critical" id="exposure-101">
+<summary><span class="sev">critical</span><span class="title">Supabase service-role key is shipped to every browser (NEXT_PUBLIC_ variable in a module imported by a client component)</span><span class="chip chip-static">Code reading only</span><span class="loc">src/lib/supabase/admin.ts:3</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Rotate the service-role key now (treat it as leaked wherever this build was deployed). Delete <code>NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY</code> from the code and <code>.env.example</code>. Move the email lookup into a server action or route handler that uses <code>createServiceClient()</code> from <code>src/lib/supabase/service.ts</code> (already <code>server-only</code>), checks the caller with <code>auth.getUser()</code>, and returns only a yes/no (or performs the share itself). Add <code>import &quot;server-only&quot;</code> to any module that touches the service-role key.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/lib/supabase/admin.ts:3</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>export const supabaseAdmin = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY!,
+  { auth: { persistSession: false } },
+);</code></pre>
+<ul>
+<li><strong>File</strong>: <code>src/components/share-dialog.tsx:1</code></li>
+</ul>
+<pre><code>&quot;use client&quot;;
+import { findUserByEmail } from &quot;@/lib/supabase/admin&quot;;
+...
+    const person = await findUserByEmail(email);</code></pre>
+<ul>
+<li><strong>File</strong>: <code>.env.example:4</code> lists <code>NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY=</code> as a variable to fill.</li>
+</ul></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: build-time env <code>NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY</code> (<code>src/lib/supabase/admin.ts:5</code>)</li>
+<li><strong>Transformations</strong>: Next.js inlines every <code>NEXT_PUBLIC_*</code> reference into the bundle; <code>admin.ts</code> has no <code>import &quot;server-only&quot;</code> and is imported by the <code>&quot;use client&quot;</code> component <code>share-dialog.tsx:4</code>, rendered by <code>src/app/(app)/notes/[id]/page.tsx:18</code></li>
+<li><strong>Sink</strong>: the client JavaScript chunk served to every visitor of <code>/notes/[id]</code>; <code>findUserByEmail</code> then runs in the browser with the service-role client (<code>admin.ts:10</code>)</li>
+<li><strong>Sanitization</strong>: none (the server-only variant <code>src/lib/supabase/service.ts:1</code> exists but is not used here)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone who loads the app&#39;s JavaScript (a signed-in user, or anyone who fetches the public chunk) gets the service-role key, which bypasses every RLS policy and storage policy and grants the Auth admin API: read, change or delete every user&#39;s notes, attachments and profiles, and create, impersonate or delete user accounts.</p></section>
+<section><h4>Regression test</h4><p>proof: static. No test written: the project has no test runner or installed dependencies, and the Supabase/Firebase emulators need docker, which is unavailable on this host. A build-time check would be: <code>next build</code> then grep <code>.next/static</code> for the key value.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-109 (the browser-side email lookup is also an enumeration oracle)</li>
+</ul></section>
+<p class="meta">exposure-101 · Data exposure &amp; secrets</p>
+</div></details>
+<h3>high · 6</h3><details class="row sev-high" id="auth-103">
+<summary><span class="sev">high</span><span class="title">RLS policy &quot;notes: readable&quot; is using (true): every signed-in user reads every user&#39;s notes</span><span class="chip chip-static">Code reading only</span><span class="loc">supabase/migrations/20260501090000_init.sql:103</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Replace the policy with <code>using (owner_id = (select auth.uid()) or exists (select 1 from public.note_shares s where s.note_id = id and s.shared_with = (select auth.uid())))</code> after fixing note_shares (auth-104) and share_note (auth-109), since a share row then becomes an access grant.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>supabase/migrations/20260501090000_init.sql:103</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>create policy &quot;notes: readable&quot; on public.notes
+  for select to authenticated
+  using (true);</code></pre>
+<ul>
+<li><strong>File</strong>: <code>src/app/(app)/notes/[id]/page.tsx:9</code> loads a note by id only and relies on RLS:</li>
+</ul>
+<pre><code>const { data: note } = await supabase.from(&quot;notes&quot;).select(&quot;id, title, body&quot;).eq(&quot;id&quot;, id).maybeSingle();</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: any authenticated Data API request (<code>/rest/v1/notes?select=*</code>) or the <code>id</code> route param of <code>/notes/[id]</code></li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: SELECT on <code>public.notes</code> under the policy at <code>init.sql:103-105</code></li>
+<li><strong>Sanitization</strong>: the policy has no row condition; sign-up is open (<code>supabase/config.toml:12</code>)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone who signs up (open sign-up, one confirmed mailbox) can list and read the title and body of every note of every user, through the Data API with the anon key or by opening <code>/notes/&lt;id&gt;</code> in the app. Contradicts README &quot;users only see their own notes and notes shared with them&quot;.</p></section>
+<section><h4>Regression test</h4><p>proof: static. No test written: the project has no test runner or installed dependencies, and the Supabase/Firebase emulators need docker, which is unavailable on this host.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-102 (owner_id values feed the anonymous export)</li>
+</ul></section>
+<p class="meta">auth-103 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="auth-104">
+<summary><span class="sev">high</span><span class="title">Row Level Security is never enabled on public.note_shares: anon key holders can read and write all share records</span><span class="chip chip-static">Code reading only</span><span class="loc">supabase/migrations/20260501090000_init.sql:120</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p><code>alter table public.note_shares enable row level security;</code> with a SELECT policy for the note owner and the recipient, and no INSERT/UPDATE/DELETE policy for clients (writes only through a fixed share_note, auth-109). Add a CI check that fails when a table in an exposed schema has RLS off (e.g. <code>supabase db lint</code>).</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>supabase/migrations/20260501090000_init.sql:120</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>create table public.note_shares (
+  note_id uuid not null references public.notes (id) on delete cascade,
+  shared_with uuid not null references auth.users (id) on delete cascade,
+  shared_with_email text not null,
+  can_edit boolean not null default false,
+  ...
+);</code></pre>
+<ul>
+<li>No <code>alter table public.note_shares enable row level security</code> in any migration (every other table has it: <code>init.sql:9,47,60,73,101,135</code>); <code>public</code> is an exposed schema (<code>supabase/config.toml:6</code>).</li>
+</ul></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>/rest/v1/note_shares</code> with the public anon key (GET/POST/PATCH/DELETE)</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: <code>public.note_shares</code> without RLS</li>
+<li><strong>Sanitization</strong>: none in the migrations; the table is reachable under Supabase&#39;s default privileges for the <code>public</code> schema (the migrations neither grant nor revoke; the target project&#39;s grants were not checked in this session)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone holding the public anon key (shipped in the web app) can read every share&#39;s recipient email address, recipient user id and note id, and insert, change or delete share rows. The user ids feed the anonymous note export (auth-102); the email list is personal data of every user who received a share. Contradicts README &quot;Row Level Security is enabled on every table&quot;.</p></section>
+<section><h4>Regression test</h4><p>proof: static. No test written: the project has no test runner or installed dependencies, and the Supabase/Firebase emulators need docker, which is unavailable on this host.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-102, auth-109</li>
+</ul></section>
+<p class="meta">auth-104 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="auth-105">
+<summary><span class="sev">high</span><span class="title">Attachment storage policies are scoped to the bucket only: any signed-in user reads and uploads attachments of every note</span><span class="chip chip-static">Code reading only</span><span class="loc">supabase/migrations/20260512090000_storage.sql:14</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Tie the policies to note ownership: <code>using (bucket_id = &#39;attachments&#39; and exists (select 1 from public.notes n where n.id::text = (storage.foldername(name))[1] and n.owner_id = (select auth.uid())))</code> for SELECT and the same in <code>with check</code> for INSERT (extend to share recipients if intended). Add a DELETE policy for the owner.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>supabase/migrations/20260512090000_storage.sql:14</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>create policy &quot;attachments: read&quot; on storage.objects
+  for select to authenticated
+  using (bucket_id = &#39;attachments&#39;);
+
+create policy &quot;attachments: upload&quot; on storage.objects
+  for insert to authenticated
+  with check (bucket_id = &#39;attachments&#39;);</code></pre>
+<ul>
+<li>Objects are stored under <code>&lt;note id&gt;/...</code> (<code>src/components/note-editor.tsx:19</code>) and listed per note (<code>src/app/(app)/notes/[id]/page.tsx:12</code>).</li>
+</ul></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: Storage API calls with any user&#39;s session: <code>list</code>, <code>download</code>, <code>createSignedUrl</code>, <code>upload</code> on bucket <code>attachments</code></li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: <code>storage.objects</code> rows of bucket <code>attachments</code> (<code>storage.sql:14-20</code>)</li>
+<li><strong>Sanitization</strong>: no owner or path check (compare the avatars policies at <code>storage.sql:6-12</code>, which do check the folder)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in user can list and download every attachment of every user, and can upload files into any other user&#39;s note folder, where they show up in that note&#39;s attachment list (<code>notes/[id]/page.tsx:12-13</code>) and are opened by the owner. Contradicts README &quot;Attachments are private to the note&#39;s owner&quot;.</p></section>
+<section><h4>Regression test</h4><p>proof: static. No test written: the project has no test runner or installed dependencies, and the Supabase/Firebase emulators need docker, which is unavailable on this host.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-103 (note ids, i.e. folder names, are readable by any signed-in user)</li>
+</ul></section>
+<p class="meta">auth-105 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="auth-106">
+<summary><span class="sev">high</span><span class="title">Firestore rules let any signed-in user read, modify (incl. ownerId) and delete every board and its strokes (systematic: 2 locations)</span><span class="chip chip-static">Code reading only</span><span class="loc">firestore.rules:10</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p><code>allow read, delete: if request.auth != null &amp;&amp; resource.data.ownerId == request.auth.uid;</code> and <code>allow update: if ... resource.data.ownerId == request.auth.uid &amp;&amp; request.resource.data.ownerId == resource.data.ownerId</code> (better: <code>diff().affectedKeys().hasOnly([...])</code>). For strokes: <code>get(/databases/$(database)/documents/boards/$(boardId)).data.ownerId == request.auth.uid</code>. Add rules unit tests with <code>@firebase/rules-unit-testing</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>firestore.rules:10</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>match /boards/{boardId} {
+  allow create: if request.auth != null &amp;&amp; request.resource.data.ownerId == request.auth.uid;
+  allow read, update, delete: if request.auth != null;
+
+  match /strokes/{strokeId} {
+    allow read, write: if request.auth != null;
+  }
+}</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: Firestore client SDK / REST with any Firebase Auth user</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: <code>boards/{boardId}</code> (<code>firestore.rules:10</code>) and <code>boards/{boardId}/strokes/{strokeId}</code> (<code>firestore.rules:13</code>)</li>
+<li><strong>Sanitization</strong>: login only; no <code>resource.data.ownerId == request.auth.uid</code>, no field allow-list on update. <code>read</code> includes <code>list</code>, so an unfiltered query on <code>boards</code> returns every board (the app&#39;s own filter at <code>src/components/board-list.tsx:20</code> is client-side intent, not a control)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any signed-in user can list and read every user&#39;s whiteboards and strokes, overwrite or delete them, and set <code>ownerId</code> to themselves, which also passes the thumbnail storage rule (<code>storage.rules:6</code>) and the <code>renameBoard</code> ownership check. Contradicts README &quot;Firestore boards are visible to their owner only&quot;.</p></section>
+<section><h4>Regression test</h4><p>proof: static. No test written: the project has no test runner or installed dependencies, and the Supabase/Firebase emulators need docker, which is unavailable on this host.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-107 (board ids for deleteBoard), auth-108</li>
+</ul></section>
+<p class="meta">auth-106 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="auth-107">
+<summary><span class="sev">high</span><span class="title">deleteBoard Cloud Function deletes any board and its files without checking auth or ownership</span><span class="chip chip-static">Code reading only</span><span class="loc">functions/src/index.ts:20</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Copy the <code>renameBoard</code> guard: require <code>request.auth?.uid</code>, load the board and compare <code>ownerId</code> before deleting; validate <code>boardId</code> as a non-empty string without <code>/</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>functions/src/index.ts:20</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>export const deleteBoard = onCall({ enforceAppCheck: true }, async (request) =&gt; {
+  const { boardId } = request.data as { boardId: string };
+  const ref = db.collection(&quot;boards&quot;).doc(String(boardId));
+  await db.recursiveDelete(ref);
+  await getStorage().bucket().deleteFiles({ prefix: `boards/${boardId}/` });
+  return { ok: true };
+});</code></pre></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>request.data.boardId</code> of the callable (<code>functions/src/index.ts:21</code>)</li>
+<li><strong>Transformations</strong>: <code>String(boardId)</code></li>
+<li><strong>Sink</strong>: Admin SDK <code>recursiveDelete</code> (<code>:23</code>) and bucket <code>deleteFiles</code> (<code>:24</code>); the Admin SDK bypasses security rules</li>
+<li><strong>Sanitization</strong>: none; <code>request.auth</code> is never read (compare <code>renameBoard</code> at <code>:10-15</code>). <code>enforceAppCheck</code> only attests the calling app instance, it is not authorization</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any caller that passes App Check (any visitor of the genuine web app, signed in or not) can permanently delete any user&#39;s board, all its strokes and its thumbnails, given the board id; ids are listable by any signed-in user (auth-106).</p></section>
+<section><h4>Regression test</h4><p>proof: static. No test written: the project has no test runner or installed dependencies, and the Supabase/Firebase emulators need docker, which is unavailable on this host.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-106</li>
+</ul></section>
+<p class="meta">auth-107 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-high" id="auth-108">
+<summary><span class="sev">high</span><span class="title">Firebase Storage /exports/ is world-readable and world-writable (allow read, write: if true)</span><span class="chip chip-static">Code reading only</span><span class="loc">storage.rules:11</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Store exports under <code>exports/{uid}/...</code> and allow write only when <code>request.auth.uid == uid</code> with size and <code>image/png</code> limits; read for the owner only. If export links must be public, share them via download-token URLs (<code>getDownloadURL</code>), which work without a public read rule, and keep <code>list</code> denied.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>storage.rules:11</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>match /exports/{allPaths=**} {
+  allow read, write: if true;
+}</code></pre>
+<ul>
+<li>Board exports are written there by <code>src/components/board-list.tsx:31-33</code> (<code>exports/&lt;boardId&gt;-&lt;timestamp&gt;.png</code>).</li>
+</ul></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: unauthenticated Firebase Storage requests on <code>exports/**</code></li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: every object under <code>exports/</code></li>
+<li><strong>Sanitization</strong>: none; no auth, ownership, size or content-type condition (compare <code>storage.rules:4-9</code>)</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone on the internet, without an account, can list and download every exported whiteboard image of every user, overwrite or delete them (a shared export link then serves the attacker&#39;s content), and upload arbitrary files of any size and type into the project&#39;s bucket at the owner&#39;s storage and egress cost.</p></section>
+<section><h4>Regression test</h4><p>proof: static. No test written: the project has no test runner or installed dependencies, and the Supabase/Firebase emulators need docker, which is unavailable on this host.</p></section>
+<section><h4>Chained with</h4><ul>
+<li>auth-106</li>
+</ul></section>
+<p class="meta">auth-108 · Authentication &amp; authorization</p>
+</div></details>
+<h3>medium · 2</h3><details class="row sev-medium" id="auth-109">
+<summary><span class="sev">medium</span><span class="title">share_note() is SECURITY DEFINER, callable by anon, never checks note ownership, and is an email-enumeration oracle</span><span class="loc">supabase/migrations/20260508090000_sharing.sql:1</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Inside the function: <code>if not exists (select 1 from public.notes where id = p_note_id and owner_id = (select auth.uid())) then raise exception &#39;not allowed&#39;; end if;</code>, add <code>set search_path = &#39;&#39;</code>, <code>revoke execute on function public.share_note(uuid, text, boolean) from public, anon;</code> and <code>grant execute ... to authenticated</code>. Return the same error for unknown emails and success, or rate-limit the call.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>supabase/migrations/20260508090000_sharing.sql:1</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>create function public.share_note(p_note_id uuid, p_email text, p_can_edit boolean default false)
+returns void
+language plpgsql
+security definer
+as $$
+...
+  select id into v_user from public.profiles where email = lower(p_email);
+  if v_user is null then
+    raise exception &#39;no user with that email&#39;;
+  end if;
+  insert into public.note_shares (note_id, shared_with, shared_with_email, can_edit)
+  values (p_note_id, v_user, lower(p_email), p_can_edit)
+  on conflict (note_id, shared_with) do update set can_edit = excluded.can_edit;</code></pre>
+<ul>
+<li>No <code>revoke execute ... from public, anon</code> for it (compare <code>sharing.sql:33</code> for <code>notebook_note_counts</code>), no <code>set search_path</code>, no <code>auth.uid()</code> reference.</li>
+</ul></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>POST /rest/v1/rpc/share_note</code> with the anon key: <code>p_note_id</code>, <code>p_email</code>, <code>p_can_edit</code></li>
+<li><strong>Transformations</strong>: <code>lower(p_email)</code></li>
+<li><strong>Sink</strong>: lookup in <code>public.profiles</code> bypassing its owner-only RLS (<code>sharing.sql:9</code>), insert/upsert into <code>note_shares</code> (<code>:14-16</code>)</li>
+<li><strong>Sanitization</strong>: none; runs as the function owner</li>
+<li><strong>Verdict</strong>: VULNERABLE</li>
+</ul></section>
+<section><h4>Impact</h4><p>Anyone with the public anon key can test whether an email address has an account (distinct &quot;no user with that email&quot; error) and can create or upgrade (<code>can_edit = true</code>) a share of any note for any registered user. Today no RLS policy reads <code>note_shares</code>, so a forged share grants no access by itself; it becomes a grant the moment sharing is wired into the notes policy as the README describes.</p></section>
+
+<section><h4>Chained with</h4><ul>
+<li>auth-104, exposure-101</li>
+</ul></section>
+<p class="meta">auth-109 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-medium" id="exposure-110">
+<summary><span class="sev">medium</span><span class="title">Account deletion never removes the user&#39;s Storage files (attachments, avatars) or Firebase boards</span><span class="loc">src/app/api/account/route.ts:12</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Before <code>deleteUser</code>, remove the user&#39;s objects with the service client (<code>storage.from(&#39;avatars&#39;).remove(...)</code> for <code>&lt;uid&gt;/...</code>, and every attachment under the user&#39;s note ids), and delete or anonymise Firestore boards owned by the user (or document that the board system is a separate account). Add owner DELETE policies so users can remove files themselves.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>src/app/api/account/route.ts:12</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>  const admin = createServiceClient();
+  const { error } = await admin.auth.admin.deleteUser(user.id);
+  if (error) return NextResponse.json({ error: &quot;Could not delete the account&quot; }, { status: 500 });
+
+  await supabase.auth.signOut();</code></pre>
+<ul>
+<li>Table rows cascade from <code>auth.users</code> (<code>init.sql:2,54,68,94,122,131</code>), but <code>storage.objects</code> has no cascade and users have no DELETE policy on either bucket (<code>storage.sql:6-20</code> defines only insert/update/select). Firestore boards and Firebase Storage are not touched.</li>
+</ul></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: signed-in user calls <code>DELETE /api/account</code></li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: <code>auth.admin.deleteUser</code> only (<code>route.ts:13</code>)</li>
+<li><strong>Sanitization</strong>: no storage cleanup before or after</li>
+<li><strong>Verdict</strong>: PARTIAL</li>
+</ul></section>
+<section><h4>Impact</h4><p>After a user deletes their account, their avatar stays readable by anyone with its public URL and their note attachments stay in the private bucket, where any signed-in user can still read them (auth-105); their whiteboards remain in Firestore. Supabase&#39;s documentation says <code>deleteUser</code> fails for users who own Storage objects, in which case such users get &quot;Could not delete the account&quot; and cannot erase their data at all (platform behaviour not verified in this session).</p></section>
+
+<section><h4>Chained with</h4><ul>
+<li>auth-105</li>
+</ul></section>
+<p class="meta">exposure-110 · Data exposure &amp; secrets</p>
+</div></details>
+<h3>low · 3</h3><details class="row sev-low" id="auth-111">
+<summary><span class="sev">low</span><span class="title">UPDATE policy &quot;notebooks: members rename&quot; checks only login and has no WITH CHECK: owner_id can be rewritten</span><span class="loc">supabase/migrations/20260501090000_init.sql:83</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p><code>using (owner_id = (select auth.uid())) with check (owner_id = (select auth.uid()))</code>, and <code>revoke update on public.notebooks from authenticated; grant update (title) on public.notebooks to authenticated;</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>supabase/migrations/20260501090000_init.sql:83</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>create policy &quot;notebooks: members rename&quot; on public.notebooks
+  for update to authenticated
+  using (auth.role() = &#39;authenticated&#39;);</code></pre>
+<ul>
+<li>No column grant restricts updates on <code>notebooks</code> (unlike <code>profiles</code>, <code>init.sql:20-21</code>).</li>
+</ul></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: <code>PATCH /rest/v1/notebooks?id=eq.&lt;id&gt;</code> with any user&#39;s session</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: UPDATE on <code>public.notebooks</code></li>
+<li><strong>Sanitization</strong>: the filtered UPDATE also needs the row to pass the SELECT policy <code>owner_id = auth.uid()</code> (<code>init.sql:75-77</code>), so another user&#39;s notebook is not reachable today (Postgres RLS semantics; not tested live). USING doubles as the check, so <code>owner_id</code> may be set to any value</li>
+<li><strong>Verdict</strong>: PARTIAL</li>
+</ul></section>
+<section><h4>Impact</h4><p>A signed-in user can move one of their own notebooks into another user&#39;s account by setting <code>owner_id</code> (the recipient then sees and can delete it, cascading its notes). Cross-user renames are blocked only by the separate SELECT policy; adding the &quot;members&quot; read access the policy name implies would make every notebook writable by every user.</p></section>
+
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">auth-111 · Authentication &amp; authorization</p>
+</div></details>
+<details class="row sev-low" id="config-112">
+<summary><span class="sev">low</span><span class="title">No security headers configured (no CSP, no frame-ancestors / X-Frame-Options, no HSTS)</span><span class="loc">next.config.ts:3</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Add <code>async headers()</code> in <code>next.config.ts</code> with <code>Content-Security-Policy</code> (at least <code>frame-ancestors &#39;none&#39;</code>), <code>X-Frame-Options: DENY</code>, <code>Strict-Transport-Security</code>, <code>Referrer-Policy: strict-origin-when-cross-origin</code>, <code>X-Content-Type-Options: nosniff</code>.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>next.config.ts:3</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>const config: NextConfig = {
+  poweredByHeader: false,
+};</code></pre>
+<ul>
+<li>No <code>headers()</code> in <code>next.config.ts</code>, no <code>middleware.ts</code>/<code>proxy.ts</code> in <code>src/</code>.</li>
+</ul></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: any page response</li>
+<li><strong>Transformations</strong>: none</li>
+<li><strong>Sink</strong>: HTTP response headers</li>
+<li><strong>Sanitization</strong>: none in the repo (a reverse proxy may add them; not checked)</li>
+<li><strong>Verdict</strong>: PARTIAL</li>
+</ul></section>
+<section><h4>Impact</h4><p>Any site can frame the signed-in app (e.g. the note page with its Share dialog and file upload) for clickjacking, and there is no CSP to limit the damage of a future XSS. No concrete exploit today: the framed actions need typed input.</p></section>
+
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">config-112 · Headers, CORS, build &amp; deploy configuration</p>
+</div></details>
+<details class="row sev-low" id="config-113">
+<summary><span class="sev">low</span><span class="title">No lockfile committed and Edge Functions import a floating major (npm:@supabase/supabase-js@2)</span><span class="loc">supabase/functions/export-notes/index.ts:1</span></summary>
+<div class="body">
+<section><h4>How to fix</h4><p>Commit <code>pnpm-lock.yaml</code> for the root and <code>functions/</code>, pin the Deno import to an exact version (<code>npm:@supabase/supabase-js@2.58.0</code>) and commit <code>deno.lock</code>; run osv-scanner or <code>pnpm audit</code> in CI.</p></section>
+<section><h4>Evidence</h4><ul>
+<li><strong>File</strong>: <code>supabase/functions/export-notes/index.ts:1</code></li>
+<li><strong>Code</strong>:</li>
+</ul>
+<pre><code>import { createClient } from &quot;npm:@supabase/supabase-js@2&quot;;</code></pre>
+<ul>
+<li>Same at <code>supabase/functions/inbound-email/index.ts:1</code>. No <code>pnpm-lock.yaml</code>/<code>package-lock.json</code> in the repo root or <code>functions/</code> (README installs with <code>pnpm install</code>), no <code>deno.lock</code> for the Edge Functions.</li>
+</ul></section>
+<section><h4>Data flow</h4><ul>
+<li><strong>Source</strong>: package registry at install / function bundle time</li>
+<li><strong>Transformations</strong>: semver range resolution (<code>@2</code> = latest 2.x; transitive deps of the root and <code>functions/</code> packages resolve fresh each install)</li>
+<li><strong>Sink</strong>: code running with the service-role key (Edge Functions) and the Firebase Admin SDK (Cloud Functions)</li>
+<li><strong>Sanitization</strong>: direct deps in <code>package.json</code> and <code>functions/package.json</code> are pinned exactly; transitive ones are not</li>
+<li><strong>Verdict</strong>: PARTIAL</li>
+</ul></section>
+<section><h4>Impact</h4><p>A compromised or broken release in the dependency tree is pulled into code holding the service-role key on the next deploy without review. It also means the dependency advisory scan had nothing to scan (see Not Assessed).</p></section>
+
+<section><h4>Chained with</h4><ul>
+<li>none</li>
+</ul></section>
+<p class="meta">config-113 · Headers, CORS, build &amp; deploy configuration</p>
+</div></details>
+
+
+
+
+<h2 id="safe">Verified safe</h2>
+<p class="lede">Areas the audit examined and found protected, each with the control that protects it.</p>
+<div class="band-safe"><details class="cat" open><summary>Authentication &amp; authorization <span>10</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>renameBoard Cloud Function authorization<span class="why">Requires request.auth.uid and compares the board&#39;s ownerId before updating; title is coerced and truncated. (The Firestore rules bypass it today: auth-106.) · <code>functions/src/index.ts:10</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>profiles table: RLS and writable columns<span class="why">Owner-only SELECT/UPDATE with WITH CHECK; UPDATE revoked and re-granted only on display_name and avatar_path, so users cannot change the email used for share lookups; no INSERT/DELETE policies. · <code>supabase/migrations/20260501090000_init.sql:11</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>subscriptions and plans tables<span class="why">subscriptions: owner-only SELECT and no write policy, so users cannot change their own plan or status. plans: using (true) is a public price catalogue (id, name, monthly_price_cents, note_limit) with no personal data. · <code>supabase/migrations/20260501090000_init.sql:62</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>SECURITY DEFINER functions notebook_note_counts() and handle_new_user()<span class="why">Both set search_path = &#39;&#39;. notebook_note_counts filters by auth.uid() and EXECUTE is revoked from public/anon; handle_new_user is a trigger function only. · <code>supabase/migrations/20260508090000_sharing.sql:25</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>notes INSERT/UPDATE/DELETE policies<span class="why">Writes require owner_id = auth.uid(), with WITH CHECK on update so ownership cannot be transferred. (Read policy is the problem: auth-103.) · <code>supabase/migrations/20260501090000_init.sql:107</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>inbound_addresses table<span class="why">RLS enabled, owner-only SELECT, no client write policies; the token is only read server-side by the signed webhook. · <code>supabase/migrations/20260501090000_init.sql:135</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>DELETE /api/account<span class="why">User comes from auth.getUser() (validated by the Auth server, not getSession); only that id is deleted; the service-role client is in a server-only module. DELETE cannot be sent cross-site without a CORS preflight, which the route does not answer. · <code>src/app/api/account/route.ts:9</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Magic-link callback and redirect targets<span class="why">Callback always redirects to the fixed path /notes on its own origin; emailRedirectTo is validated by Supabase against site_url/additional_redirect_urls, which are exact URLs; email confirmation is on. · <code>src/app/auth/callback/route.ts:11</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Avatars bucket write policies<span class="why">Uploads and replacements are limited to the caller&#39;s own &lt;uid&gt;/ folder; the bucket being public is by design for profile pictures. · <code>supabase/migrations/20260512090000_storage.sql:8</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Firebase thumbnails storage rule, users/{userId} and board create rules<span class="why">Thumbnails: owner check via firestore.get, 2 MiB and image/* limits on write. users/{userId}: uid must match the path. Board create requires ownerId == caller. (ownerId can still be rewritten through the board update rule: auth-106.) · <code>storage.rules:5</code></span></div></li></ul></details><details class="cat" open><summary>Data exposure &amp; secrets <span>2</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Firebase web config and Supabase anon key in the client<span class="why">The Firebase web apiKey and the Supabase anon key are public by design; access is enforced by rules/RLS (findings elsewhere). · <code>src/lib/firebase/client.ts:7</code></span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Error responses of Edge Functions and the account route<span class="why">Errors return fixed strings without database error details or stack traces. · <code>supabase/functions/export-notes/index.ts:16</code></span></div></li></ul></details><details class="cat"><summary>Concurrency &amp; races <span>1</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Share upsert and board deletion races<span class="why">share_note uses a single INSERT ... ON CONFLICT DO UPDATE on the primary key, so concurrent shares cannot duplicate rows; no balances, counters or one-time tokens exist in the code. · <code>supabase/migrations/20260508090000_sharing.sql:16</code></span></div></li></ul></details><details class="cat"><summary>Cryptography <span>1</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>inbound-email HMAC signature verification<span class="why">Signature must be 64 hex chars, timestamp within 300 s, HMAC-SHA256 over timestamp.raw body verified with crypto.subtle.verify (constant time) before the body is parsed or the service client is used. · <code>supabase/functions/inbound-email/index.ts:10</code></span></div></li></ul></details><details class="cat"><summary>Injection &amp; SSRF <span>1</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Rendering of note, board and email content<span class="why">All user content is rendered as React text or input values (escaped); no dangerouslySetInnerHTML, eval or innerHTML anywhere in src/; markdown export is returned as text/markdown, not HTML. · <code>src/components/note-editor.tsx:31</code></span></div></li></ul></details><details class="cat"><summary>Rate limiting &amp; abuse <span>1</span></summary><ul class="good"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="9" r="7.2"/><path d="M5.8 9.2l2.2 2.2 4.2-4.6"/></svg><div>Size limits on inbound email and Supabase Storage uploads<span class="why">Inbound note title/body are truncated (200 / 50 000 chars) after signature check; Supabase Storage has a 10 MiB per-file limit; Data API capped at 1000 rows. · <code>supabase/functions/inbound-email/index.ts:41</code></span></div></li></ul></details></div>
+
+<h2 id="gaps">Not assessed</h2>
+<p class="lede">Nobody checked these. They are unknown, not safe.</p>
+<div class="band-gap"><ul class="gap"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>known-vulnerable versions</strong><span class="why">no lockfile in the repo (root or functions/), so osv-scanner had no resolved tree; direct versions not looked up from memory · dependency</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>audit logging of account deletion, exports, shares</strong><span class="why">the code has no logging; Supabase/Firebase platform logs and retention are configured outside the repo · logging</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>magic-link email and sign-up rate limits</strong><span class="why">hosted Supabase Auth rate limits are project settings not in the repo; config.toml has no [auth.rate_limit] block · rate-limit</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>Firebase Auth providers (anonymous sign-in, open sign-up)</strong><span class="why">Firebase Auth provider settings are not in the repo; they decide who counts as request.auth != null · auth</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>generation and entropy of inbound_addresses.token · supabase/migrations/20260501090000_init.sql</strong><span class="why">no code in the repo creates inbound tokens · crypto</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>effective table grants for anon/authenticated on the deployed project</strong><span class="why">migrations rely on Supabase default privileges; no live database available (docker unavailable) · auth</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" stroke-dasharray="2.2 2.4"><circle cx="9" cy="9" r="7.2"/></svg><div><strong>semgrep rule scan (p/javascript, p/nextjs, p/react, p/typescript)</strong><span class="why">NOT RUN: semgrep not installed and docker unavailable; to enable: `pipx install semgrep` or `brew install semgrep`, or a running docker (pulls semgrep/semgrep:1.179.0, pinned by digest) (prepass) · code</span></div></li></ul></div>
+
+<h2 id="prod">Production checklist</h2>
+<p class="lede">Deployment and runtime checks the code audit cannot settle. Items marked &quot;from this audit&quot; come from rows under Not Assessed; the baseline items apply to any production deploy. Each says how to verify it on your own host; none of them changes anything.</p>
+
+<ul class="gap prod"><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Request size, upload and rate limits</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: rate-limit · magic-link email and sign-up rate limits (hosted Supabase Auth rate limits are project settings not in the repo; config.toml has no [auth.rate_limit] block)</span><span class="how">How to check: Write down the limits the deployment actually applies: reverse-proxy body size (e.g. <code>client_max_body_size</code>), the framework&#39;s body parser limit, the upload maximum, the login throttle. On staging, with your own test account, confirm an oversized upload is refused (413) and repeated failed logins get throttled.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Backups and a tested restore</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: logging · audit logging of account deletion, exports, shares (the code has no logging; Supabase/Firebase platform logs and retention are configured outside the repo)</span><span class="how">How to check: Check the time of the last backup and that it is stored off the production host. Restore it into a scratch database, compare row counts of the main tables with production, and note how long the restore took.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Logging, monitoring and alerts</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: logging · audit logging of account deletion, exports, shares (the code has no logging; Supabase/Firebase platform logs and retention are configured outside the repo)</span><span class="how">How to check: On staging, cause a harmless error (a 404, a failed login with your own test account) and confirm it reaches the log store with a timestamp and request id, and without passwords, tokens or session ids. Confirm someone is alerted on a burst of 5xx responses or failed logins.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Dependency and runtime updates</strong> <span class="chip chip-warn">From this audit</span><span class="why">Not assessed: dependency · known-vulnerable versions (no lockfile in the repo (root or functions/), so osv-scanner had no resolved tree; direct versions not looked up from memory)</span><span class="how">How to check: Run the ecosystem&#39;s audit on the lockfile that is deployed (<code>npm audit --omit=dev</code>, <code>composer audit</code>, <code>pip-audit</code>). Check that the runtime and base image versions in production are still supported, and that update pull requests (Dependabot, Renovate) have an owner.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Security headers</strong> <span class="chip chip-muted">Baseline</span><span class="how">How to check: <code>curl -sI https://&lt;your-host&gt;/</code> and look for <code>Content-Security-Policy</code>, <code>Strict-Transport-Security</code>, <code>X-Content-Type-Options: nosniff</code>, <code>frame-ancestors</code> (or <code>X-Frame-Options</code>) and <code>Referrer-Policy</code>. Repeat on an API route and on an error page; a CDN or proxy can add or strip them.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>TLS and HTTPS redirect</strong> <span class="chip chip-muted">Baseline</span><span class="how">How to check: <code>curl -sI http://&lt;your-host&gt;/</code> should answer with a redirect to <code>https://</code>. <code>openssl s_client -connect &lt;your-host&gt;:443 -servername &lt;your-host&gt; &lt;/dev/null | openssl x509 -noout -dates</code> shows the certificate expiry; confirm renewal is automated.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Environment variables and debug flags</strong> <span class="chip chip-muted">Baseline</span><span class="how">How to check: List the variables the code reads (search for <code>process.env</code>, <code>getenv</code>, <code>os.environ</code>) and confirm each one is set in production with a non-default value. Debug is off (<code>NODE_ENV=production</code>, <code>APP_DEBUG=false</code>, <code>DEBUG=False</code>), and an error page on https://&lt;your-host&gt;/ shows no stack trace.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Secrets storage and rotation</strong> <span class="chip chip-muted">Baseline</span><span class="how">How to check: Production secrets live in the platform&#39;s secret store, not in the repository or the image: run <code>gitleaks detect</code> over the full git history and check <code>docker history &lt;image&gt;</code> for baked-in values. Rotate any value that was ever committed, and check who can read the secret store.</span></div></li><li><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="2.5" y="2.5" width="13" height="13" rx="3"/></svg><div><strong>Exposed services and ports</strong> <span class="chip chip-muted">Baseline</span><span class="how">How to check: In the hosting provider&#39;s firewall or security-group view, only 80 and 443 are public for &lt;your-host&gt;; the database, cache, queue and admin ports are bound to a private network. Repeat after every infrastructure change.</span></div></li></ul>
+<p class="empty">4 other not-assessed row(s) are code checks rather than deployment checks; they stay under Not assessed.</p>
+
+<h2 id="hotspots">Hotspots</h2>
+<p class="lede">Where the audit started: entry points and configuration ranked by risk signals. A ranking, not a verdict.</p>
+<div class="tablewrap"><table><thead><tr><th>#</th><th>Score</th><th>Where</th><th>Why</th></tr></thead><tbody><tr><td>1</td><td><span class="score" style="width:52px"></span>13</td><td class="mono where">supabase/functions/export-notes/index.ts:7<br>edge-function export-notes</td><td>files area; edge-function: public HTTPS endpoint; verify_jwt = false: the gateway lets anonymous callers in; no auth check in the function; service-role / Admin SDK client: RLS and security rules do not apply; tenant/user id taken from the request body</td></tr><tr><td>2</td><td><span class="score" style="width:28px"></span>7</td><td class="mono where">functions/src/index.ts:20<br>cloud-function deleteBoard</td><td>cloud-function: callable by any client of the project; no auth check in the function; service-role / Admin SDK client: RLS and security rules do not apply</td></tr><tr><td>3</td><td><span class="score" style="width:28px"></span>7</td><td class="mono where">src/app/auth/callback/route.ts:4<br>route-handler GET</td><td>auth area; no auth check in the handler</td></tr><tr><td>4</td><td><span class="score" style="width:28px"></span>7</td><td class="mono where">supabase/migrations/20260508090000_sharing.sql:1<br>policy share_note()</td><td>SECURITY DEFINER function: runs as its owner and bypasses RLS; no fixed search_path; never checks auth.uid(); EXECUTE not revoked from public/anon: callable with the anon key through /rpc</td></tr><tr><td>5</td><td><span class="score" style="width:24px"></span>6</td><td class="mono where">storage.rules:12<br>policy /exports/</td><td>allow read, write: if true on /exports/: anyone, signed in or not</td></tr><tr><td>6</td><td><span class="score" style="width:24px"></span>6</td><td class="mono where">supabase/migrations/20260501090000_init.sql:120<br>policy note_shares</td><td>row level security is never enabled on note_shares: the Data API serves it to anyone holding the anon key</td></tr><tr><td>7</td><td><span class="score" style="width:20px"></span>5</td><td class="mono where">src/lib/supabase/admin.ts:1<br>code admin.ts</td><td>NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY looks like a secret and is shipped to the browser</td></tr><tr><td>8</td><td><span class="score" style="width:20px"></span>5</td><td class="mono where">supabase/functions/inbound-email/index.ts:24<br>edge-function inbound-email</td><td>edge-function: public HTTPS endpoint; verify_jwt = false: the gateway lets anonymous callers in; service-role / Admin SDK client: RLS and security rules do not apply</td></tr><tr><td>9</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">firestore.rules:10<br>policy /boards/</td><td>allow read, update, delete on /boards/ for any signed-in user: no ownership check</td></tr><tr><td>10</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">firestore.rules:13<br>policy /strokes/</td><td>allow read, write on /strokes/ for any signed-in user: no ownership check</td></tr><tr><td>11</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">functions/src/index.ts:9<br>cloud-function renameBoard</td><td>cloud-function: callable by any client of the project; service-role / Admin SDK client: RLS and security rules do not apply</td></tr><tr><td>12</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">supabase/migrations/20260501090000_init.sql:49<br>policy plans: public catalogue</td><td>policy &quot;plans: public catalogue&quot; on public.plans is `true` for everyone in its roles (fine only for public data)</td></tr><tr><td>13</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">supabase/migrations/20260501090000_init.sql:83<br>policy notebooks: members rename</td><td>policy &quot;notebooks: members rename&quot; on public.notebooks checks that the caller is signed in, not that they own the row</td></tr><tr><td>14</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">supabase/migrations/20260501090000_init.sql:103<br>policy notes: readable</td><td>policy &quot;notes: readable&quot; on public.notes is `true` for everyone in its roles (fine only for public data)</td></tr><tr><td>15</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">supabase/migrations/20260512090000_storage.sql:14<br>policy attachments: read</td><td>storage policy &quot;attachments: read&quot; is scoped to the bucket, not to the object&#39;s owner</td></tr><tr><td>16</td><td><span class="score" style="width:16px"></span>4</td><td class="mono where">supabase/migrations/20260512090000_storage.sql:18<br>policy attachments: upload</td><td>storage policy &quot;attachments: upload&quot; is scoped to the bucket, not to the object&#39;s owner</td></tr><tr><td>17</td><td><span class="score" style="width:12px"></span>3</td><td class="mono where">src/app/(app)/notes/[id]/page.tsx:1<br>page page</td><td>page without a guard reads the database (what reaches the client?)</td></tr><tr><td>18</td><td><span class="score" style="width:12px"></span>3</td><td class="mono where">src/app/login/page.tsx:1<br>page page</td><td>auth area</td></tr><tr><td>19</td><td><span class="score" style="width:8px"></span>2</td><td class="mono where">supabase/migrations/20260512090000_storage.sql:3<br>policy bucket avatars</td><td>storage bucket &quot;avatars&quot; is public: every object is readable by URL (by design?)</td></tr><tr><td>20</td><td><span class="score" style="width:4px"></span>1</td><td class="mono where">src/app/api/account/route.ts:5<br>route-handler DELETE</td><td></td></tr></tbody></table></div>
+
+<h2 id="deps">Dependencies</h2>
+<p class="lede">no lockfile found</p>
+<p class="empty">No vulnerable packages reported.</p>
+
+<h2 id="secrets">Secrets</h2>
+<p class="lede">gitleaks: 0 hits, 1 commits of this repo. Values are redacted; anything real that was ever committed must be rotated.</p>
+<p class="empty">No secrets found.</p>
+
+<h2 id="filtered">Filtered out</h2>
+<p class="lede">Candidates the verifier rejected after reading the code. Kept for the record; none of them needs action.</p>
+<div class="tablewrap"><table><thead><tr><th>Finding</th><th>Reason</th></tr></thead><tbody><tr><td>Notes INSERT/UPDATE policies do not check that notebook_id belongs to the caller<br><span class="mono">auth-115</span></td><td>best_practice</td></tr><tr><td>plans.note_limit is never enforced<br><span class="mono">business-logic-114</span></td><td>best_practice</td></tr><tr><td>inbound-email accepts a valid signed request again within 300 s (no nonce)<br><span class="mono">crypto-116</span></td><td>best_practice</td></tr><tr><td>README claim is false: &quot;Row Level Security is enabled on every table&quot;<br><span class="mono">docs-vs-reality-117</span></td><td>duplicate_of_auth-104</td></tr><tr><td>README claim is false: &quot;users only see their own notes and notes shared with them&quot;<br><span class="mono">docs-vs-reality-118</span></td><td>duplicate_of_auth-103</td></tr><tr><td>README claim is false: &quot;The service role key never leaves the server.&quot;<br><span class="mono">docs-vs-reality-119</span></td><td>duplicate_of_exposure-101</td></tr><tr><td>README claim is false: &quot;Attachments are private to the note&#39;s owner.&quot;<br><span class="mono">docs-vs-reality-120</span></td><td>duplicate_of_auth-105</td></tr><tr><td>README claim is false: &quot;Edge Functions require a signed-in user, except the inbound email hook&quot;<br><span class="mono">docs-vs-reality-121</span></td><td>duplicate_of_auth-102</td></tr><tr><td>README claim is false: &quot;Firestore boards are visible to their owner only.&quot;<br><span class="mono">docs-vs-reality-122</span></td><td>duplicate_of_auth-106</td></tr></tbody></table></div>
+</main>
+<footer>Generated from <code>.security-audit/</code> by report-html.mjs. Names unfixed weaknesses with file and line: keep it private, never publish or commit it. A public page must redact unfixed findings (see public_safe in remediation.json).</footer>
+</div>
+<script>addEventListener("beforeprint",()=>document.querySelectorAll("details").forEach((d)=>d.open=true));</script>
+</body>
+</html>
