@@ -42,7 +42,7 @@ const dateText = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateStrin
                   <td class="mono nowrap">{r.version}<br /><span class="dim">{ROLE[r.role]}</span></td>
                   <td class="mono">{r.role === "control" ? "—" : `${recall(r)}/${r.total}`}</td>
                   <td class="mono">{r.decoyFp}</td>
-                  <td class="mono">{r.unmatched}</td>
+                  <td class="mono">{r.unmatched ?? "—"}</td>
                   <td class="mono nowrap">{pl(r.costUsd)} USD / {pl(r.minutes, 1)} min</td>
                   <td class="mono"><a href={COMMIT(r.skillSha)} rel="noopener">{r.skillSha}</a></td>
                 </tr>
@@ -71,7 +71,7 @@ const dateText = (iso: string) => new Date(`${iso}T12:00:00Z`).toLocaleDateStrin
                 ))}
               </ul>
             ) : (
-              <p class="dim">Wersja z&nbsp;poprawkami, więc bez listy advisory do znalezienia. Trafienia w&nbsp;pułapkę: {r.decoyFp}, w&nbsp;przeglądzie: {r.unmatched}.</p>
+              <p class="dim">Wersja z&nbsp;poprawkami, więc bez listy advisory do znalezienia. Trafienia w&nbsp;pułapkę: {r.decoyFp}{r.unmatched !== undefined && <>, w&nbsp;przeglądzie: {r.unmatched}</>}.</p>
             )}
           </details>
         ))}
