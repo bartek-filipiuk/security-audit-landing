@@ -18,6 +18,19 @@ const description = "Co dalej w skillu security-audit: nowe stacki, narzędzia d
         <p class="lead">Bez dat. Każda pozycja ma jedno zdanie o&nbsp;tym, co zyskujesz, i&nbsp;jedno o&nbsp;tym, po czym poznamy, że jest gotowa. Zmiany śledzisz na GitHubie, a&nbsp;propozycje i&nbsp;pull requesty są mile widziane.</p>
         <p class="buildlog">Budujemy to publicznie: krótkie standupy z&nbsp;postępów lecą na <a href={SITE.youtube} rel="noopener">kanale YouTube @SecurityAuditDev</a>.</p>
         <p class="rules">Trzy zasady: profil dla stacku wychodzi dopiero z&nbsp;własną aplikacją testową i&nbsp;wynikiem na niej; wynik narzędzia deterministycznego jest kandydatem dla audytora, nigdy znaleziskiem bez weryfikacji w&nbsp;kodzie; nic w&nbsp;skillu nie opisuje ani nie symuluje ataków.</p>
+        <div class="recent">
+          <h2 class="h2 small">Ostatnio: szybsza weryfikacja (R34)</h2>
+          <p class="recent-meta">9 listopada 2026 · zmiany przygotował model Fable&nbsp;5.2 na podstawie jednego zmierzonego przebiegu na aplikacji testowej</p>
+          <p>Weryfikacja to najdroższa faza audytu: w&nbsp;zmierzonym przebiegu zajęła 61% czasu i&nbsp;68% tokenów. Co się zmieniło:</p>
+          <ul>
+            <li><b>Wstępny skan dwa razy szybszy.</b> Skanery działają równolegle, a&nbsp;nie po kolei: 9&nbsp;s → 4&nbsp;s na aplikacji testowej, wynik bez zmian.</li>
+            <li><b>Duplikaty sprawdzane raz.</b> 17 z&nbsp;58 znalezisk dotyczyło tego samego miejsca, zwykle zgłoszone przez dwóch audytorów. Skrypt łączy je w&nbsp;grupy i&nbsp;dzieli pracę na równe części, więc jeden weryfikator ocenia całą grupę.</li>
+            <li><b>Mniej tokenów na werdykt.</b> Weryfikator zapisuje status jednym poleceniem i&nbsp;nie przepisuje już całych plików ze znaleziskami.</li>
+            <li><b>Uczciwe etykiety dowodu.</b> Test regresyjny uruchamia się tylko narzędziami projektu. Skill niczego nie instaluje ani nie pożycza z&nbsp;innego projektu. Gdy projekt nie ma czym uruchomić testu, raport pisze to wprost.</li>
+            <li><b>Ocena testów startuje razem z&nbsp;weryfikacją</b>, a&nbsp;nie na końcu audytu.</li>
+          </ul>
+          <p class="recent-meta">Na razie zmierzony jest tylko wstępny skan. Zysk na weryfikacji potwierdzą dwa punktowane przebiegi: ta sama wykrywalność i&nbsp;żadnych nowych fałszywych alarmów.</p>
+        </div>
       </div>
     </section>
     <section class="section band lanes-section">
@@ -104,5 +117,11 @@ const description = "Co dalej w skillu security-audit: nowe stacki, narzędzia d
   .versions dd { margin: 0; color: var(--ink-2); }
   @media (max-width: 1000px) { .lanes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   @media (max-width: 600px) { .lanes { grid-template-columns: minmax(0, 1fr); } .versions div { grid-template-columns: minmax(0, 1fr); gap: 4px; } }
+  .recent { margin-top: 28px; max-width: 72ch; padding-top: 20px; border-top: 1px solid var(--rule); }
+  .recent p, .recent li { color: var(--ink-2); line-height: 1.55; margin-top: 8px; }
+  .recent ul { margin: 8px 0 0; padding-left: 1.2em; }
+  .recent li { padding: 0; border: 0; }
+  .recent b { color: var(--ink); font-weight: 650; }
+  .recent-meta { font-size: var(--step--1); color: var(--ink-3) !important; }
   .buildlog { margin-top: 14px; padding: 12px 16px; border-left: 3px solid var(--accent); background: var(--surface); border-radius: 0 var(--radius) var(--radius) 0; }
 </style>
