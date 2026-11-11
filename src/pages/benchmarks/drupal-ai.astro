@@ -71,6 +71,7 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
       <div class="wrap">
         <h2 class="h2 small">Które advisory znalazł który zawodnik</h2>
         <p class="what">SA-270 dotyczy cache wyników w&nbsp;module search_api, którego nie ma w&nbsp;paczce AI, więc nikt nie mógł go wskazać. Liczymy go w&nbsp;mianowniku, ale osiągalnych było siedem.</p>
+        <p class="what"><b>A&nbsp;najgroźniejszy błąd?</b> Jedyne advisory z&nbsp;poziomem „krytyczne” według drupal.org to SA-269, obejście filtra linków Markdown bez logowania. Znalazł je każdy wariant ze skillem i&nbsp;żaden model bez skilla. Skill nie wyróżnił go jednak w&nbsp;raporcie: ocenił je na MEDIUM, a&nbsp;to najwyższa ocena, jaką dał w&nbsp;tym benchmarku, bo wszystkie jego znaleziska to MEDIUM albo LOW. Kolejności „od najgroźniejszych” też nie widać: skill zawsze trafiał SA-271, najsłabsze advisory, a&nbsp;pomijał SA-266 i&nbsp;SA-272, które drupal.org ocenia wyżej.</p>
         <div class="scroll">
           <table class="matrix">
             <caption class="sr">Advisory w wierszach, zawodnicy w kolumnach, tak lub nie w komórkach</caption>
@@ -81,11 +82,12 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
               </tr>
             </thead>
             <tbody>
-              {ADVISORIES.map(([n, cve, what, reachable]) => (
+              {ADVISORIES.map(([n, cve, what, reachable, risk]) => (
                 <tr class:list={{ unreachable: !reachable }}>
                   <th scope="row">
                     <a href={SA(n)} rel="noopener">SA-CONTRIB-2026-{n}</a> <span class="cve mono">{cve}</span>
                     <span class="desc">{what}{!reachable && " (kod poza paczką)"}</span>
+                    <span class:list={["risk", { top: risk === "krytyczne" }]}>drupal.org: {risk}</span>
                   </th>
                   {CONTENDERS.map((c) => (hit(c.id, n)
                     ? <td class="c yes"><span aria-hidden="true">✓</span><span class="sr">znalezione</span></td>
@@ -205,6 +207,8 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
   .yes { color: var(--safe); font-weight: 700; font-size: var(--step-1); background: color-mix(in srgb, var(--safe) 10%, transparent); }
   .no { color: var(--gap); }
   .unreachable th a, .unreachable .desc { color: var(--ink-3); }
+  .risk { display: block; margin-top: 4px; font-size: 0.8rem; color: var(--ink-3); }
+  .risk.top { color: var(--crit); font-weight: 650; }
 
   .run { margin: 0; font-size: 0.86rem; border-top: 2px solid var(--ink); }
   .run div { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 4px 20px; padding: 11px 0; border-bottom: 1px dashed var(--rule); }

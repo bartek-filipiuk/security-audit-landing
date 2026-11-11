@@ -12,16 +12,16 @@ export const CONTENDERS = [
   { id: "skill-mix", name: "Opus 5.5 + Fable 5.2", setup: "skill: audytorzy Opus, weryfikator Fable" },
 ] as const;
 
-// [number, CVE, what it is, reachable in the tarball]
+// [number, CVE, what it is, reachable in the tarball, drupal.org risk level]
 export const ADVISORIES = [
-  ["266", "CVE-2026-118545", "tooltip wstawia atrybut data jako HTML (DOM XSS)", true],
-  ["267", "CVE-2026-118546", "szerokość i wysokość bloku chatbota trafiają do strony bez escapowania (XSS)", true],
-  ["268", "CVE-2026-118548", "filtr hostów przepuszcza adresy /\\host i \\\\host", true],
-  ["269", "CVE-2026-118549", "filtr linków Markdown oparty na regexie da się obejść (XSS bez uprawnień)", true],
-  ["270", "CVE-2026-118550", "wyniki AI Search trafiają do wspólnego cache mimo sprawdzania dostępu", false],
-  ["271", "CVE-2026-118551", "speech-to-text zapisuje każde nagranie do jednego wspólnego pliku", true],
-  ["272", "CVE-2026-118552", "filtr hostów zostawia atrybuty hx-* i data-hx-* (XSS przez HTMX)", true],
-  ["273", "CVE-2026-118553", "automatory zapisują tekst w formacie, którego zapisujący nie może używać", true],
+  ["266", "CVE-2026-118545", "tooltip wstawia atrybut data jako HTML (DOM XSS)", true, "umiarkowanie krytyczne"],
+  ["267", "CVE-2026-118546", "szerokość i wysokość bloku chatbota trafiają do strony bez escapowania (XSS)", true, "umiarkowanie krytyczne"],
+  ["268", "CVE-2026-118548", "filtr hostów przepuszcza adresy /\\host i \\\\host", true, "umiarkowanie krytyczne"],
+  ["269", "CVE-2026-118549", "filtr linków Markdown oparty na regexie da się obejść (XSS bez uprawnień)", true, "krytyczne"],
+  ["270", "CVE-2026-118550", "wyniki AI Search trafiają do wspólnego cache mimo sprawdzania dostępu", false, "umiarkowanie krytyczne"],
+  ["271", "CVE-2026-118551", "speech-to-text zapisuje każde nagranie do jednego wspólnego pliku", true, "mniej krytyczne"],
+  ["272", "CVE-2026-118552", "filtr hostów zostawia atrybuty hx-* i data-hx-* (XSS przez HTMX)", true, "umiarkowanie krytyczne"],
+  ["273", "CVE-2026-118553", "automatory zapisują tekst w formacie, którego zapisujący nie może używać", true, "umiarkowanie krytyczne"],
 ] as const;
 
 export const SA = (n: string) => `https://www.drupal.org/sa-contrib-2026-${n}`;
