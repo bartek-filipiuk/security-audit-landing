@@ -1,0 +1,351 @@
+{
+ "generated_from": "results.jsonl of the security-compare-video runs, 11 Nov 2026; unmatched findings are counts only",
+ "runs": [
+  {
+   "run_id": "skill-mix@1.5.1",
+   "contender": "skill-mix",
+   "setup": "skill",
+   "model": "claude-fable-5-2",
+   "auditor_model": "claude-opus-5-5",
+   "version": "1.5.1",
+   "found": 4,
+   "decoy_fp": 0,
+   "minutes": 57.4,
+   "cost_usd": 60.18,
+   "reported": 41,
+   "rejected_by_verifier": 22,
+   "known_extras": 3,
+   "outside_key": 34,
+   "isolation": "ok",
+   "date": "2026-11-11"
+  },
+  {
+   "run_id": "plain-opus@1.5.1",
+   "contender": "plain-opus",
+   "setup": "plain",
+   "model": "claude-opus-5-5",
+   "auditor_model": "claude-opus-5-5",
+   "version": "1.5.1",
+   "found": 0,
+   "decoy_fp": 0,
+   "minutes": 5,
+   "cost_usd": 3.05,
+   "reported": 5,
+   "rejected_by_verifier": 0,
+   "known_extras": 1,
+   "outside_key": 4,
+   "isolation": "ok",
+   "date": "2026-11-11"
+  },
+  {
+   "run_id": "plain-fable@1.5.1",
+   "contender": "plain-fable",
+   "setup": "plain",
+   "model": "claude-fable-5-2",
+   "auditor_model": "claude-fable-5-2",
+   "version": "1.5.1",
+   "found": 1,
+   "decoy_fp": 0,
+   "minutes": 8,
+   "cost_usd": 9.55,
+   "reported": 11,
+   "rejected_by_verifier": 0,
+   "known_extras": 0,
+   "outside_key": 10,
+   "isolation": "ok",
+   "date": "2026-11-11"
+  },
+  {
+   "run_id": "skill-opus@1.5.1",
+   "contender": "skill-opus",
+   "setup": "skill",
+   "model": "claude-opus-5-5",
+   "auditor_model": "claude-opus-5-5",
+   "version": "1.5.1",
+   "found": 3,
+   "decoy_fp": 0,
+   "minutes": 46.2,
+   "cost_usd": 44.71,
+   "reported": 35,
+   "rejected_by_verifier": 17,
+   "known_extras": 4,
+   "outside_key": 28,
+   "isolation": "ok",
+   "date": "2026-11-11"
+  },
+  {
+   "run_id": "skill-fable@1.5.1",
+   "contender": "skill-fable",
+   "setup": "skill",
+   "model": "claude-fable-5-2",
+   "auditor_model": "claude-fable-5-2",
+   "version": "1.5.1",
+   "found": 4,
+   "decoy_fp": 0,
+   "minutes": 75.4,
+   "cost_usd": 111.66,
+   "reported": 66,
+   "rejected_by_verifier": 21,
+   "known_extras": 4,
+   "outside_key": 55,
+   "isolation": "ok",
+   "date": "2026-11-11"
+  },
+  {
+   "run_id": "plain-opus@1.5.2",
+   "contender": "plain-opus",
+   "setup": "plain",
+   "model": "claude-opus-5-5",
+   "auditor_model": "claude-opus-5-5",
+   "version": "1.5.2",
+   "found": 0,
+   "decoy_fp": 0,
+   "minutes": 5,
+   "cost_usd": 3.85,
+   "reported": 6,
+   "rejected_by_verifier": 0,
+   "known_extras": 0,
+   "outside_key": 6,
+   "isolation": "ok",
+   "date": "2026-11-11"
+  },
+  {
+   "run_id": "plain-fable@1.5.2",
+   "contender": "plain-fable",
+   "setup": "plain",
+   "model": "claude-fable-5-2",
+   "auditor_model": "claude-fable-5-2",
+   "version": "1.5.2",
+   "found": 0,
+   "decoy_fp": 0,
+   "minutes": 8.7,
+   "cost_usd": 10.62,
+   "reported": 9,
+   "rejected_by_verifier": 0,
+   "known_extras": 0,
+   "outside_key": 9,
+   "isolation": "ok",
+   "date": "2026-11-11"
+  },
+  {
+   "run_id": "skill-mix@1.5.2",
+   "contender": "skill-mix",
+   "setup": "skill",
+   "model": "claude-fable-5-2",
+   "auditor_model": "claude-opus-5-5",
+   "version": "1.5.2",
+   "found": 0,
+   "decoy_fp": 0,
+   "minutes": 48.1,
+   "cost_usd": 53.19,
+   "reported": 26,
+   "rejected_by_verifier": 21,
+   "known_extras": 0,
+   "outside_key": 26,
+   "isolation": "ok",
+   "date": "2026-11-11"
+  }
+ ],
+ "hits": [
+  {
+   "advisory": "266",
+   "contender": "skill-mix",
+   "found": 0
+  },
+  {
+   "advisory": "267",
+   "contender": "skill-mix",
+   "found": 1
+  },
+  {
+   "advisory": "268",
+   "contender": "skill-mix",
+   "found": 0
+  },
+  {
+   "advisory": "269",
+   "contender": "skill-mix",
+   "found": 1
+  },
+  {
+   "advisory": "270",
+   "contender": "skill-mix",
+   "found": 0
+  },
+  {
+   "advisory": "271",
+   "contender": "skill-mix",
+   "found": 1
+  },
+  {
+   "advisory": "272",
+   "contender": "skill-mix",
+   "found": 0
+  },
+  {
+   "advisory": "273",
+   "contender": "skill-mix",
+   "found": 1
+  },
+  {
+   "advisory": "266",
+   "contender": "plain-opus",
+   "found": 0
+  },
+  {
+   "advisory": "267",
+   "contender": "plain-opus",
+   "found": 0
+  },
+  {
+   "advisory": "268",
+   "contender": "plain-opus",
+   "found": 0
+  },
+  {
+   "advisory": "269",
+   "contender": "plain-opus",
+   "found": 0
+  },
+  {
+   "advisory": "270",
+   "contender": "plain-opus",
+   "found": 0
+  },
+  {
+   "advisory": "271",
+   "contender": "plain-opus",
+   "found": 0
+  },
+  {
+   "advisory": "272",
+   "contender": "plain-opus",
+   "found": 0
+  },
+  {
+   "advisory": "273",
+   "contender": "plain-opus",
+   "found": 0
+  },
+  {
+   "advisory": "266",
+   "contender": "plain-fable",
+   "found": 1
+  },
+  {
+   "advisory": "267",
+   "contender": "plain-fable",
+   "found": 0
+  },
+  {
+   "advisory": "268",
+   "contender": "plain-fable",
+   "found": 0
+  },
+  {
+   "advisory": "269",
+   "contender": "plain-fable",
+   "found": 0
+  },
+  {
+   "advisory": "270",
+   "contender": "plain-fable",
+   "found": 0
+  },
+  {
+   "advisory": "271",
+   "contender": "plain-fable",
+   "found": 0
+  },
+  {
+   "advisory": "272",
+   "contender": "plain-fable",
+   "found": 0
+  },
+  {
+   "advisory": "273",
+   "contender": "plain-fable",
+   "found": 0
+  },
+  {
+   "advisory": "266",
+   "contender": "skill-opus",
+   "found": 0
+  },
+  {
+   "advisory": "267",
+   "contender": "skill-opus",
+   "found": 1
+  },
+  {
+   "advisory": "268",
+   "contender": "skill-opus",
+   "found": 0
+  },
+  {
+   "advisory": "269",
+   "contender": "skill-opus",
+   "found": 1
+  },
+  {
+   "advisory": "270",
+   "contender": "skill-opus",
+   "found": 0
+  },
+  {
+   "advisory": "271",
+   "contender": "skill-opus",
+   "found": 1
+  },
+  {
+   "advisory": "272",
+   "contender": "skill-opus",
+   "found": 0
+  },
+  {
+   "advisory": "273",
+   "contender": "skill-opus",
+   "found": 0
+  },
+  {
+   "advisory": "266",
+   "contender": "skill-fable",
+   "found": 0
+  },
+  {
+   "advisory": "267",
+   "contender": "skill-fable",
+   "found": 1
+  },
+  {
+   "advisory": "268",
+   "contender": "skill-fable",
+   "found": 1
+  },
+  {
+   "advisory": "269",
+   "contender": "skill-fable",
+   "found": 1
+  },
+  {
+   "advisory": "270",
+   "contender": "skill-fable",
+   "found": 0
+  },
+  {
+   "advisory": "271",
+   "contender": "skill-fable",
+   "found": 1
+  },
+  {
+   "advisory": "272",
+   "contender": "skill-fable",
+   "found": 0
+  },
+  {
+   "advisory": "273",
+   "contender": "skill-fable",
+   "found": 0
+  }
+ ]
+}
