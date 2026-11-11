@@ -13,6 +13,7 @@ import { CONTENDERS, TOTAL, RELEASE, target, best, controlFp, controls, pl } fro
         <li><b>{best("plain")}/{TOTAL}</b><span>najlepszy wynik samego modelu</span></li>
         <li><b>{controlFp}</b><span>naprawionych funkcji zgłoszonych w&nbsp;wersji 1.5.2 ({controls.length} kontrole)</span></li>
       </ul>
+      <p class="fine crit">Jedyne krytyczne advisory, <a href="https://www.drupal.org/sa-contrib-2026-269" rel="noopener">SA-CONTRIB-2026-269</a>, znalazł każdy wariant ze skillem i&nbsp;żaden model bez niego.</p>
       <p class="more"><a class="btn btn-ghost" href="/benchmarks/drupal-ai">Cały benchmark: metoda, koszt, każde advisory</a></p>
     </div>
     <figure class="chart">
@@ -41,6 +42,7 @@ import { CONTENDERS, TOTAL, RELEASE, target, best, controlFp, controls, pl } fro
   .stats b { display: block; font: 700 var(--step-3) / 1 var(--font); font-stretch: 112%; }
   .stats span { display: block; margin-top: 6px; font-size: var(--step--1); color: var(--ink-2); line-height: 1.35; }
   .stats li:first-child b { color: var(--accent); }
+  .crit { margin-top: 22px; max-width: 52ch; }
   .more { margin-top: 28px; }
   .more .btn { white-space: normal; text-align: center; }
   .chart { margin: 0; background: var(--paper); border-radius: var(--radius); box-shadow: 0 0 0 1px var(--rule); padding: clamp(18px, 3vw, 28px); }
