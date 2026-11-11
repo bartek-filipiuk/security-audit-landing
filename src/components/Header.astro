@@ -17,6 +17,8 @@ const sections = [
   ["/#uzycie", "Użycie"],
   ["/#pokrycie", "Co sprawdza"],
 ];
+// Paid audit by the studio, a separate site.
+const ORDER = "https://security.devince.dev/audyt/";
 const here = Astro.url.pathname.replace(/\/$/, "") || "/";
 const current = (href: string) => (href === here ? "page" : undefined);
 ---
@@ -28,6 +30,7 @@ const current = (href: string) => (href === here ? "page" : undefined);
     <nav class="bar" aria-label="Główna">
       {primary.map(([href, label]) => <a href={href} aria-current={current(href)}>{label}</a>)}
     </nav>
+    <a class="btn cta-order" href={ORDER}>Zamów audyt</a>
     <a class="btn btn-primary cta-header" href={SITE.repo} rel="noopener">GitHub</a>
     <details class="menu">
       <summary>Menu</summary>
@@ -35,6 +38,7 @@ const current = (href: string) => (href === here ? "page" : undefined);
         {[...primary.slice(0, 1), ...sections, ...primary.slice(1)].map(([href, label]) => (
           <a href={href} aria-current={current(href)}>{label}</a>
         ))}
+        <a class="order" href={ORDER}>Zamów audyt</a>
         <a class="repo" href={SITE.repo} rel="noopener">GitHub</a>
       </nav>
     </details>
@@ -58,6 +62,11 @@ const current = (href: string) => (href === here ? "page" : undefined);
   .bar a { padding-block: 6px; border-bottom: 2px solid transparent; }
   .bar a:hover { color: var(--ink); border-bottom-color: var(--accent); }
   .bar a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--ink); }
+  .cta-order {
+    min-height: 44px; padding: 10px 16px; font-size: 0.95rem; white-space: nowrap;
+    background: #fdecec; color: #b42318; box-shadow: inset 0 0 0 1px #f5b5b0;
+  }
+  .cta-order:hover { background: #fbd9d7; color: #912018; }
   .cta-header { min-height: 44px; padding: 10px 16px; font-size: 0.95rem; white-space: nowrap; }
 
   .menu { display: none; position: relative; }
@@ -75,16 +84,18 @@ const current = (href: string) => (href === here ? "page" : undefined);
   .menu a { padding: 11px 12px; border-radius: 8px; }
   .menu a:hover, .menu a[aria-current="page"] { background: var(--accent-tint); color: var(--ink); }
   .menu .repo { margin-top: 6px; border-top: 1px solid var(--rule); border-radius: 0 0 8px 8px; color: var(--accent-strong); font-weight: 600; }
-  @media (min-width: 421px) { .menu .repo { display: none; } }
+  .menu .order { margin-top: 6px; border-top: 1px solid var(--rule); border-radius: 0 0 8px 8px; color: #b42318; font-weight: 600; }
+  .menu .order:hover { background: #fdecec; color: #912018; }
+  @media (min-width: 421px) { .menu .repo, .menu .order { display: none; } }
 
-  /* Below this width the six links no longer fit on one line next to the brand and the button. */
-  @media (max-width: 980px) {
+  /* Below this width the seven links no longer fit on one line next to the brand and the two buttons. */
+  @media (max-width: 1140px) {
     .bar { display: none; }
-    .cta-header { margin-left: auto; }
+    .cta-order { margin-left: auto; }
     .menu { display: block; }
   }
   @media (max-width: 420px) {
-    .cta-header { display: none; }
+    .cta-header, .cta-order { display: none; }
     .menu { margin-left: auto; }
   }
 </style>
