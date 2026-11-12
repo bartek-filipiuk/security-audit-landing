@@ -1,6 +1,6 @@
 ---
 // Home page: the short version of /benchmarks/drupal-ai. Same data, bars only.
-import { CONTENDERS, TOTAL, RELEASE, target, best, controlFp, controls, pl } from "../drupal-ai";
+import { CONTENDERS, CF, TOTAL, RELEASE, target, best, controlFp, controls, pl } from "../drupal-ai";
 ---
 <section class="section band" id="drupal-ai">
   <div class="wrap split">
@@ -9,11 +9,12 @@ import { CONTENDERS, TOTAL, RELEASE, target, best, controlFp, controls, pl } fro
       <h2 class="h2">Skill kontra sam model na 8&nbsp;prawdziwych advisory</h2>
       <p class="lead">Moduł Drupala <a href={RELEASE("1.5.1")} rel="noopener">AI 1.5.1</a>, około 95&nbsp;tys. linii, i&nbsp;osiem advisory opublikowanych 28&nbsp;października. Te same modele, raz z&nbsp;prośbą o&nbsp;przegląd bezpieczeństwa, raz ze skillem. Liczy się wskazanie pliku i&nbsp;linii, którą naprawiła poprawka.</p>
       <ul class="stats">
-        <li><b>{best("skill")}/{TOTAL}</b><span>najlepszy wynik ze skillem</span></li>
+        <li><b>{best("skill")}/{TOTAL}</b><span>najlepszy wynik ze skillem /security-audit</span></li>
         <li><b>{best("plain")}/{TOTAL}</b><span>najlepszy wynik samego modelu</span></li>
         <li><b>{controlFp}</b><span>naprawionych funkcji zgłoszonych w&nbsp;wersji 1.5.2 ({controls.length} kontrole)</span></li>
       </ul>
-      <p class="fine crit">Jedyne krytyczne advisory, <a href="https://www.drupal.org/sa-contrib-2026-269" rel="noopener">SA-CONTRIB-2026-269</a>, znalazł każdy wariant ze skillem i&nbsp;żaden model bez niego.</p>
+      <p class="fine crit">Jedyne krytyczne advisory, <a href="https://www.drupal.org/sa-contrib-2026-269" rel="noopener">SA-CONTRIB-2026-269</a>, znalazł każdy wariant skilla /security-audit i&nbsp;żaden model bez niego.</p>
+      {CF.length > 0 && <p class="fine cfline">Skill security-audit od Cloudflare na tym samym kodzie: {CF.map((c, i) => <>{i > 0 && ", "}{target(c.id).found}/{TOTAL} ({c.name}, {pl(target(c.id).minutes)}&nbsp;min)</>)}.</p>}
       <p class="more"><a class="btn btn-ghost" href="/benchmarks/drupal-ai">Cały benchmark: metoda, koszt, każde advisory</a></p>
     </div>
     <figure class="chart">
@@ -43,6 +44,7 @@ import { CONTENDERS, TOTAL, RELEASE, target, best, controlFp, controls, pl } fro
   .stats span { display: block; margin-top: 6px; font-size: var(--step--1); color: var(--ink-2); line-height: 1.35; }
   .stats li:first-child b { color: var(--accent); }
   .crit { margin-top: 22px; max-width: 52ch; }
+  .cfline { margin-top: 10px; max-width: 52ch; }
   .more { margin-top: 28px; }
   .more .btn { white-space: normal; text-align: center; }
   .chart { margin: 0; background: var(--paper); border-radius: var(--radius); box-shadow: 0 0 0 1px var(--rule); padding: clamp(18px, 3vw, 28px); }

@@ -144,6 +144,46 @@
    "outside_key": 26,
    "isolation": "ok",
    "date": "2026-11-11"
+  },
+  {
+   "run_id": "cf-opus@1.5.1",
+   "contender": "cf-opus",
+   "setup": "cf",
+   "model": "claude-opus-5-5",
+   "auditor_model": "claude-opus-5-5",
+   "version": "1.5.1",
+   "found": 2,
+   "decoy_fp": 0,
+   "minutes": 67.6,
+   "cost_usd": 86.51,
+   "reported": 16,
+   "rejected_by_verifier": 5,
+   "known_extras": 0,
+   "outside_key": 14,
+   "confirmed": 7,
+   "needs_validation": 9,
+   "isolation": "ok",
+   "date": "2026-11-11"
+  },
+  {
+   "run_id": "cf-mix@1.5.1",
+   "contender": "cf-mix",
+   "setup": "cf",
+   "model": "claude-fable-5-2",
+   "auditor_model": "claude-opus-5-5",
+   "version": "1.5.1",
+   "found": 1,
+   "decoy_fp": 0,
+   "minutes": 74.1,
+   "cost_usd": 106.28,
+   "reported": 23,
+   "rejected_by_verifier": 6,
+   "known_extras": 0,
+   "outside_key": 22,
+   "confirmed": 12,
+   "needs_validation": 11,
+   "isolation": "ok",
+   "date": "2026-11-12"
   }
  ],
  "hits": [
@@ -346,6 +386,86 @@
    "advisory": "273",
    "contender": "skill-fable",
    "found": 0
+  },
+  {
+   "advisory": "266",
+   "contender": "cf-opus",
+   "found": 0
+  },
+  {
+   "advisory": "267",
+   "contender": "cf-opus",
+   "found": 1
+  },
+  {
+   "advisory": "268",
+   "contender": "cf-opus",
+   "found": 0
+  },
+  {
+   "advisory": "269",
+   "contender": "cf-opus",
+   "found": 0
+  },
+  {
+   "advisory": "270",
+   "contender": "cf-opus",
+   "found": 1
+  },
+  {
+   "advisory": "271",
+   "contender": "cf-opus",
+   "found": 0
+  },
+  {
+   "advisory": "272",
+   "contender": "cf-opus",
+   "found": 0
+  },
+  {
+   "advisory": "273",
+   "contender": "cf-opus",
+   "found": 0
+  },
+  {
+   "advisory": "266",
+   "contender": "cf-mix",
+   "found": 0
+  },
+  {
+   "advisory": "267",
+   "contender": "cf-mix",
+   "found": 0
+  },
+  {
+   "advisory": "268",
+   "contender": "cf-mix",
+   "found": 0
+  },
+  {
+   "advisory": "269",
+   "contender": "cf-mix",
+   "found": 0
+  },
+  {
+   "advisory": "270",
+   "contender": "cf-mix",
+   "found": 0
+  },
+  {
+   "advisory": "271",
+   "contender": "cf-mix",
+   "found": 0
+  },
+  {
+   "advisory": "272",
+   "contender": "cf-mix",
+   "found": 0
+  },
+  {
+   "advisory": "273",
+   "contender": "cf-mix",
+   "found": 1
   }
  ]
 }
