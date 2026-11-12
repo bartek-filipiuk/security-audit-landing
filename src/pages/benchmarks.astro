@@ -3,9 +3,29 @@ import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import { TARGETS, type Row, type Target } from "../benchmarks";
-import { CF, TOTAL as DRUPAL_TOTAL, target as drupalRun } from "../drupal-ai";
+import { ALL as DRUPAL_ALL, CF, TOTAL as DRUPAL_TOTAL, target as drupalRun, nobody } from "../drupal-ai";
 const title = "Benchmarki modeli · Security Audit";
 const description = "Ten sam skill security-audit, różne modele i agenci: Claude Code, DeepSeek, Gemma, Hinoki, Kimi i Grok w OpenCode oraz gpt-6-astra w Codex CLI. Wyniki na prawdziwych advisory, na Ledgerly i na aplikacjach testowych profili PHP, Python i Supabase, z czasem i kosztem.";
+// Drupal AI 1.5.1 (its own page has the details) as one more table: our skill, the bare model and Cloudflare's skill.
+const DRUPAL: Target = {
+  id: "drupal-ai",
+  name: "Drupal AI: osiem advisory modułu AI 1.5.1",
+  what: "Moduł AI dla Drupala 1.5.1 i\u00a0osiem advisory z\u00a028 października 2026, naprawionych w\u00a01.5.2. Ten benchmark porównuje też sam model bez skilla i\u00a0skill security-audit od Cloudflare.",
+  key: "SA-CONTRIB-2026-266 do 273, linie zmienione w\u00a01.5.2; pułapki to funkcje naprawione w\u00a01.5.2.",
+  total: DRUPAL_TOTAL,
+  links: [{ label: "cały benchmark", url: "/benchmarks/drupal-ai" }],
+  takeaway: `Najlepiej wypadł nasz skill: ${Math.max(...DRUPAL_ALL.filter((c) => c.id.startsWith("skill")).map((c) => drupalRun(c.id).found))}/${DRUPAL_TOTAL}. Skill Cloudflare wskazał ${CF.map((c) => drupalRun(c.id).found).join(" i\u00a0")}, sam model ${DRUPAL_ALL.filter((c) => c.id.startsWith("plain")).map((c) => drupalRun(c.id).found).join(" i\u00a0")}. ${nobody.length} z\u00a0${DRUPAL_TOTAL} advisory nie wskazał nikt.`,
+  glance: "skill, sam model i\u00a0skill Cloudflare",
+  rows: DRUPAL_ALL.map((c) => {
+    const r = drupalRun(c.id);
+    return { model: c.name, agent: `Claude Code, ${c.setup}`, outcome: { kind: "scored" as const, found: r.found }, decoyFp: r.decoy_fp, unmatched: r.outside_key, minutes: r.minutes, costUsd: r.cost_usd };
+  }),
+  notes: [
+    "Jeden przebieg na zawodnika, 11–12 listopada 2026. Koszt to tokeny po cenach API, nie abonament.",
+    "Skill Cloudflare: liczymy rekordy confirmed i\u00a0needs_validation, jedną lokalizację na rekord. Szczegóły i\u00a0zastrzeżenia na stronie benchmarku.",
+  ],
+};
+const ALL_TARGETS = [...TARGETS, DRUPAL];
 const pl = (n: number, d = 2) => n.toLocaleString("pl-PL", { minimumFractionDigits: 0, maximumFractionDigits: d });
 const usd = (n: number) => `${n.toLocaleString("pl-PL", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
 // Each bar column is scaled to its own maximum within one target: two measures, two scales, never one axis.
@@ -24,7 +44,7 @@ const result = (r: Row, t: Target) =>
         <h1 class="h2">Benchmarki modeli</h1>
         <p class="lead">Ten sam skill, to samo polecenie <code>/security-audit</code>, bez podpowiedzi o&nbsp;błędzie. Zmieniamy tylko model i&nbsp;agenta. Scorer sprawdza raport automatycznie i&nbsp;ściśle: liczy się znalezisko wskazujące linie, które zmieniła publiczna poprawka.</p>
         <ol class="glance">
-          {TARGETS.map((t) => (
+          {ALL_TARGETS.map((t) => (
             <li>
               <a href={`#${t.id}`}>
                 <span class="tid mono">{t.name.split(":")[0]}</span>
@@ -36,11 +56,10 @@ const result = (r: Row, t: Target) =>
         </ol>
         <p class="fine dates">Przebiegi z&nbsp;27 października do 2&nbsp;listopada 2026, po jednym na model i&nbsp;cel. Szczegóły metody i&nbsp;zastrzeżenia są <a href="#metoda">na dole strony</a>. Wszystkie liczby każdego przebiegu: <a href="/benchmarks/modele">wyniki per model</a>.</p>
         <p class="fine dates"><b>Nowy:</b> <a href="/benchmarks/drupal-ai">Drupal AI 1.5.1, skill kontra sam model</a>, Claude Opus 5.5 i&nbsp;Fable 5.2 na ośmiu advisory z&nbsp;28 października 2026.</p>
-        {CF.length > 0 && <p class="fine dates">W&nbsp;tym samym benchmarku <a href="/benchmarks/drupal-ai#cloudflare">skill security-audit od Cloudflare</a>: {CF.map((c, i) => <>{i > 0 && ", "}{drupalRun(c.id).found}/{DRUPAL_TOTAL} ({c.name}, {pl(drupalRun(c.id).minutes, 0)}&nbsp;min, {usd(drupalRun(c.id).cost_usd)})</>)}.</p>}
       </div>
     </section>
 
-    {TARGETS.map((t, i) => (
+    {ALL_TARGETS.map((t, i) => (
       <section id={t.id} class:list={["section", "target", { band: i % 2 === 0 }]}>
         <div class="wrap">
           <h2 class="h2 small">{t.name}</h2>
