@@ -2,14 +2,16 @@
 import Base from "../../layouts/Base.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
-import { CONTENDERS, ADVISORIES, TOTAL, SA, RELEASE, README, target, hit, best, worst, ratio, controlFp, controls, nobody, pl, usd } from "../../drupal-ai";
+import { CONTENDERS, CF, ALL, CF_REPO, CF_COMMIT, ADVISORIES, TOTAL, SA, RELEASE, README, target, hit, best, worst, ratio, controlFp, controls, nobody, pl, usd } from "../../drupal-ai";
 
 const title = "Drupal AI 1.5.1: skill kontra sam model · Security Audit";
 const description = "Claude Opus 5.5 i Fable 5.2, z i bez skilla security-audit, na module Drupala AI 1.5.1 z ośmioma opublikowanymi advisory. Wynik na każdym advisory, kontrola na wersji naprawionej, czas i koszt.";
-const maxCost = Math.max(...CONTENDERS.map((c) => target(c.id).cost_usd));
-const maxMin = Math.max(...CONTENDERS.map((c) => target(c.id).minutes));
+const maxCost = Math.max(...ALL.map((c) => target(c.id).cost_usd));
+const maxMin = Math.max(...ALL.map((c) => target(c.id).minutes));
+const group = (id: string) => (id.startsWith("cf") ? "skill Cloudflare" : id === "skill-mix" ? "skill, mieszany" : id.startsWith("skill") ? "skill" : "sam model");
+const cfHits = (id: string) => ADVISORIES.filter(([n]) => hit(id, n)).map(([n]) => n);
 const w = (v: number, m: number) => `${Math.max(2, (v / m) * 100)}%`;
-const short = (id: string) => CONTENDERS.find((c) => c.id === id)!;
+const short = (id: string) => ALL.find((c) => c.id === id)!;
 const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators", "modules/ai_chatbot", "modules/ai_search", "modules/ai_ckeditor", "modules/ai_api_explorer", "modules/ai_assistant_api", "modules/ai_observability"];
 ---
 <Base title={title} description={description} image="/og-benchmarks.png">
@@ -20,9 +22,9 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
         <p class="crumb"><a href="/benchmarks">Benchmarki</a> / Drupal AI 1.5.1</p>
         <h1 class="h2">Drupal AI 1.5.1: skill kontra sam model</h1>
         <p class="lead">Moduł <a href="https://www.drupal.org/project/ai" rel="noopener">AI</a> dla Drupala w&nbsp;wersji <a href={RELEASE("1.5.1")} rel="noopener">1.5.1</a> ma osiem advisory opublikowanych przez drupal.org 28&nbsp;października 2026, wszystkie naprawione w&nbsp;<a href={RELEASE("1.5.2")} rel="noopener">1.5.2</a>. Sprawdziliśmy, kto wskaże podatne linie: sam model poproszony o&nbsp;przegląd bezpieczeństwa czy ten sam model ze skillem.</p>
-        <p class="takeaway">Ze skillem modele wskazały {worst("skill")}–{best("skill")} z&nbsp;{TOTAL} advisory, same {worst("plain")}–{best("plain")}. Żaden przebieg nie zgłosił funkcji, którą naprawia 1.5.2. Skill kosztował średnio {ratio("cost_usd")} razy więcej i&nbsp;trwał {ratio("minutes")} razy dłużej.</p>
+        <p class="takeaway">Ze skillem /security-audit modele wskazały {worst("skill")}–{best("skill")} z&nbsp;{TOTAL} advisory, same {worst("plain")}–{best("plain")}. Żaden przebieg nie zgłosił funkcji, którą naprawia 1.5.2. Skill kosztował średnio {ratio("cost_usd")} razy więcej i&nbsp;trwał {ratio("minutes")} razy dłużej.{CF.length > 0 && <> Dla porównania <a href="#cloudflare">skill security-audit Cloudflare</a> na tym samym kodzie: {CF.map((c, i) => <>{i > 0 && ", "}{target(c.id).found}/{TOTAL} ({c.name})</>)}.</>}</p>
         <ul class="stats">
-          <li><b>{best("skill")}/{TOTAL}</b><span>najlepszy wynik ze skillem</span></li>
+          <li><b>{best("skill")}/{TOTAL}</b><span>najlepszy wynik ze skillem /security-audit</span></li>
           <li><b>{best("plain")}/{TOTAL}</b><span>najlepszy wynik samego modelu</span></li>
           <li><b>{nobody.length}/{TOTAL}</b><span>advisory, których nie wskazał nikt</span></li>
           <li><b>{controlFp}</b><span>naprawionych funkcji zgłoszonych w&nbsp;1.5.2, {controls.length} kontrole</span></li>
@@ -48,10 +50,10 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
               </tr>
             </thead>
             <tbody>
-              {CONTENDERS.map((c) => {
+              {ALL.map((c) => {
                 const r = target(c.id);
                 return (
-                  <tr class:list={{ skill: r.setup === "skill" }}>
+                  <tr class:list={{ skill: r.setup === "skill", cf: r.setup === "cf" }}>
                     <th scope="row"><span class="model">{c.name}</span><span class="agent">{c.setup}</span></th>
                     <td class="barcol" data-l="Trafione advisory"><span class="bar"><span class="track"><span class="fill hits" style={`width:${w(r.found, TOTAL)}`}></span></span><span class="val">{r.found}/{TOTAL}</span></span></td>
                     <td class="barcol" data-l="Czas, min"><span class="bar"><span class="track"><span class="fill" style={`width:${w(r.minutes, maxMin)}`}></span></span><span class="val">{pl(r.minutes, 1)}</span></span></td>
@@ -70,15 +72,15 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
     <section class="section" id="advisory">
       <div class="wrap">
         <h2 class="h2 small">Które advisory znalazł który zawodnik</h2>
-        <p class="what">SA-270 dotyczy cache wyników w&nbsp;module search_api, którego nie ma w&nbsp;paczce AI, więc nikt nie mógł go wskazać. Liczymy go w&nbsp;mianowniku, ale osiągalnych było siedem.</p>
-        <p class="what"><b>A&nbsp;najgroźniejszy błąd?</b> Jedyne advisory z&nbsp;poziomem „krytyczne” według drupal.org to SA-269, obejście filtra linków Markdown bez logowania. Znalazł je każdy wariant ze skillem i&nbsp;żaden model bez skilla. Skill nie wyróżnił go jednak w&nbsp;raporcie: ocenił je na MEDIUM, a&nbsp;to najwyższa ocena, jaką dał w&nbsp;tym benchmarku, bo wszystkie jego znaleziska to MEDIUM albo LOW. Kolejności „od najgroźniejszych” też nie widać: skill zawsze trafiał SA-271, najsłabsze advisory, a&nbsp;pomijał SA-266 i&nbsp;SA-272, które drupal.org ocenia wyżej.</p>
+        <p class="what">SA-270 dotyczy cache wyników, a&nbsp;ten należy do modułu search_api, którego nie ma w&nbsp;paczce AI. Klucz wskazuje więc linię w&nbsp;ai_search, gdzie wynik jest filtrowany po uprawnieniach użytkownika i&nbsp;skąd trafia do cache. {cfHits("cf-opus").includes("270") ? <>Jedyne trafienie, u&nbsp;skilla Cloudflare na Opusie, wskazało tę linię, ale opis znaleziska dotyczy innego mechanizmu niż cache. Liczymy je, bo reguła oceny to plik i&nbsp;linia, a&nbsp;nie opis.</> : <>Nikt go nie wskazał.</>}</p>
+        <p class="what"><b>A&nbsp;najgroźniejszy błąd?</b> Jedyne advisory z&nbsp;poziomem „krytyczne” według drupal.org to SA-269, obejście filtra linków Markdown bez logowania. Znalazł je każdy wariant skilla /security-audit, żaden model bez skilla i&nbsp;żaden przebieg skilla Cloudflare. Nasz skill nie wyróżnił go jednak w&nbsp;raporcie: ocenił je na MEDIUM, a&nbsp;to najwyższa ocena, jaką dał w&nbsp;tym benchmarku, bo wszystkie jego znaleziska to MEDIUM albo LOW. Kolejności „od najgroźniejszych” też nie widać: skill zawsze trafiał SA-271, najsłabsze advisory, a&nbsp;pomijał SA-266 i&nbsp;SA-272, które drupal.org ocenia wyżej.</p>
         <div class="scroll">
           <table class="matrix">
             <caption class="sr">Advisory w wierszach, zawodnicy w kolumnach, tak lub nie w komórkach</caption>
             <thead>
               <tr>
                 <th scope="col">Advisory</th>
-                {CONTENDERS.map((c) => <th scope="col" class="c"><span class="model">{c.name}</span><span class="agent">{c.id.startsWith("skill") ? (c.id === "skill-mix" ? "skill, mieszany" : "skill") : "sam model"}</span></th>)}
+                {ALL.map((c) => <th scope="col" class:list={["c", { cfcol: c.id.startsWith("cf") }]}><span class="model">{c.name}</span><span class="agent">{group(c.id)}</span></th>)}
               </tr>
             </thead>
             <tbody>
@@ -86,10 +88,10 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
                 <tr class:list={{ unreachable: !reachable }}>
                   <th scope="row">
                     <a href={SA(n)} rel="noopener">SA-CONTRIB-2026-{n}</a> <span class="cve mono">{cve}</span>
-                    <span class="desc">{what}{!reachable && " (kod poza paczką)"}</span>
+                    <span class="desc">{what}{!reachable && " (przyczyna poza paczką)"}</span>
                     <span class:list={["risk", { top: risk === "krytyczne" }]}>drupal.org: {risk}</span>
                   </th>
-                  {CONTENDERS.map((c) => (hit(c.id, n)
+                  {ALL.map((c) => (hit(c.id, n)
                     ? <td class="c yes"><span aria-hidden="true">✓</span><span class="sr">znalezione</span></td>
                     : <td class="c no"><span aria-hidden="true">–</span><span class="sr">nie</span></td>))}
                 </tr>
@@ -104,7 +106,7 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
       <div class="wrap split">
         <div>
           <h2 class="h2 small">Kontrola na wersji naprawionej</h2>
-          <p class="what">Ten sam audyt na 1.5.2. Klucz kontroli zawiera całe naprawione funkcje jako pułapki: zgłoszenie którejkolwiek z&nbsp;nich byłoby fałszywym alarmem. Kontroli skilla na samym Opusie i&nbsp;samym Fable nie robiliśmy, żeby oszczędzić limit.</p>
+          <p class="what">Ten sam audyt na 1.5.2. Klucz kontroli zawiera całe naprawione funkcje jako pułapki: zgłoszenie którejkolwiek z&nbsp;nich byłoby fałszywym alarmem. Kontroli skilla na samym Opusie i&nbsp;samym Fable ani skilla Cloudflare nie robiliśmy, żeby oszczędzić limit.</p>
         </div>
         <dl class="run mono">
           {controls.map((r) => (
@@ -113,6 +115,31 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
         </dl>
       </div>
     </section>
+
+    {CF.length > 0 && (
+      <section class="section" id="cloudflare">
+        <div class="wrap split">
+          <div>
+            <h2 class="h2 small">Skill security-audit od Cloudflare</h2>
+            <p class="what">Cloudflare udostępnił <a href={CF_REPO} rel="noopener">skill security-audit</a>, od którego zaczął się ich wewnętrzny system do szukania podatności. Audyt ma sześć faz: rekonesans z&nbsp;rejestrem pokrycia, fale hunterów i&nbsp;krytyków pokrycia, osobny weryfikator dla każdego kandydata, zapis do <code>findings.json</code> według schematu, druga niezależna weryfikacja i&nbsp;raport. Puściliśmy go na tej samej paczce 1.5.1, z&nbsp;tą samą izolacją i&nbsp;tą samą oceną.</p>
+          </div>
+          <dl class="run mono">
+            {CF.map((c) => {
+              const r = target(c.id);
+              const h = cfHits(c.id);
+              return <div><dt>{c.name}, {c.setup}</dt><dd>{r.found}/{TOTAL}{h.length > 0 && <> (SA-{h.join(", ")})</>} · {pl(r.minutes, 1)} min · {usd(r.cost_usd)}</dd></div>;
+            })}
+          </dl>
+        </div>
+        <div class="wrap">
+          <ul class="method cfnotes">
+            <li><b>Polecenie.</b> <code>/security-audit</code> z&nbsp;prośbą o&nbsp;pełny audyt, profil <code>standard</code>, bez limitu agentów, wyniki zapisywane poza kodem modułu. Skill w&nbsp;commicie <a href={`${CF_REPO}/commit/${CF_COMMIT}`} rel="noopener" class="mono">{CF_COMMIT}</a>.</li>
+            <li><b>Modele.</b> Skill nie ma osobnych ustawień modelu dla ról, więc model podagentów ustawiliśmy zmienną <code>CLAUDE_CODE_SUBAGENT_MODEL</code>. Wariant mieszany to koordynator na Fable 5.2 i&nbsp;wszyscy podagenci na Opus 5.5, weryfikatorzy też. To inny podział niż w&nbsp;naszym wariancie mieszanym, gdzie weryfikował Fable. W&nbsp;przebiegu na Opusie koordynator sam zlecił 2 z&nbsp;64 podagentów rekonesansu modelowi Sonnet.</li>
+            <li><b>Co liczymy.</b> Rekordy <code>confirmed</code> i&nbsp;<code>needs_validation</code>: {CF.map((c, i) => { const r = target(c.id); return <>{i > 0 && "; "}{c.name}: {r.confirmed} i&nbsp;{r.needs_validation}</>; })}. Bez piaskownicy systemowej skill nie uruchamia kodu, więc niesprawdzone tropy zostają jako <code>needs_validation</code>. Każdy rekord ma jedną lokalizację: pierwsze ujście (sink) ze śladu, a&nbsp;bez niego pierwszy dowód.</li>
+          </ul>
+        </div>
+      </section>
+    )}
 
     <section id="metoda" class="section">
       <div class="wrap">
@@ -139,7 +166,7 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
             <h3>Gdzie</h3>
             <ul class="method">
               <li><b>Środowisko.</b> Claude Code 2.1.322 na lokalnej maszynie, abonament Claude Max, effort <code>high</code> dla wszystkich. Skill w&nbsp;commicie <a href="https://github.com/bartek-filipiuk/security-audit-skill/commit/2d57189" rel="noopener" class="mono">2d57189</a>.</li>
-              <li><b>Kiedy.</b> 11&nbsp;listopada 2026, przebiegi jeden po drugim.</li>
+              <li><b>Kiedy.</b> 11&nbsp;listopada 2026, przebiegi jeden po drugim{CF.length > 0 && <>; skill Cloudflare w&nbsp;nocy z&nbsp;11 na 12&nbsp;listopada</>}.</li>
               <li><b>Koszt.</b> Pole <code>total_cost_usd</code> z&nbsp;Claude Code, czyli tokeny po cenach API. Abonament nie nalicza tych kwot.</li>
               <li><b>Sprawdź u&nbsp;siebie.</b> Skrypt <code>fetch.mjs</code> pobiera paczkę, sprawdza sumę i&nbsp;przycina drzewo, <code>score.mjs</code> ocenia raport. <a href={README} rel="noopener">Instrukcja i&nbsp;klucze</a>.</li>
             </ul>
@@ -155,6 +182,7 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
           <li>Jeden przebieg na zawodnika. Różnica jednego advisory może być szumem: wcześniejszy, nieizolowany przebieg Opusa bez skilla trafił 3 z&nbsp;8, ten 0 z&nbsp;8.</li>
           <li>Znaleziska spoza klucza podajemy tylko liczbą. Część może być prawdziwymi błędami w&nbsp;kodzie open source, część fałszywymi alarmami; to, co nadal jest w&nbsp;najnowszej wersji, zgłaszamy prywatnie opiekunom modułu.</li>
           <li>Znalezienie publicznego, już naprawionego błędu to dolna granica tego, co narzędzie robi na nieznanym kodzie, a&nbsp;nie dowód, że znalazłoby go pierwsze. Nie sprawdzaliśmy, czy kod modułu był w&nbsp;danych treningowych modeli.</li>
+          {CF.length > 0 && <li>Skill Cloudflare oceniamy naszą regułą pliku i&nbsp;linii. Jego rekord opisuje cały ślad od wejścia do ujścia, a&nbsp;liczymy jedno miejsce. Co najmniej jeden rekord opisywał mechanizm z&nbsp;advisory, ale wskazywał inny plik niż poprawka, więc się nie liczy.</li>}
           <li>Skill dopisał swój katalog <code>.security-audit</code> do <code>.gitignore</code>. Kodu modułu nie zmienił żaden przebieg.</li>
           <li>Pozostałe benchmarki modeli i&nbsp;agentów są na stronie <a href="/benchmarks">Benchmarki</a>.</li>
         </ul>
@@ -194,9 +222,14 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
   .fill { display: block; height: 12px; background: var(--ink-3); border-radius: 0 4px 4px 0; opacity: 0.55; }
   .fill.hits { opacity: 1; }
   .skill .fill { background: var(--accent); }
+  .cf .fill { background: var(--ink); opacity: 0.8; }
+  .cf .fill.hits { opacity: 1; }
+  .method.cfnotes { max-width: none; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--col-gap); padding-left: 0; list-style: none; margin-top: 28px; }
+  @media (max-width: 900px) { .method.cfnotes { grid-template-columns: minmax(0, 1fr); } }
   .val { font-family: var(--mono); color: var(--ink); white-space: nowrap; }
 
   .matrix { min-width: 760px; }
+  .cfcol { border-left: 1px dashed var(--rule); }
   .matrix tbody th { min-width: 260px; }
   .matrix tbody th a { font-weight: 650; }
   .cve { font-size: 0.8rem; color: var(--ink-3); }

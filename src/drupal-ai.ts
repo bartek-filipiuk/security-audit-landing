@@ -12,7 +12,18 @@ export const CONTENDERS = [
   { id: "skill-mix", name: "Opus 5.5 + Fable 5.2", setup: "skill: audytorzy Opus, weryfikator Fable" },
 ] as const;
 
-// [number, CVE, what it is, reachable in the tarball, drupal.org risk level]
+// Cloudflare's security-audit skill, a separate group: never part of best/worst/ratio (those compare our skill with
+// the bare model). Only contenders with a run in the data are shown.
+const CF_ALL = [
+  { id: "cf-opus", name: "Claude Opus 5.5", setup: "skill Cloudflare, wszyscy agenci Opus" },
+  { id: "cf-mix", name: "Fable 5.2 + Opus 5.5", setup: "skill Cloudflare: sesja Fable, podagenci Opus" },
+] as const;
+export const CF = CF_ALL.filter((c) => DATA.runs.some((r) => r.contender === c.id));
+export const ALL = [...CONTENDERS, ...CF];
+export const CF_REPO = "https://github.com/cloudflare/security-audit-skill";
+export const CF_COMMIT = "c1c8a8c";
+
+// [number, CVE, what it is, root cause inside the tarball, drupal.org risk level]
 export const ADVISORIES = [
   ["266", "CVE-2026-118545", "tooltip wstawia atrybut data jako HTML (DOM XSS)", true, "umiarkowanie krytyczne"],
   ["267", "CVE-2026-118546", "szerokość i wysokość bloku chatbota trafiają do strony bez escapowania (XSS)", true, "umiarkowanie krytyczne"],
@@ -40,7 +51,7 @@ const avg = (setup: "skill" | "plain", k: "cost_usd" | "minutes") => onTarget(se
 export const ratio = (k: "cost_usd" | "minutes") => Math.round(avg("skill", k) / avg("plain", k));
 export const controlFp = RUNS.filter((r) => r.version === "1.5.2").reduce((s, r) => s + r.decoy_fp, 0);
 export const controls = RUNS.filter((r) => r.version === "1.5.2");
-export const nobody = ADVISORIES.filter(([n]) => !CONTENDERS.some((c) => hit(c.id, n)));
+export const nobody = ADVISORIES.filter(([n]) => !ALL.some((c) => hit(c.id, n)));
 
 export const pl = (n: number, d = 0) => n.toLocaleString("pl-PL", { minimumFractionDigits: d, maximumFractionDigits: d });
 export const usd = (n: number) => `${pl(n, 2)} USD`;
