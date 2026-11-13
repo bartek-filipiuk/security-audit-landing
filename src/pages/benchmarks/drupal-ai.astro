@@ -2,13 +2,13 @@
 import Base from "../../layouts/Base.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
-import { CONTENDERS, CF, ALL, CF_REPO, CF_COMMIT, ADVISORIES, TOTAL, SA, RELEASE, README, target, hit, best, worst, ratio, controlFp, controls, nobody, pl, usd } from "../../drupal-ai";
+import { CONTENDERS, CF, PORT, REFUSED, CS_REPO, ALL, CF_REPO, CF_COMMIT, ADVISORIES, TOTAL, SA, RELEASE, README, target, hit, best, worst, ratio, controlFp, controls, nobody, pl, usd } from "../../drupal-ai";
 
 const title = "Drupal AI 1.5.1: skill kontra sam model · Security Audit";
 const description = "Claude Opus 5.5 i Fable 5.2, z i bez skilla security-audit, na module Drupala AI 1.5.1 z ośmioma opublikowanymi advisory. Wynik na każdym advisory, kontrola na wersji naprawionej, czas i koszt.";
 const maxCost = Math.max(...ALL.map((c) => target(c.id).cost_usd));
 const maxMin = Math.max(...ALL.map((c) => target(c.id).minutes));
-const group = (id: string) => (id.startsWith("cf") ? "skill Cloudflare" : id === "skill-mix" ? "skill, mieszany" : id.startsWith("skill") ? "skill" : "sam model");
+const group = (id: string) => (id.startsWith("csport") ? "metoda Codex Security" : id.startsWith("cf") ? "skill Cloudflare" : id === "skill-mix" ? "skill, mieszany" : id.startsWith("skill") ? "skill" : "sam model");
 const cfHits = (id: string) => ADVISORIES.filter(([n]) => hit(id, n)).map(([n]) => n);
 const w = (v: number, m: number) => `${Math.max(2, (v / m) * 100)}%`;
 const short = (id: string) => ALL.find((c) => c.id === id)!;
@@ -22,7 +22,7 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
         <p class="crumb"><a href="/benchmarks">Benchmarki</a> / Drupal AI 1.5.1</p>
         <h1 class="h2">Drupal AI 1.5.1: skill kontra sam model</h1>
         <p class="lead">Moduł <a href="https://www.drupal.org/project/ai" rel="noopener">AI</a> dla Drupala w&nbsp;wersji <a href={RELEASE("1.5.1")} rel="noopener">1.5.1</a> ma osiem advisory opublikowanych przez drupal.org 28&nbsp;października 2026, wszystkie naprawione w&nbsp;<a href={RELEASE("1.5.2")} rel="noopener">1.5.2</a>. Sprawdziliśmy, kto wskaże podatne linie: sam model poproszony o&nbsp;przegląd bezpieczeństwa czy ten sam model ze skillem.</p>
-        <p class="takeaway">Ze skillem /security-audit modele wskazały {worst("skill")}–{best("skill")} z&nbsp;{TOTAL} advisory, same {worst("plain")}–{best("plain")}. Żaden przebieg nie zgłosił funkcji, którą naprawia 1.5.2. Skill kosztował średnio {ratio("cost_usd")} razy więcej i&nbsp;trwał {ratio("minutes")} razy dłużej.{CF.length > 0 && <> Dla porównania <a href="#cloudflare">skill security-audit Cloudflare</a> na tym samym kodzie: {CF.map((c, i) => <>{i > 0 && ", "}{target(c.id).found}/{TOTAL} ({c.name})</>)}.</>}</p>
+        <p class="takeaway">Ze skillem /security-audit modele wskazały {worst("skill")}–{best("skill")} z&nbsp;{TOTAL} advisory, same {worst("plain")}–{best("plain")}. Żaden przebieg nie zgłosił funkcji, którą naprawia 1.5.2. Skill kosztował średnio {ratio("cost_usd")} razy więcej i&nbsp;trwał {ratio("minutes")} razy dłużej.{CF.length > 0 && <> Dla porównania <a href="#cloudflare">skill security-audit Cloudflare</a> na tym samym kodzie: {CF.map((c, i) => <>{i > 0 && ", "}{target(c.id).found}/{TOTAL} ({c.name})</>)}.</>}{PORT.length > 0 && <> <a href="#codex">Metoda Codex Security</a> od OpenAI przeniesiona do Claude Code: {PORT.map((c, i) => <>{i > 0 && ", "}{target(c.id).found}/{TOTAL} ({c.name})</>)}; oryginał na modelu OpenAI zatrzymał filtr cyberbezpieczeństwa.</>}</p>
         <ul class="stats">
           <li><b>{best("skill")}/{TOTAL}</b><span>najlepszy wynik ze skillem /security-audit</span></li>
           <li><b>{best("plain")}/{TOTAL}</b><span>najlepszy wynik samego modelu</span></li>
@@ -53,7 +53,7 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
               {ALL.map((c) => {
                 const r = target(c.id);
                 return (
-                  <tr class:list={{ skill: r.setup === "skill", cf: r.setup === "cf" }}>
+                  <tr class:list={{ skill: r.setup === "skill", cf: r.setup === "cf" || r.setup === "csport" }}>
                     <th scope="row"><span class="model">{c.name}</span><span class="agent">{c.setup}</span></th>
                     <td class="barcol" data-l="Trafione advisory"><span class="bar"><span class="track"><span class="fill hits" style={`width:${w(r.found, TOTAL)}`}></span></span><span class="val">{r.found}/{TOTAL}</span></span></td>
                     <td class="barcol" data-l="Czas, min"><span class="bar"><span class="track"><span class="fill" style={`width:${w(r.minutes, maxMin)}`}></span></span><span class="val">{pl(r.minutes, 1)}</span></span></td>
@@ -63,6 +63,12 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
                   </tr>
                 );
               })}
+              {REFUSED.map((x) => (
+                <tr class="refused">
+                  <th scope="row"><span class="model">{x.model}</span><span class="agent">{x.tool} (OpenAI), effort {x.effort}</span></th>
+                  <td colspan="5" class="refcell" data-l="Wynik">przerwany po około {x.minutes}&nbsp;min przez filtr cyberbezpieczeństwa OpenAI, {x.findings} znalezisk</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -73,14 +79,14 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
       <div class="wrap">
         <h2 class="h2 small">Które advisory znalazł który zawodnik</h2>
         <p class="what">SA-270 dotyczy cache wyników, a&nbsp;ten należy do modułu search_api, którego nie ma w&nbsp;paczce AI. Klucz wskazuje więc linię w&nbsp;ai_search, gdzie wynik jest filtrowany po uprawnieniach użytkownika i&nbsp;skąd trafia do cache. {cfHits("cf-opus").includes("270") ? <>Jedyne trafienie, u&nbsp;skilla Cloudflare na Opusie, wskazało tę linię, ale opis znaleziska dotyczy innego mechanizmu niż cache. Liczymy je, bo reguła oceny to plik i&nbsp;linia, a&nbsp;nie opis.</> : <>Nikt go nie wskazał.</>}</p>
-        <p class="what"><b>A&nbsp;najgroźniejszy błąd?</b> Jedyne advisory z&nbsp;poziomem „krytyczne” według drupal.org to SA-269, obejście filtra linków Markdown bez logowania. Znalazł je każdy wariant skilla /security-audit, żaden model bez skilla i&nbsp;żaden przebieg skilla Cloudflare. Nasz skill nie wyróżnił go jednak w&nbsp;raporcie: ocenił je na MEDIUM, a&nbsp;to najwyższa ocena, jaką dał w&nbsp;tym benchmarku, bo wszystkie jego znaleziska to MEDIUM albo LOW. Kolejności „od najgroźniejszych” też nie widać: skill zawsze trafiał SA-271, najsłabsze advisory, a&nbsp;pomijał SA-266 i&nbsp;SA-272, które drupal.org ocenia wyżej.</p>
+        <p class="what"><b>A&nbsp;najgroźniejszy błąd?</b> Jedyne advisory z&nbsp;poziomem „krytyczne” według drupal.org to SA-269, obejście filtra linków Markdown bez logowania. Znalazł je każdy wariant skilla /security-audit, żaden model bez skilla, żaden przebieg skilla Cloudflare{PORT.some((c) => hit(c.id, "269")) ? "" : " ani metoda Codex Security"}. Nasz skill nie wyróżnił go jednak w&nbsp;raporcie: ocenił je na MEDIUM, a&nbsp;to najwyższa ocena, jaką dał w&nbsp;tym benchmarku, bo wszystkie jego znaleziska to MEDIUM albo LOW. Kolejności „od najgroźniejszych” też nie widać: skill zawsze trafiał SA-271, najsłabsze advisory, a&nbsp;pomijał SA-266 i&nbsp;SA-272, które drupal.org ocenia wyżej.</p>
         <div class="scroll">
           <table class="matrix">
             <caption class="sr">Advisory w wierszach, zawodnicy w kolumnach, tak lub nie w komórkach</caption>
             <thead>
               <tr>
                 <th scope="col">Advisory</th>
-                {ALL.map((c) => <th scope="col" class:list={["c", { cfcol: c.id.startsWith("cf") }]}><span class="model">{c.name}</span><span class="agent">{group(c.id)}</span></th>)}
+                {ALL.map((c) => <th scope="col" class:list={["c", { cfcol: c.id.startsWith("cf") || c.id.startsWith("csport") }]}><span class="model">{c.name}</span><span class="agent">{group(c.id)}</span></th>)}
               </tr>
             </thead>
             <tbody>
@@ -106,7 +112,7 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
       <div class="wrap split">
         <div>
           <h2 class="h2 small">Kontrola na wersji naprawionej</h2>
-          <p class="what">Ten sam audyt na 1.5.2. Klucz kontroli zawiera całe naprawione funkcje jako pułapki: zgłoszenie którejkolwiek z&nbsp;nich byłoby fałszywym alarmem. Kontroli skilla na samym Opusie i&nbsp;samym Fable ani skilla Cloudflare nie robiliśmy, żeby oszczędzić limit.</p>
+          <p class="what">Ten sam audyt na 1.5.2. Klucz kontroli zawiera całe naprawione funkcje jako pułapki: zgłoszenie którejkolwiek z&nbsp;nich byłoby fałszywym alarmem. Kontroli skilla na samym Opusie i&nbsp;samym Fable, skilla Cloudflare ani metody Codex Security nie robiliśmy, żeby oszczędzić limit.</p>
         </div>
         <dl class="run mono">
           {controls.map((r) => (
@@ -141,6 +147,33 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
       </section>
     )}
 
+    {(PORT.length > 0 || REFUSED.length > 0) && (
+      <section class="section band" id="codex">
+        <div class="wrap split">
+          <div>
+            <h2 class="h2 small">Codex Security od OpenAI i&nbsp;jego metoda w&nbsp;Claude Code</h2>
+            <p class="what">OpenAI udostępnia <a href={CS_REPO} rel="noopener">Codex Security</a>, narzędzie wiersza poleceń do szukania i&nbsp;sprawdzania podatności na modelach OpenAI. Puściliśmy je w&nbsp;trybie Standard na domyślnym modelu, z&nbsp;planem ChatGPT. Po około 8 minutach, w&nbsp;fazie przeglądania plików, serwer OpenAI przerwał skan komunikatem, że treść oznaczono jako możliwe ryzyko cyberbezpieczeństwa, i&nbsp;skierował do programu Trusted Access for Cyber (Daybreak). Nie powstało żadne znalezisko. Ten sam problem opisują zgłoszenia w&nbsp;repozytorium narzędzia (<a href={`${CS_REPO}/issues/56`} rel="noopener">#56</a>).</p>
+            <p class="what">Metodę z&nbsp;tego narzędzia, opisaną w&nbsp;jego instrukcjach na licencji Apache 2.0, przenieśliśmy do skilla Claude Code: niezależny audytor bazowy bez hipotez koordynatora, model zagrożeń, śledczy dla grup pytań, walidacja każdego kandydata z&nbsp;dowodem przeciwnym w&nbsp;kodzie i&nbsp;ich skala ważności. Opisy metody są prawie dosłowne; zmieniliśmy tylko części związane z&nbsp;narzędziami Codexa. To nasz port, a&nbsp;nie produkt OpenAI. Na razie trzymamy go lokalnie.</p>
+          </div>
+          <dl class="run mono">
+            {PORT.map((c) => {
+              const r = target(c.id);
+              const h = cfHits(c.id);
+              return <div><dt>{c.name}, {c.setup}</dt><dd>{r.found}/{TOTAL}{h.length > 0 && <> (SA-{h.join(", ")})</>} · {pl(r.minutes, 1)} min · {usd(r.cost_usd)}</dd></div>;
+            })}
+            {REFUSED.map((x) => <div><dt>{x.model}, {x.tool}</dt><dd>przerwany po ~{x.minutes} min · {x.findings} znalezisk</dd></div>)}
+          </dl>
+        </div>
+        <div class="wrap">
+          <ul class="method cfnotes">
+            <li><b>Modele.</b> W&nbsp;porcie koordynator i&nbsp;wszyscy podagenci na Fable 5.2, do ośmiu podagentów naraz, jak domyślnie w&nbsp;Codexie. Oryginał szedł na <code>gpt-5.6-sol</code> z&nbsp;effort <code>xhigh</code>, czyli na swoich ustawieniach domyślnych.</li>
+            <li><b>Odmowy.</b> W&nbsp;żadnym z&nbsp;{PORT.length > 0 ? "9 transkryptów portu" : "transkryptów"}, łącznie z&nbsp;podagentami, model Claude nie odmówił pracy. Oryginał zatrzymała blokada po stronie OpenAI, a&nbsp;nie nasza izolacja: w&nbsp;swoim sandboxie wykonał wcześniej 241 poleceń.</li>
+            <li><b>Co liczymy.</b> Każde znalezisko z&nbsp;<code>findings.json</code> w&nbsp;formacie Codex Security, z&nbsp;jedną lokalizacją: pierwsze ujście (sink), a&nbsp;bez niego pierwsza wskazana linia. Narzędzie nie ma osobnych werdyktów; raportuje to, co samo sprawdziło.</li>
+          </ul>
+        </div>
+      </section>
+    )}
+
     <section id="metoda" class="section">
       <div class="wrap">
         <h2 class="h2 small">Co, jak i&nbsp;gdzie badaliśmy</h2>
@@ -165,8 +198,8 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
           <div>
             <h3>Gdzie</h3>
             <ul class="method">
-              <li><b>Środowisko.</b> Claude Code 2.1.322 na lokalnej maszynie, abonament Claude Max, effort <code>high</code> dla wszystkich. Skill w&nbsp;commicie <a href="https://github.com/bartek-filipiuk/security-audit-skill/commit/2d57189" rel="noopener" class="mono">2d57189</a>.</li>
-              <li><b>Kiedy.</b> 11&nbsp;listopada 2026, przebiegi jeden po drugim{CF.length > 0 && <>; skill Cloudflare w&nbsp;nocy z&nbsp;11 na 12&nbsp;listopada</>}.</li>
+              <li><b>Środowisko.</b> Claude Code 2.1.322 (port metody Codex Security: 2.1.325) na lokalnej maszynie, abonament Claude Max, effort <code>high</code> dla wszystkich. Skill w&nbsp;commicie <a href="https://github.com/bartek-filipiuk/security-audit-skill/commit/2d57189" rel="noopener" class="mono">2d57189</a>.</li>
+              <li><b>Kiedy.</b> 11&nbsp;listopada 2026, przebiegi jeden po drugim{CF.length > 0 && <>; skill Cloudflare w&nbsp;nocy z&nbsp;11 na 12&nbsp;listopada</>}{(PORT.length > 0 || REFUSED.length > 0) && <>; Codex Security i&nbsp;jego metoda 13&nbsp;listopada</>}.</li>
               <li><b>Koszt.</b> Pole <code>total_cost_usd</code> z&nbsp;Claude Code, czyli tokeny po cenach API. Abonament nie nalicza tych kwot.</li>
               <li><b>Sprawdź u&nbsp;siebie.</b> Skrypt <code>fetch.mjs</code> pobiera paczkę, sprawdza sumę i&nbsp;przycina drzewo, <code>score.mjs</code> ocenia raport. <a href={README} rel="noopener">Instrukcja i&nbsp;klucze</a>.</li>
             </ul>
@@ -183,6 +216,7 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
           <li>Znaleziska spoza klucza podajemy tylko liczbą. Część może być prawdziwymi błędami w&nbsp;kodzie open source, część fałszywymi alarmami; to, co nadal jest w&nbsp;najnowszej wersji, zgłaszamy prywatnie opiekunom modułu.</li>
           <li>Znalezienie publicznego, już naprawionego błędu to dolna granica tego, co narzędzie robi na nieznanym kodzie, a&nbsp;nie dowód, że znalazłoby go pierwsze. Nie sprawdzaliśmy, czy kod modułu był w&nbsp;danych treningowych modeli.</li>
           {CF.length > 0 && <li>Skill Cloudflare oceniamy naszą regułą pliku i&nbsp;linii. Jego rekord opisuje cały ślad od wejścia do ujścia, a&nbsp;liczymy jedno miejsce. Co najmniej jeden rekord opisywał mechanizm z&nbsp;advisory, ale wskazywał inny plik niż poprawka, więc się nie liczy.</li>}
+          {PORT.length > 0 && <li>Metoda Codex Security w&nbsp;Claude Code to nasz port na modelu Claude. Jej wynik nie jest wynikiem narzędzia OpenAI, a&nbsp;wynik oryginału to tylko odmowa na naszym koncie, bez dostępu Daybreak.</li>}
           <li>Skill dopisał swój katalog <code>.security-audit</code> do <code>.gitignore</code>. Kodu modułu nie zmienił żaden przebieg.</li>
           <li>Pozostałe benchmarki modeli i&nbsp;agentów są na stronie <a href="/benchmarks">Benchmarki</a>.</li>
         </ul>
@@ -224,6 +258,7 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
   .skill .fill { background: var(--accent); }
   .cf .fill { background: var(--ink); opacity: 0.8; }
   .cf .fill.hits { opacity: 1; }
+  .refcell { color: var(--ink-2); font-style: italic; }
   .method.cfnotes { max-width: none; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--col-gap); padding-left: 0; list-style: none; margin-top: 28px; }
   @media (max-width: 900px) { .method.cfnotes { grid-template-columns: minmax(0, 1fr); } }
   .val { font-family: var(--mono); color: var(--ink); white-space: nowrap; }
@@ -263,7 +298,7 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
     .results tbody tr { padding: 14px 0; border-bottom: 1px solid var(--rule); display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px 12px; }
     .results tbody tr:first-child { border-top: 2px solid var(--ink); }
     .results th, .results td { padding: 0; border: 0; }
-    .results tbody th, .results td.barcol { grid-column: 1 / -1; width: auto; }
+    .results tbody th, .results td.barcol, .results td.refcell { grid-column: 1 / -1; width: auto; }
     .results td[data-l]::before { content: attr(data-l); display: block; color: var(--ink-3); font: 400 0.8em var(--font); }
   }
 </style>

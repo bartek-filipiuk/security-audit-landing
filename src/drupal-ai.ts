@@ -19,7 +19,15 @@ const CF_ALL = [
   { id: "cf-mix", name: "Fable 5.2 + Opus 5.5", setup: "skill Cloudflare: sesja Fable, podagenci Opus" },
 ] as const;
 export const CF = CF_ALL.filter((c) => DATA.runs.some((r) => r.contender === c.id));
-export const ALL = [...CONTENDERS, ...CF];
+// Our local port of the Codex Security scan method (Apache-2.0) to Claude Code: also outside best/worst/ratio.
+const PORT_ALL = [
+  { id: "csport-fable", name: "Claude Fable 5.2", setup: "metoda Codex Security przeniesiona do Claude Code" },
+] as const;
+export const PORT = PORT_ALL.filter((c) => DATA.runs.some((r) => r.contender === c.id));
+export const ALL = [...CONTENDERS, ...CF, ...PORT];
+// Runs stopped before any result (no score): OpenAI's own Codex Security, refused by its cybersecurity filter.
+export const REFUSED = DATA.refused ?? [];
+export const CS_REPO = "https://github.com/openai/codex-security";
 export const CF_REPO = "https://github.com/cloudflare/security-audit-skill";
 export const CF_COMMIT = "c1c8a8c";
 
