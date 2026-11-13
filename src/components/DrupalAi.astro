@@ -1,6 +1,6 @@
 ---
 // Home page: the short version of /benchmarks/drupal-ai. Same data, bars only.
-import { CONTENDERS, CF, TOTAL, RELEASE, target, best, controlFp, controls, pl } from "../drupal-ai";
+import { CONTENDERS, CF, PORT, REFUSED, TOTAL, RELEASE, target, best, controlFp, controls, pl } from "../drupal-ai";
 ---
 <section class="section band" id="drupal-ai">
   <div class="wrap split">
@@ -14,7 +14,7 @@ import { CONTENDERS, CF, TOTAL, RELEASE, target, best, controlFp, controls, pl }
         <li><b>{controlFp}</b><span>naprawionych funkcji zgłoszonych w&nbsp;wersji 1.5.2 ({controls.length} kontrole)</span></li>
       </ul>
       <p class="fine crit">Jedyne krytyczne advisory, <a href="https://www.drupal.org/sa-contrib-2026-269" rel="noopener">SA-CONTRIB-2026-269</a>, znalazł każdy wariant skilla /security-audit i&nbsp;żaden model bez niego.</p>
-      {CF.length > 0 && <p class="fine cfline">Skill security-audit od Cloudflare na tym samym kodzie: {CF.map((c, i) => <>{i > 0 && ", "}{target(c.id).found}/{TOTAL} ({c.name}, {pl(target(c.id).minutes)}&nbsp;min)</>)}.</p>}
+      {CF.length > 0 && <p class="fine cfline">Skill security-audit od Cloudflare na tym samym kodzie: {CF.map((c, i) => <>{i > 0 && ", "}{target(c.id).found}/{TOTAL} ({c.name}, {pl(target(c.id).minutes)}&nbsp;min)</>)}.{PORT.length > 0 && <> Metoda Codex Security od OpenAI przeniesiona do Claude Code: {PORT.map((c, i) => <>{i > 0 && ", "}{target(c.id).found}/{TOTAL} ({c.name}, {pl(target(c.id).minutes)}&nbsp;min)</>)}{REFUSED.length > 0 && <>; oryginał na modelu OpenAI zatrzymał po 8&nbsp;minutach filtr cyberbezpieczeństwa</>}.</>}</p>}
       <p class="more"><a class="btn btn-ghost" href="/benchmarks/drupal-ai">Cały benchmark: metoda, koszt, każde advisory</a></p>
     </div>
     <figure class="chart">

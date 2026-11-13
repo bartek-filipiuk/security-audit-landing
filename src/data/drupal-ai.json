@@ -184,6 +184,25 @@
    "needs_validation": 11,
    "isolation": "ok",
    "date": "2026-11-12"
+  },
+  {
+   "run_id": "csport-fable@1.5.1",
+   "contender": "csport-fable",
+   "setup": "csport",
+   "model": "claude-fable-5-2",
+   "auditor_model": "claude-fable-5-2",
+   "version": "1.5.1",
+   "found": 3,
+   "decoy_fp": 0,
+   "minutes": 29.6,
+   "cost_usd": 59.96,
+   "reported": 27,
+   "rejected_by_verifier": 0,
+   "known_extras": 1,
+   "outside_key": 23,
+   "isolation": "ok",
+   "refusals": 0,
+   "date": "2026-11-13"
   }
  ],
  "hits": [
@@ -466,6 +485,58 @@
    "advisory": "273",
    "contender": "cf-mix",
    "found": 1
+  },
+  {
+   "advisory": "266",
+   "contender": "csport-fable",
+   "found": 0
+  },
+  {
+   "advisory": "267",
+   "contender": "csport-fable",
+   "found": 1
+  },
+  {
+   "advisory": "268",
+   "contender": "csport-fable",
+   "found": 0
+  },
+  {
+   "advisory": "269",
+   "contender": "csport-fable",
+   "found": 0
+  },
+  {
+   "advisory": "270",
+   "contender": "csport-fable",
+   "found": 0
+  },
+  {
+   "advisory": "271",
+   "contender": "csport-fable",
+   "found": 1
+  },
+  {
+   "advisory": "272",
+   "contender": "csport-fable",
+   "found": 0
+  },
+  {
+   "advisory": "273",
+   "contender": "csport-fable",
+   "found": 1
+  }
+ ],
+ "refused": [
+  {
+   "contender": "cs-standard",
+   "tool": "Codex Security 0.10.0",
+   "model": "gpt-5.6-sol",
+   "effort": "xhigh",
+   "version": "1.5.1",
+   "minutes": 8,
+   "findings": 0,
+   "date": "2026-11-13"
   }
  ]
 }

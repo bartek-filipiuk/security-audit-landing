@@ -3,26 +3,30 @@ import Base from "../layouts/Base.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import { TARGETS, type Row, type Target } from "../benchmarks";
-import { ALL as DRUPAL_ALL, CF, TOTAL as DRUPAL_TOTAL, target as drupalRun, nobody } from "../drupal-ai";
+import { ALL as DRUPAL_ALL, CF, PORT, REFUSED, TOTAL as DRUPAL_TOTAL, target as drupalRun, nobody } from "../drupal-ai";
 const title = "Benchmarki modeli · Security Audit";
 const description = "Ten sam skill security-audit, różne modele i agenci: Claude Code, DeepSeek, Gemma, Hinoki, Kimi i Grok w OpenCode oraz gpt-6-astra w Codex CLI. Wyniki na prawdziwych advisory, na Ledgerly i na aplikacjach testowych profili PHP, Python i Supabase, z czasem i kosztem.";
 // Drupal AI 1.5.1 (its own page has the details) as one more table: our skill, the bare model and Cloudflare's skill.
 const DRUPAL: Target = {
   id: "drupal-ai",
   name: "Drupal AI: osiem advisory modułu AI 1.5.1",
-  what: "Moduł AI dla Drupala 1.5.1 i\u00a0osiem advisory z\u00a028 października 2026, naprawionych w\u00a01.5.2. Ten benchmark porównuje też sam model bez skilla i\u00a0skill security-audit od Cloudflare.",
+  what: "Moduł AI dla Drupala 1.5.1 i\u00a0osiem advisory z\u00a028 października 2026, naprawionych w\u00a01.5.2. Ten benchmark porównuje też sam model bez skilla, skill security-audit od Cloudflare i\u00a0metodę Codex Security od OpenAI.",
   key: "SA-CONTRIB-2026-266 do 273, linie zmienione w\u00a01.5.2; pułapki to funkcje naprawione w\u00a01.5.2.",
   total: DRUPAL_TOTAL,
   links: [{ label: "cały benchmark", url: "/benchmarks/drupal-ai" }],
-  takeaway: `Najlepiej wypadł nasz skill: ${Math.max(...DRUPAL_ALL.filter((c) => c.id.startsWith("skill")).map((c) => drupalRun(c.id).found))}/${DRUPAL_TOTAL}. Skill Cloudflare wskazał ${CF.map((c) => drupalRun(c.id).found).join(" i\u00a0")}, sam model ${DRUPAL_ALL.filter((c) => c.id.startsWith("plain")).map((c) => drupalRun(c.id).found).join(" i\u00a0")}. ${nobody.length} z\u00a0${DRUPAL_TOTAL} advisory nie wskazał nikt.`,
+  takeaway: `Najlepiej wypadł nasz skill: ${Math.max(...DRUPAL_ALL.filter((c) => c.id.startsWith("skill")).map((c) => drupalRun(c.id).found))}/${DRUPAL_TOTAL}. Skill Cloudflare wskazał ${CF.map((c) => drupalRun(c.id).found).join(" i\u00a0")}, metoda Codex Security w\u00a0Claude Code ${PORT.map((c) => drupalRun(c.id).found).join(" i\u00a0")}, sam model ${DRUPAL_ALL.filter((c) => c.id.startsWith("plain")).map((c) => drupalRun(c.id).found).join(" i\u00a0")}. ${nobody.length} z\u00a0${DRUPAL_TOTAL} advisory nie wskazał nikt.`,
   glance: "skill, sam model i\u00a0skill Cloudflare",
-  rows: DRUPAL_ALL.map((c) => {
-    const r = drupalRun(c.id);
-    return { model: c.name, agent: `Claude Code, ${c.setup}`, outcome: { kind: "scored" as const, found: r.found }, decoyFp: r.decoy_fp, unmatched: r.outside_key, minutes: r.minutes, costUsd: r.cost_usd };
-  }),
+  rows: [
+    ...DRUPAL_ALL.map((c) => {
+      const r = drupalRun(c.id);
+      return { model: c.name, agent: `Claude Code, ${c.setup}`, outcome: { kind: "scored" as const, found: r.found }, decoyFp: r.decoy_fp, unmatched: r.outside_key, minutes: r.minutes, costUsd: r.cost_usd };
+    }),
+    ...REFUSED.map((x) => ({ model: x.model, agent: `${x.tool} (OpenAI), plan ChatGPT`, outcome: { kind: "broken" as const, why: `przerwany po ~${x.minutes} min przez filtr cyberbezpieczeństwa OpenAI` } })),
+  ],
   notes: [
-    "Jeden przebieg na zawodnika, 11–12 listopada 2026. Koszt to tokeny po cenach API, nie abonament.",
+    "Jeden przebieg na zawodnika, 11–13 listopada 2026. Koszt to tokeny po cenach API, nie abonament.",
     "Skill Cloudflare: liczymy rekordy confirmed i\u00a0needs_validation, jedną lokalizację na rekord. Szczegóły i\u00a0zastrzeżenia na stronie benchmarku.",
+    "Metoda Codex Security w\u00a0Claude Code to nasz port instrukcji narzędzia OpenAI (Apache 2.0) na modelu Claude, a\u00a0nie produkt OpenAI. Oryginał na gpt-5.6-sol przerwał filtr cyberbezpieczeństwa OpenAI.",
   ],
 };
 const ALL_TARGETS = [...TARGETS, DRUPAL];
