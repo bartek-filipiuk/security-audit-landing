@@ -2,14 +2,15 @@
 import Base from "../../layouts/Base.astro";
 import Header from "../../components/Header.astro";
 import Footer from "../../components/Footer.astro";
-import { CONTENDERS, CF, PORT, REFUSED, CS_REPO, ALL, CF_REPO, CF_COMMIT, ADVISORIES, TOTAL, SA, RELEASE, README, target, hit, best, worst, ratio, controlFp, controls, nobody, pl, usd } from "../../drupal-ai";
+import { CONTENDERS, CF, PORT, HINOKI, HINOKI_PRICES, REFUSED, CS_REPO, ALL, CF_REPO, CF_COMMIT, ADVISORIES, TOTAL, SA, RELEASE, README, target, hit, best, worst, ratio, controlFp, controls, nobody, pl, usd, cost } from "../../drupal-ai";
 
 const title = "Drupal AI 1.5.1: skill kontra sam model · Security Audit";
 const description = "Claude Opus 5.5 i Fable 5.2, z i bez skilla security-audit, na module Drupala AI 1.5.1 z ośmioma opublikowanymi advisory. Wynik na każdym advisory, kontrola na wersji naprawionej, czas i koszt.";
 const maxCost = Math.max(...ALL.map((c) => target(c.id).cost_usd));
 const maxMin = Math.max(...ALL.map((c) => target(c.id).minutes));
-const group = (id: string) => (id.startsWith("csport") ? "metoda Codex Security" : id.startsWith("cf") ? "skill Cloudflare" : id === "skill-mix" ? "skill, mieszany" : id.startsWith("skill") ? "skill" : "sam model");
+const group = (id: string) => (id === "plain-hinoki" ? "OpenCode, sam model" : id === "skill-hinoki" ? "OpenCode, skill" : id.startsWith("csport") ? "metoda Codex Security" : id.startsWith("cf") ? "skill Cloudflare" : id === "skill-mix" ? "skill, mieszany" : id.startsWith("skill") ? "skill" : "sam model");
 const cfHits = (id: string) => ADVISORIES.filter(([n]) => hit(id, n)).map(([n]) => n);
+const side = (id: string) => id.startsWith("cf") || id.startsWith("csport") || id.endsWith("hinoki");
 const w = (v: number, m: number) => `${Math.max(2, (v / m) * 100)}%`;
 const short = (id: string) => ALL.find((c) => c.id === id)!;
 const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators", "modules/ai_chatbot", "modules/ai_search", "modules/ai_ckeditor", "modules/ai_api_explorer", "modules/ai_assistant_api", "modules/ai_observability"];
@@ -22,7 +23,7 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
         <p class="crumb"><a href="/benchmarks">Benchmarki</a> / Drupal AI 1.5.1</p>
         <h1 class="h2">Drupal AI 1.5.1: skill kontra sam model</h1>
         <p class="lead">Moduł <a href="https://www.drupal.org/project/ai" rel="noopener">AI</a> dla Drupala w&nbsp;wersji <a href={RELEASE("1.5.1")} rel="noopener">1.5.1</a> ma osiem advisory opublikowanych przez drupal.org 28&nbsp;października 2026, wszystkie naprawione w&nbsp;<a href={RELEASE("1.5.2")} rel="noopener">1.5.2</a>. Sprawdziliśmy, kto wskaże podatne linie: sam model poproszony o&nbsp;przegląd bezpieczeństwa czy ten sam model ze skillem.</p>
-        <p class="takeaway">Ze skillem /security-audit modele wskazały {worst("skill")}–{best("skill")} z&nbsp;{TOTAL} advisory, same {worst("plain")}–{best("plain")}. Żaden przebieg nie zgłosił funkcji, którą naprawia 1.5.2. Skill kosztował średnio {ratio("cost_usd")} razy więcej i&nbsp;trwał {ratio("minutes")} razy dłużej.{CF.length > 0 && <> Dla porównania <a href="#cloudflare">skill security-audit Cloudflare</a> na tym samym kodzie: {CF.map((c, i) => <>{i > 0 && ", "}{target(c.id).found}/{TOTAL} ({c.name})</>)}.</>}{PORT.length > 0 && <> <a href="#codex">Metoda Codex Security</a> od OpenAI przeniesiona do Claude Code: {PORT.map((c, i) => <>{i > 0 && ", "}{target(c.id).found}/{TOTAL} ({c.name})</>)}; oryginał na modelu OpenAI zatrzymał filtr cyberbezpieczeństwa.</>}</p>
+        <p class="takeaway">Ze skillem /security-audit modele wskazały {worst("skill")}–{best("skill")} z&nbsp;{TOTAL} advisory, same {worst("plain")}–{best("plain")}. Żaden przebieg nie zgłosił funkcji, którą naprawia 1.5.2. Skill kosztował średnio {ratio("cost_usd")} razy więcej i&nbsp;trwał {ratio("minutes")} razy dłużej.{CF.length > 0 && <> Dla porównania <a href="#cloudflare">skill security-audit Cloudflare</a> na tym samym kodzie: {CF.map((c, i) => <>{i > 0 && ", "}{target(c.id).found}/{TOTAL} ({c.name})</>)}.</>}{PORT.length > 0 && <> <a href="#codex">Metoda Codex Security</a> od OpenAI przeniesiona do Claude Code: {PORT.map((c, i) => <>{i > 0 && ", "}{target(c.id).found}/{TOTAL} ({c.name})</>)}; oryginał na modelu OpenAI zatrzymał filtr cyberbezpieczeństwa.</>}{HINOKI.length > 0 && <> Model <a href="#hinoki">Hinoki Offensive One</a> w&nbsp;OpenCode: {HINOKI.map((c, i) => <>{i > 0 && ", "}{target(c.id).found}/{TOTAL} ({c.setup.split(",")[0]})</>)}.</>}</p>
         <ul class="stats">
           <li><b>{best("skill")}/{TOTAL}</b><span>najlepszy wynik ze skillem /security-audit</span></li>
           <li><b>{best("plain")}/{TOTAL}</b><span>najlepszy wynik samego modelu</span></li>
@@ -35,7 +36,7 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
     <section class="section band" id="wyniki">
       <div class="wrap">
         <h2 class="h2 small">Wynik, czas i&nbsp;koszt na wersji 1.5.1</h2>
-        <p class="what">Jeden przebieg na zawodnika. Każda kolumna słupków ma własną skalę.</p>
+        <p class="what">Jeden przebieg na zawodnika. Każda kolumna słupków ma własną skalę.{HINOKI.length > 0 && <> Koszt z&nbsp;tyldą (~) to szacunek z&nbsp;tokenów, bo OpenCode nie zna ceny Hinoki.</>}</p>
         <div class="scroll">
           <table class="results">
             <caption class="sr">Trafione advisory, czas i koszt każdego zawodnika na wersji 1.5.1</caption>
@@ -53,11 +54,11 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
               {ALL.map((c) => {
                 const r = target(c.id);
                 return (
-                  <tr class:list={{ skill: r.setup === "skill", cf: r.setup === "cf" || r.setup === "csport" }}>
-                    <th scope="row"><span class="model">{c.name}</span><span class="agent">{c.setup}</span></th>
+                  <tr class:list={{ skill: r.setup === "skill", cf: side(c.id) }}>
+                    <th scope="row"><span class="model">{c.name}</span><span class="agent">{"tool" in c && `${c.tool}, `}{c.setup}</span></th>
                     <td class="barcol" data-l="Trafione advisory"><span class="bar"><span class="track"><span class="fill hits" style={`width:${w(r.found, TOTAL)}`}></span></span><span class="val">{r.found}/{TOTAL}</span></span></td>
                     <td class="barcol" data-l="Czas, min"><span class="bar"><span class="track"><span class="fill" style={`width:${w(r.minutes, maxMin)}`}></span></span><span class="val">{pl(r.minutes, 1)}</span></span></td>
-                    <td class="barcol" data-l="Koszt"><span class="bar"><span class="track"><span class="fill" style={`width:${w(r.cost_usd, maxCost)}`}></span></span><span class="val">{usd(r.cost_usd)}</span></span></td>
+                    <td class="barcol" data-l="Koszt"><span class="bar"><span class="track"><span class="fill" style={`width:${w(r.cost_usd, maxCost)}`}></span></span><span class="val">{cost(r)}</span></span></td>
                     <td class="mono" data-l="Zgłoszone">{r.reported}</td>
                     <td class="mono" data-l="Spoza klucza">{r.outside_key}</td>
                   </tr>
@@ -79,14 +80,14 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
       <div class="wrap">
         <h2 class="h2 small">Które advisory znalazł który zawodnik</h2>
         <p class="what">SA-270 dotyczy cache wyników, a&nbsp;ten należy do modułu search_api, którego nie ma w&nbsp;paczce AI. Klucz wskazuje więc linię w&nbsp;ai_search, gdzie wynik jest filtrowany po uprawnieniach użytkownika i&nbsp;skąd trafia do cache. {cfHits("cf-opus").includes("270") ? <>Jedyne trafienie, u&nbsp;skilla Cloudflare na Opusie, wskazało tę linię, ale opis znaleziska dotyczy innego mechanizmu niż cache. Liczymy je, bo reguła oceny to plik i&nbsp;linia, a&nbsp;nie opis.</> : <>Nikt go nie wskazał.</>}</p>
-        <p class="what"><b>A&nbsp;najgroźniejszy błąd?</b> Jedyne advisory z&nbsp;poziomem „krytyczne” według drupal.org to SA-269, obejście filtra linków Markdown bez logowania. Znalazł je każdy wariant skilla /security-audit, żaden model bez skilla, żaden przebieg skilla Cloudflare{PORT.some((c) => hit(c.id, "269")) ? "" : " ani metoda Codex Security"}. Nasz skill nie wyróżnił go jednak w&nbsp;raporcie: ocenił je na MEDIUM, a&nbsp;to najwyższa ocena, jaką dał w&nbsp;tym benchmarku, bo wszystkie jego znaleziska to MEDIUM albo LOW. Kolejności „od najgroźniejszych” też nie widać: skill zawsze trafiał SA-271, najsłabsze advisory, a&nbsp;pomijał SA-266 i&nbsp;SA-272, które drupal.org ocenia wyżej.</p>
+        <p class="what"><b>A&nbsp;najgroźniejszy błąd?</b> Jedyne advisory z&nbsp;poziomem „krytyczne” według drupal.org to SA-269, obejście filtra linków Markdown bez logowania. Znalazł je każdy wariant skilla /security-audit w&nbsp;Claude Code, żaden model bez skilla, żaden przebieg skilla Cloudflare{PORT.some((c) => hit(c.id, "269")) ? "" : ", metoda Codex Security"}{HINOKI.length > 0 && !HINOKI.some((c) => hit(c.id, "269")) ? " ani Hinoki w\u00a0OpenCode" : ""}. Nasz skill nie wyróżnił go jednak w&nbsp;raporcie: ocenił je na MEDIUM, a&nbsp;to najwyższa ocena, jaką dał w&nbsp;tym benchmarku, bo wszystkie jego znaleziska to MEDIUM albo LOW. Kolejności „od najgroźniejszych” też nie widać: skill zawsze trafiał SA-271, najsłabsze advisory, a&nbsp;pomijał SA-266 i&nbsp;SA-272, które drupal.org ocenia wyżej.</p>
         <div class="scroll">
           <table class="matrix">
             <caption class="sr">Advisory w wierszach, zawodnicy w kolumnach, tak lub nie w komórkach</caption>
             <thead>
               <tr>
                 <th scope="col">Advisory</th>
-                {ALL.map((c) => <th scope="col" class:list={["c", { cfcol: c.id.startsWith("cf") || c.id.startsWith("csport") }]}><span class="model">{c.name}</span><span class="agent">{group(c.id)}</span></th>)}
+                {ALL.map((c) => <th scope="col" class:list={["c", { cfcol: side(c.id) }]}><span class="model">{c.name}</span><span class="agent">{group(c.id)}</span></th>)}
               </tr>
             </thead>
             <tbody>
@@ -112,7 +113,7 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
       <div class="wrap split">
         <div>
           <h2 class="h2 small">Kontrola na wersji naprawionej</h2>
-          <p class="what">Ten sam audyt na 1.5.2. Klucz kontroli zawiera całe naprawione funkcje jako pułapki: zgłoszenie którejkolwiek z&nbsp;nich byłoby fałszywym alarmem. Kontroli skilla na samym Opusie i&nbsp;samym Fable, skilla Cloudflare ani metody Codex Security nie robiliśmy, żeby oszczędzić limit.</p>
+          <p class="what">Ten sam audyt na 1.5.2. Klucz kontroli zawiera całe naprawione funkcje jako pułapki: zgłoszenie którejkolwiek z&nbsp;nich byłoby fałszywym alarmem. Kontroli skilla na samym Opusie i&nbsp;samym Fable, skilla Cloudflare, metody Codex Security ani Hinoki nie robiliśmy, żeby oszczędzić limit.</p>
         </div>
         <dl class="run mono">
           {controls.map((r) => (
@@ -174,6 +175,32 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
       </section>
     )}
 
+    {HINOKI.length > 0 && (
+      <section class="section" id="hinoki">
+        <div class="wrap split">
+          <div>
+            <h2 class="h2 small">Hinoki Offensive One w&nbsp;OpenCode</h2>
+            <p class="what">Hinoki Offensive One to model od <a href="https://hinoki.security/" rel="noopener">hinoki.security</a> nastawiony na bezpieczeństwo ofensywne. Puściliśmy go w&nbsp;OpenCode 2.1.4 na tej samej paczce 1.5.1, z&nbsp;tym samym promptem co sam model w&nbsp;Claude Code. Bez skilla agent mógł tylko czytać pliki modułu: bash, edycja, podagenci i&nbsp;narzędzia sieciowe OpenCode były wyłączone.</p>
+            <p class="what"><b>Zastrzeżenie, którego nie da się usunąć.</b> Hinoki ma wyszukiwarkę internetową po stronie dostawcy. Działa poza OpenCode, więc nie da się jej wyłączyć ani zobaczyć w&nbsp;zapisie sesji. W&nbsp;próbie na pustym katalogu model zwrócił aktualne wyniki wyszukiwania, a&nbsp;w&nbsp;zapisie nie było żadnego wywołania narzędzia. Do promptu dopisaliśmy zakaz szukania w&nbsp;sieci, a&nbsp;skrypt sprawdził tekst i&nbsp;rozumowanie modelu: nie ma w&nbsp;nich numeru advisory ani linku do niego. To nie wyklucza, że model szukał. Advisory są publiczne od 28&nbsp;października.</p>
+          </div>
+          <dl class="run mono">
+            {HINOKI.map((c) => {
+              const r = target(c.id);
+              const h = cfHits(c.id);
+              return <div><dt>{c.name}, {c.setup}</dt><dd>{r.found}/{TOTAL}{h.length > 0 && <> (SA-{h.join(", ")})</>} · {pl(r.minutes, 1)} min · {cost(r)}</dd></div>;
+            })}
+          </dl>
+        </div>
+        <div class="wrap">
+          <ul class="method cfnotes">
+            <li><b>Izolacja.</b> OpenCode bez <code>~/.claude</code> (CLAUDE.md i&nbsp;skille), na prywatnym serwerze. Skrypt przejrzał eksport sesji{HINOKI.some((c) => c.id === "skill-hinoki") ? ", z\u00a0podagentami" : ""}: żadne wywołanie narzędzia nie wyszło poza katalog modułu ani nie otworzyło klucza. Próby uruchomienia basha OpenCode odrzucił.</li>
+            {HINOKI.some((c) => c.id === "skill-hinoki") && <li><b>Skill.</b> Pakiet OpenCode skilla /security-audit, zbudowany z&nbsp;tego samego commita co w&nbsp;Claude Code. Koordynator, audytorzy i&nbsp;weryfikator na Hinoki.</li>}
+            <li><b>Koszt.</b> OpenCode nie zna ceny Hinoki, więc koszt (~) to zapisane tokeny razy cennik z&nbsp;API Hinoki ({HINOKI_PRICES}). Tokeny rozumowania liczymy jak wyjście.</li>
+          </ul>
+        </div>
+      </section>
+    )}
+
     <section id="metoda" class="section">
       <div class="wrap">
         <h2 class="h2 small">Co, jak i&nbsp;gdzie badaliśmy</h2>
@@ -198,9 +225,9 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
           <div>
             <h3>Gdzie</h3>
             <ul class="method">
-              <li><b>Środowisko.</b> Claude Code 2.1.322 (port metody Codex Security: 2.1.325) na lokalnej maszynie, abonament Claude Max, effort <code>high</code> dla wszystkich. Skill w&nbsp;commicie <a href="https://github.com/bartek-filipiuk/security-audit-skill/commit/2d57189" rel="noopener" class="mono">2d57189</a>.</li>
-              <li><b>Kiedy.</b> 11&nbsp;listopada 2026, przebiegi jeden po drugim{CF.length > 0 && <>; skill Cloudflare w&nbsp;nocy z&nbsp;11 na 12&nbsp;listopada</>}{(PORT.length > 0 || REFUSED.length > 0) && <>; Codex Security i&nbsp;jego metoda 13&nbsp;listopada</>}.</li>
-              <li><b>Koszt.</b> Pole <code>total_cost_usd</code> z&nbsp;Claude Code, czyli tokeny po cenach API. Abonament nie nalicza tych kwot.</li>
+              <li><b>Środowisko.</b> Claude Code 2.1.322 (port metody Codex Security: 2.1.325){HINOKI.length > 0 && <>, Hinoki w&nbsp;OpenCode 2.1.4</>} na lokalnej maszynie, abonament Claude Max, effort <code>high</code> dla wszystkich. Skill w&nbsp;commicie <a href="https://github.com/bartek-filipiuk/security-audit-skill/commit/2d57189" rel="noopener" class="mono">2d57189</a>.</li>
+              <li><b>Kiedy.</b> 11&nbsp;listopada 2026, przebiegi jeden po drugim{CF.length > 0 && <>; skill Cloudflare w&nbsp;nocy z&nbsp;11 na 12&nbsp;listopada</>}{(PORT.length > 0 || REFUSED.length > 0) && <>; Codex Security i&nbsp;jego metoda 13&nbsp;listopada</>}{HINOKI.length > 0 && <>; Hinoki 17&nbsp;listopada</>}.</li>
+              <li><b>Koszt.</b> Pole <code>total_cost_usd</code> z&nbsp;Claude Code, czyli tokeny po cenach API. Abonament nie nalicza tych kwot.{HINOKI.length > 0 && <> Dla Hinoki szacunek z&nbsp;tokenów, opisany <a href="#hinoki">wyżej</a>.</>}</li>
               <li><b>Sprawdź u&nbsp;siebie.</b> Skrypt <code>fetch.mjs</code> pobiera paczkę, sprawdza sumę i&nbsp;przycina drzewo, <code>score.mjs</code> ocenia raport. <a href={README} rel="noopener">Instrukcja i&nbsp;klucze</a>.</li>
             </ul>
           </div>
@@ -217,6 +244,7 @@ const PRUNED = ["src", "assets", "config", "templates", "modules/ai_automators",
           <li>Znalezienie publicznego, już naprawionego błędu to dolna granica tego, co narzędzie robi na nieznanym kodzie, a&nbsp;nie dowód, że znalazłoby go pierwsze. Nie sprawdzaliśmy, czy kod modułu był w&nbsp;danych treningowych modeli.</li>
           {CF.length > 0 && <li>Skill Cloudflare oceniamy naszą regułą pliku i&nbsp;linii. Jego rekord opisuje cały ślad od wejścia do ujścia, a&nbsp;liczymy jedno miejsce. Co najmniej jeden rekord opisywał mechanizm z&nbsp;advisory, ale wskazywał inny plik niż poprawka, więc się nie liczy.</li>}
           {PORT.length > 0 && <li>Metoda Codex Security w&nbsp;Claude Code to nasz port na modelu Claude. Jej wynik nie jest wynikiem narzędzia OpenAI, a&nbsp;wynik oryginału to tylko odmowa na naszym koncie, bez dostępu Daybreak.</li>}
+          {HINOKI.length > 0 && <li>Wyniku Hinoki nie da się porównać wprost z&nbsp;resztą: jako jedyny mógł szukać w&nbsp;internecie, a&nbsp;my nie widzimy, czy to zrobił.</li>}
           <li>Skill dopisał swój katalog <code>.security-audit</code> do <code>.gitignore</code>. Kodu modułu nie zmienił żaden przebieg.</li>
           <li>Pozostałe benchmarki modeli i&nbsp;agentów są na stronie <a href="/benchmarks">Benchmarki</a>.</li>
         </ul>

@@ -1,5 +1,5 @@
 {
- "generated_from": "results.jsonl of the security-compare-video runs, 11 Nov 2026; unmatched findings are counts only",
+ "generated_from": "results.jsonl of the security-compare-video runs, 11-17 Nov 2026; unmatched findings are counts only",
  "runs": [
   {
    "run_id": "skill-mix@1.5.1",
@@ -203,6 +203,25 @@
    "isolation": "ok",
    "refusals": 0,
    "date": "2026-11-13"
+  },
+  {
+   "run_id": "plain-hinoki@1.5.1",
+   "contender": "plain-hinoki",
+   "setup": "hinoki",
+   "model": "hinoki/hinoki-offensive",
+   "auditor_model": "hinoki/hinoki-offensive",
+   "version": "1.5.1",
+   "found": 2,
+   "decoy_fp": 0,
+   "minutes": 34.6,
+   "cost_usd": 2.43,
+   "cost_approx": true,
+   "reported": 9,
+   "rejected_by_verifier": 0,
+   "known_extras": 0,
+   "outside_key": 7,
+   "isolation": "ok",
+   "date": "2026-11-17"
   }
  ],
  "hits": [
@@ -525,6 +544,46 @@
    "advisory": "273",
    "contender": "csport-fable",
    "found": 1
+  },
+  {
+   "advisory": "266",
+   "contender": "plain-hinoki",
+   "found": 0
+  },
+  {
+   "advisory": "267",
+   "contender": "plain-hinoki",
+   "found": 1
+  },
+  {
+   "advisory": "268",
+   "contender": "plain-hinoki",
+   "found": 1
+  },
+  {
+   "advisory": "269",
+   "contender": "plain-hinoki",
+   "found": 0
+  },
+  {
+   "advisory": "270",
+   "contender": "plain-hinoki",
+   "found": 0
+  },
+  {
+   "advisory": "271",
+   "contender": "plain-hinoki",
+   "found": 0
+  },
+  {
+   "advisory": "272",
+   "contender": "plain-hinoki",
+   "found": 0
+  },
+  {
+   "advisory": "273",
+   "contender": "plain-hinoki",
+   "found": 0
   }
  ],
  "refused": [

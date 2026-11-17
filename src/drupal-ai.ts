@@ -24,7 +24,16 @@ const PORT_ALL = [
   { id: "csport-fable", name: "Claude Fable 5.2", setup: "metoda Codex Security przeniesiona do Claude Code" },
 ] as const;
 export const PORT = PORT_ALL.filter((c) => DATA.runs.some((r) => r.contender === c.id));
-export const ALL = [...CONTENDERS, ...CF, ...PORT];
+// Hinoki Offensive One in OpenCode: another model and agent, so also outside best/worst/ratio. Its cost is approximate
+// (OpenCode does not know Hinoki's prices: tokens times the provider's price list).
+const HINOKI_ALL = [
+  { id: "plain-hinoki", name: "Hinoki Offensive One", setup: "sam model, ten sam prompt", tool: "OpenCode" },
+  { id: "skill-hinoki", name: "Hinoki Offensive One", setup: "skill /security-audit, wszyscy agenci Hinoki", tool: "OpenCode" },
+] as const;
+export const HINOKI = HINOKI_ALL.filter((c) => DATA.runs.some((r) => r.contender === c.id));
+export const ALL = [...CONTENDERS, ...CF, ...PORT, ...HINOKI];
+export const agentOf = (c: (typeof ALL)[number]) => ("tool" in c ? c.tool : "Claude Code");
+export const HINOKI_PRICES = "0,80 / 0,08 / 1,20 USD za milion tokenów wejścia / z cache / wyjścia";
 // Runs stopped before any result (no score): OpenAI's own Codex Security, refused by its cybersecurity filter.
 export const REFUSED = DATA.refused ?? [];
 export const CS_REPO = "https://github.com/openai/codex-security";
@@ -63,3 +72,4 @@ export const nobody = ADVISORIES.filter(([n]) => !ALL.some((c) => hit(c.id, n)))
 
 export const pl = (n: number, d = 0) => n.toLocaleString("pl-PL", { minimumFractionDigits: d, maximumFractionDigits: d });
 export const usd = (n: number) => `${pl(n, 2)} USD`;
+export const cost = (r: Run) => `${"cost_approx" in r && r.cost_approx ? "~" : ""}${usd(r.cost_usd)}`;
